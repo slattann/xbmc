@@ -47,6 +47,7 @@ public:
   bool ResizeWindow(int newWidth, int newHeight, int newLeft, int newTop) override;
   bool SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool blankOtherDisplays) override;
   void UpdateResolutions() override;
+  bool CanDoWindowed() override { return false; }
   int  GetNumScreens() override { return 1; }
   int  GetCurrentScreen() override { return m_nScreen; }
   void ShowOSMouse(bool show) override;
