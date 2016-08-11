@@ -32,6 +32,7 @@
 #include "cores/AudioEngine/AEFactory.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "cores/VideoPlayer/VideoRenderers/BaseRenderer.h"
+#include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodec.h"
 #include "filesystem/File.h"
 #include "guilib/GraphicContext.h"
 #include "guilib/GUIAudioManager.h"
@@ -914,6 +915,14 @@ void CSettings::InitializeDefaults()
 
   if (g_application.IsStandAlone())
     ((CSettingInt*)m_settingsManager->GetSetting(CSettings::SETTING_POWERMANAGEMENT_SHUTDOWNSTATE))->SetDefault(POWERSTATE_SHUTDOWN);
+
+#if ((defined(HAVE_LIBVA) || defined(HAVE_LIBVDPAU)))
+  bool isIntel = CDVDVideoCodec::IsIntel();
+  // Intel driver is operating in passthrough mode so use limited range by default
+  ((CSettingBool*)GetSetting(CSettings::SETTING_VIDEOSCREEN_LIMITEDRANGE))->SetDefault(isIntel);
+  ((CSettingBool*)GetSetting(CSettings::SETTING_VIDEOPLAYER_USEVAAPI))->SetDefault(isIntel);
+  ((CSettingBool*)GetSetting(CSettings::SETTING_VIDEOPLAYER_USEVDPAU))->SetDefault(!isIntel);
+#endif
 }
 
 void CSettings::InitializeOptionFillers()
