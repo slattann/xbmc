@@ -344,6 +344,13 @@ AddonVersion CAddon::GetDependencyVersion(const std::string &dependencyID) const
   return AddonVersion("0.0.0");
 }
 
+void CallOEWrapper(const std::string& ID, bool disable)
+{
+  char cmd[255];
+  snprintf(cmd, sizeof(cmd), "/usr/lib/libreelec/systemd-addon-wrapper %s %d", ID.c_str(), disable);
+  system(cmd);
+}
+
 void OnEnabled(const std::string& id)
 {
   // If the addon is a special, call enabled handler
@@ -352,6 +359,11 @@ void OnEnabled(const std::string& id)
       CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_ADSPDLL) ||
       CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_PERIPHERALDLL))
     return addon->OnEnabled();
+
+  // OE: systemctl enable & start on addon enable
+  if (CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_SERVICE))
+    CallOEWrapper(addon->ID(), false);
+  // OE
 
   if (CAddonMgr::GetInstance().ServicesHasStarted())
   {
@@ -377,6 +389,11 @@ void OnDisabled(const std::string& id)
     if (CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_SERVICE, false))
       std::static_pointer_cast<CService>(addon)->Stop();
   }
+
+  // OE: systemctl stop & disable on addon disable
+  if (CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_SERVICE, false))
+    CallOEWrapper(addon->ID(), true);
+  // OE
 
   if (CAddonMgr::GetInstance().GetAddon(id, addon, ADDON_CONTEXT_ITEM, false))
     CContextMenuManager::GetInstance().Unload(*std::static_pointer_cast<CContextMenuAddon>(addon));
@@ -405,6 +422,15 @@ void OnPreInstall(const AddonPtr& addon)
 void OnPostInstall(const AddonPtr& addon, bool update, bool modal)
 {
   AddonPtr localAddon;
+
+  // OE: systemctl stop & disable / enable & start on addon upgrade
+  if (CAddonMgr::GetInstance().GetAddon(addon->ID(), localAddon, ADDON_SERVICE))
+  {
+    CallOEWrapper(addon->ID(), true);
+    CallOEWrapper(addon->ID(), false);
+  }
+  // OE
+
   if (CAddonMgr::GetInstance().ServicesHasStarted())
   {
     if (CAddonMgr::GetInstance().GetAddon(addon->ID(), localAddon, ADDON_SERVICE))
@@ -442,6 +468,11 @@ void OnPostInstall(const AddonPtr& addon, bool update, bool modal)
 void OnPreUnInstall(const AddonPtr& addon)
 {
   AddonPtr localAddon;
+
+  // OE: systemctl stop & disable on addon uninstall
+  if (CAddonMgr::GetInstance().GetAddon(addon->ID(), localAddon, ADDON_SERVICE))
+    CallOEWrapper(addon->ID(), true);
+  // OE
 
   if (CAddonMgr::GetInstance().ServicesHasStarted())
   {

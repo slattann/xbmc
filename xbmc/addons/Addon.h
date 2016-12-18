@@ -121,6 +121,8 @@ public:
   const InfoMap& ExtraInfo() const override { return m_props.extrainfo; }
   const ADDONDEPS& GetDeps() const override { return m_props.dependencies; }
 
+  void CallOEWrapper(const std::string& ID, bool disable);
+
   /*! \brief Check whether the this addon can be configured or not
    \return true if the addon has settings, false otherwise
    \sa LoadSettings, LoadUserSettings, SaveSettings, HasUserSettings, GetSetting, UpdateSetting
