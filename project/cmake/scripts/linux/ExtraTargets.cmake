@@ -5,8 +5,3 @@ if(ENABLE_X11 AND X_FOUND AND XRANDR_FOUND)
   add_executable(${APP_NAME_LC}-xrandr ${CORE_SOURCE_DIR}/xbmc-xrandr.c)
   target_link_libraries(${APP_NAME_LC}-xrandr ${SYSTEM_LDFLAGS} ${X_LIBRARIES} m ${XRANDR_LIBRARIES})
 endif()
-
-# WiiRemote
-if(ENABLE_EVENTCLIENTS)
-  add_subdirectory(${CORE_SOURCE_DIR}/tools/EventClients/Clients/WiiRemote build/WiiRemote)
-endif()
