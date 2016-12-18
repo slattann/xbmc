@@ -281,10 +281,6 @@ foreach(skin ${SKINS})
   copy_skin_to_buildtree(${dir} ${relative})
 endforeach()
 
-add_custom_target(pack-skins ALL
-                  DEPENDS TexturePacker::TexturePacker export-files ${XBT_FILES})
-set_target_properties(pack-skins PROPERTIES FOLDER "Build Utilities")
-
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/system/players/VideoPlayer)
 
 set(LIBCEC_SONAME "${CEC_SONAME}")
@@ -328,7 +324,7 @@ else()
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
   add_library(${APP_NAME_LC} SHARED ${CORE_MAIN_SOURCE} "${RESOURCES}" ${OTHER_FILES})
 endif()
-add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files pack-skins)
+add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files)
 whole_archive(_MAIN_LIBRARIES ${core_DEPENDS})
 target_link_libraries(${APP_NAME_LC} ${_MAIN_LIBRARIES} lib${APP_NAME_LC} ${DEPLIBS})
 unset(_MAIN_LIBRARIES)
