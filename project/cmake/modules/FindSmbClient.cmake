@@ -14,7 +14,7 @@
 #
 #   SmbClient::SmbClient   - The SmbClient library
 
-if(PKGCONFIG_FOUND)
+if(PKG_CONFIG_FOUND)
   pkg_check_modules(PC_SMBCLIENT smbclient QUIET)
 endif()
 
@@ -23,15 +23,35 @@ find_path(SMBCLIENT_INCLUDE_DIR NAMES libsmbclient.h
 find_library(SMBCLIENT_LIBRARY NAMES smbclient
                                PATHS ${PC_SMBCLIENT_LIBDIR})
 
+# check if smbclient libs are statically linked
+set(SMBCLIENT_LIB_TYPE SHARED)
+if(PC_SMBCLIENT_STATIC_LDFLAGS)
+  set(SMBCLIENT_LDFLAGS ${PC_SMBCLIENT_STATIC_LDFLAGS} CACHE STRING "smbclient linker flags" FORCE)
+  set(SMBCLIENT_LIB_TYPE STATIC)
+#  string(REGEX REPLACE ";" " " SMBCLIENT_STATIC_LIBRARIES ${PC_SMBCLIENTS_STATIC_LIBRARIES})
+#  foreach(_smblib IN LISTS ${SMBCLIENT_STATIC_LIBRARIES})
+#    string(TOUPPER ${_smblib}_LIBRARY SMBCLIENT_STATIC_LIBRARIES)
+#    find_library(${SMBCLIENT_STATIC_LIBRARIES} ${_smblib})
+#  endforeach()
+
+  find_library(TALLOC_LIBRARY talloc)
+  find_library(TDB_LIBRARY tdb)
+  find_library(TEVENT_LIBRARY tevent)
+  find_library(WBCLIENT_LIBRARY wbclient)
+  find_library(RESOLV_LIBRARY resolv)
+
+endif()
+
 set(SMBCLIENT_VERSION ${PC_SMBCLIENT_VERSION})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SmbClient
                                   REQUIRED_VARS SMBCLIENT_LIBRARY SMBCLIENT_INCLUDE_DIR
+                                  TALLOC_LIBRARY TDB_LIBRARY TEVENT_LIBRARY WBCLIENT_LIBRARY RESOLV_LIBRARY
                                   VERSION_VAR SMBCLIENT_VERSION)
 
 if(SMBCLIENT_FOUND)
-  set(SMBCLIENT_LIBRARIES ${SMBCLIENT_LIBRARY})
+  set(SMBCLIENT_LIBRARIES ${SMBCLIENT_LIBRARY} ${TALLOC_LIBRARY} ${TDB_LIBRARY} ${TEVENT_LIBRARY} ${WBCLIENT_LIBRARY} ${RESOLV_LIBRARY})
   set(SMBCLIENT_INCLUDE_DIRS ${SMBCLIENT_INCLUDE_DIR})
   set(SMBCLIENT_DEFINITIONS -DHAVE_LIBSMBCLIENT=1)
 
