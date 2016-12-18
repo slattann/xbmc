@@ -271,16 +271,6 @@ set_target_properties(gtest PROPERTIES FOLDER "External Projects")
 copy_files_from_filelist_to_buildtree(${PROJECT_SOURCE_DIR}/installdata/common/*.txt
                                       ${PROJECT_SOURCE_DIR}/installdata/${CORE_SYSTEM_NAME}/*.txt)
 
-list(APPEND SKINS "${CORE_SOURCE_DIR}/addons/skin.estuary\;${CORE_SOURCE_DIR}")
-list(APPEND SKINS "${CORE_SOURCE_DIR}/addons/skin.estouchy\;${CORE_SOURCE_DIR}")
-
-# These are skins that are copied into place from the source tree
-foreach(skin ${SKINS})
-  list(GET skin 0 dir)
-  list(GET skin 1 relative)
-  copy_skin_to_buildtree(${dir} ${relative})
-endforeach()
-
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/system/players/VideoPlayer)
 
 set(LIBCEC_SONAME "${CEC_SONAME}")

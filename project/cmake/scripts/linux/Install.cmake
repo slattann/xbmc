@@ -312,15 +312,6 @@ install(FILES ${CORE_SOURCE_DIR}/xbmc/addons/kodi-addon-dev-kit/include/kodi/kod
         DESTINATION ${includedir}/${APP_NAME_LC}
         COMPONENT kodi-peripheral-dev)
 
-# Install XBT skin files
-foreach(texture ${XBT_FILES})
-  string(REPLACE "${CMAKE_BINARY_DIR}/" "" dir ${texture})
-  get_filename_component(dir ${dir} DIRECTORY)
-  install(FILES ${texture}
-          DESTINATION ${datarootdir}/${APP_NAME_LC}/${dir}
-          COMPONENT kodi)
-endforeach()
-
 # Install extra stuff if it exists
 if(EXISTS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs)
   install(CODE "file(STRINGS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/extra-installs dirs)
