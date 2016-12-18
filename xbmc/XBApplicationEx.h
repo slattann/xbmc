@@ -42,6 +42,7 @@ public:
   // Variables for timing
   bool m_bStop;
   int  m_ExitCode;
+  bool m_ExitCodeSet;
   bool m_AppFocused;
   bool m_renderGUI;
 

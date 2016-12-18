@@ -41,12 +41,27 @@
 #include "input/linux/LIRC.h"
 #endif
 #include "platform/XbmcContext.h"
+#include "Application.h"
+
+void xbmc_term_handler(int signum)
+{
+  CLog::Log(LOGINFO, "Received SIGTERM...");
+  if (!g_application.m_ExitCodeSet)
+    g_application.SetExitCode(EXITCODE_RESTARTAPP);
+  g_application.Stop(EXITCODE_RESTARTAPP);
+}
 
 #ifdef __cplusplus
 extern "C"
 #endif
 int main(int argc, char* argv[])
 {
+  // SIGTERM handler
+  struct sigaction action;
+  memset(&action, 0, sizeof(struct sigaction));
+  action.sa_handler = xbmc_term_handler;
+  sigaction(SIGTERM, &action, NULL);
+
   // set up some xbmc specific relationships
   XBMC::Context context;
 
