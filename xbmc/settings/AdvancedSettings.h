@@ -137,6 +137,8 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     static void SettingOptionsLoggingComponentsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
 
     int m_audioHeadRoom;
+    // OpenELEC workaround for minimum sample Rate
+    int m_minimumSampleRate;
     float m_ac3Gain;
     std::string m_audioDefaultPlayer;
     float m_audioPlayCountMinimumPercent;
