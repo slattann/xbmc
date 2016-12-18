@@ -16,8 +16,6 @@ find_path(PYTHON_INCLUDE_DIR NAMES Python.h PATHS ${PC_PYTHON_INCLUDE_DIRS} ${DE
 if(CMAKE_CROSSCOMPILING)
   find_library(FFI_LIBRARY ffi REQUIRED)
   find_library(EXPAT_LIBRARY expat REQUIRED)
-  find_library(INTL_LIBRARY intl REQUIRED)
-  find_library(GMP_LIBRARY gmp REQUIRED)
 
   if(NOT CORE_SYSTEM_NAME STREQUAL android)
     set(PYTHON_DEP_LIBRARIES pthread dl util)
