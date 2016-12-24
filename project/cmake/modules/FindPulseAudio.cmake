@@ -29,8 +29,10 @@ find_path(PULSEAUDIO_INCLUDE_DIR NAMES pulse/pulseaudio.h
 find_library(PULSEAUDIO_LIBRARY NAMES pulse libpulse
                                 PATHS ${PC_PULSEAUDIO_LIBDIR} ${PC_PULSEAUDIO_LIBRARY_DIRS})
 
-find_library(PULSEAUDIO_MAINLOOP_LIBRARY NAMES pulse-mainloop pulse-mainloop-glib libpulse-mainloop-glib
-                                         PATHS ${PC_PULSEAUDIO_LIBDIR} ${PC_PULSEAUDIO_LIBRARY_DIRS})
+if(PC_PULSEAUDIO_MAINLOOP)
+  find_library(PULSEAUDIO_MAINLOOP_LIBRARY NAMES pulse-mainloop pulse-mainloop-glib libpulse-mainloop-glib
+                                           PATHS ${PC_PULSEAUDIO_LIBDIR} ${PC_PULSEAUDIO_LIBRARY_DIRS})
+endif()
 
 if(PC_PULSEAUDIO_VERSION)
   set(PULSEAUDIO_VERSION_STRING ${PC_PULSEAUDIO_VERSION})
@@ -41,20 +43,34 @@ elseif(PULSEAUDIO_INCLUDE_DIR AND EXISTS "${PULSEAUDIO_INCLUDE_DIR}/pulse/versio
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(PulseAudio
-                                  REQUIRED_VARS PULSEAUDIO_LIBRARY PULSEAUDIO_MAINLOOP_LIBRARY PULSEAUDIO_INCLUDE_DIR
-                                  VERSION_VAR PULSEAUDIO_VERSION_STRING)
+
+if(PC_PULSEAUDIO_MAINLOOP)
+  find_package_handle_standard_args(PulseAudio
+                                    REQUIRED_VARS PULSEAUDIO_LIBRARY PULSEAUDIO_MAINLOOP_LIBRARY PULSEAUDIO_INCLUDE_DIR
+                                    VERSION_VAR PULSEAUDIO_VERSION_STRING)
+else()
+ find_package_handle_standard_args(PulseAudio
+                                    REQUIRED_VARS PULSEAUDIO_LIBRARY PULSEAUDIO_INCLUDE_DIR
+                                    VERSION_VAR PULSEAUDIO_VERSION_STRING)
+endif()
 
 if(PULSEAUDIO_FOUND)
   set(PULSEAUDIO_INCLUDE_DIRS ${PULSEAUDIO_INCLUDE_DIR})
-  set(PULSEAUDIO_LIBRARIES ${PULSEAUDIO_LIBRARY} ${PULSEAUDIO_MAINLOOP_LIBRARY})
+  if(PC_PULSEAUDIO_MAINLOOP)
+    set(PULSEAUDIO_LIBRARIES ${PULSEAUDIO_LIBRARY} ${PULSEAUDIO_MAINLOOP_LIBRARY})
+  else()
+    set(PULSEAUDIO_LIBRARIES ${PULSEAUDIO_LIBRARY})
+  endif()
   set(PULSEAUDIO_DEFINITIONS -DHAVE_LIBPULSE=1)
 
-  if(NOT TARGET PulseAudio::PulseAudioMainloop)
-    add_library(PulseAudio::PulseAudioMainloop UNKNOWN IMPORTED)
-    set_target_properties(PulseAudio::PulseAudioMainloop PROPERTIES
-                                                         IMPORTED_LOCATION "${PULSEAUDIO_MAINLOOP_LIBRARY}")
+  if(PC_PULSEAUDIO_MAINLOOP)
+    if(NOT TARGET PulseAudio::PulseAudioMainloop)
+      add_library(PulseAudio::PulseAudioMainloop UNKNOWN IMPORTED)
+      set_target_properties(PulseAudio::PulseAudioMainloop PROPERTIES
+                                                           IMPORTED_LOCATION "${PULSEAUDIO_MAINLOOP_LIBRARY}")
+    endif()
   endif()
+
   if(NOT TARGET PulseAudio::PulseAudio)
     add_library(PulseAudio::PulseAudio UNKNOWN IMPORTED)
     set_target_properties(PulseAudio::PulseAudio PROPERTIES
@@ -65,4 +81,8 @@ if(PULSEAUDIO_FOUND)
   endif()
 endif()
 
-mark_as_advanced(PULSEAUDIO_INCLUDE_DIR PULSEAUDIO_LIBRARY PULSEAUDIO_MAINLOOP_LIBRARY)
+if(PC_PULSEAUDIO_MAINLOOP)
+  mark_as_advanced(PULSEAUDIO_INCLUDE_DIR PULSEAUDIO_LIBRARY PULSEAUDIO_MAINLOOP_LIBRARY)
+else()
+  mark_as_advanced(PULSEAUDIO_INCLUDE_DIR PULSEAUDIO_LIBRARY)
+endif()
