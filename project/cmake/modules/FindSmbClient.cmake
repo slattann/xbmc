@@ -14,7 +14,7 @@
 #
 #   SmbClient::SmbClient   - The SmbClient library
 
-if(PKGCONFIG_FOUND)
+if(PKG_CONFIG_FOUND)
   pkg_check_modules(PC_SMBCLIENT smbclient QUIET)
 endif()
 
@@ -22,6 +22,13 @@ find_path(SMBCLIENT_INCLUDE_DIR NAMES libsmbclient.h
                                 PATHS ${PC_SMBCLIENT_INCLUDEDIR})
 find_library(SMBCLIENT_LIBRARY NAMES smbclient
                                PATHS ${PC_SMBCLIENT_LIBDIR})
+
+# check if smbclient libs are statically linked
+set(SMBCLIENT_LIB_TYPE SHARED)
+if(PC_SMBCLIENT_STATIC_LDFLAGS)
+  set(SMBCLIENT_LDFLAGS ${PC_SMBCLIENT_STATIC_LDFLAGS} CACHE STRING "smbclient linker flags" FORCE)
+  set(SMBCLIENT_LIB_TYPE STATIC)
+endif()
 
 set(SMBCLIENT_VERSION ${PC_SMBCLIENT_VERSION})
 
@@ -31,7 +38,7 @@ find_package_handle_standard_args(SmbClient
                                   VERSION_VAR SMBCLIENT_VERSION)
 
 if(SMBCLIENT_FOUND)
-  set(SMBCLIENT_LIBRARIES ${SMBCLIENT_LIBRARY})
+  set(SMBCLIENT_LIBRARIES ${SMBCLIENT_LIBRARY} ${PC_SMBCLIENT_STATIC_LIBRARIES})
   set(SMBCLIENT_INCLUDE_DIRS ${SMBCLIENT_INCLUDE_DIR})
   set(SMBCLIENT_DEFINITIONS -DHAVE_LIBSMBCLIENT=1)
 
