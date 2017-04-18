@@ -1,6 +1,5 @@
-#pragma once
 /*
- *      Copyright (C) 2005-2014 Team XBMC
+ *      Copyright (C) 2005-2013 Team XBMC
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -19,24 +18,31 @@
  *
  */
 
-#if defined(TARGET_RASPBERRY_PI)
+#pragma once
 
-#include "windowing/VideoSync.h"
-#include "guilib/DispResource.h"
+#include "EGL/egl.h"
 
-class CVideoSyncPi : public CVideoSync, IDispResource
+class CGLContextEGL
 {
 public:
-  CVideoSyncPi(void *clock) : CVideoSync(clock) {};
-  virtual bool Setup(PUPDATECLOCK func);
-  virtual void Run(std::atomic<bool>& stop);
-  virtual void Cleanup();
-  virtual float GetFps();
-  virtual void OnResetDisplay();
-  virtual void RefreshChanged();
+  CGLContextEGL();
+  virtual ~CGLContextEGL();
 
-private:
-  volatile bool m_abort;
+  bool CreateDisplay(EGLDisplay display,
+                     EGLint renderable_type,
+                     EGLint rendering_api);
+
+  bool CreateSurface(EGLSurface surface);
+  bool CreateContext();
+  bool BindContext();
+  bool SurfaceAttrib();
+  void Destroy();
+  void Detach();
+  bool SetVSync(bool enable);
+  void SwapBuffers();
+
+  EGLDisplay m_eglDisplay;
+  EGLSurface m_eglSurface;
+  EGLContext m_eglContext;
+  EGLConfig m_eglConfig;
 };
-
-#endif
