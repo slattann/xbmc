@@ -81,7 +81,7 @@
 #include "filesystem/VideoDatabaseFile.h"
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
-#include "windowing/egl/VideoSyncAndroid.h"
+#include "windowing/android/VideoSyncAndroid.h"
 #include "windowing/WinEvents.h"
 #include "platform/xbmc.h"
 #include "platform/XbmcContext.h"
