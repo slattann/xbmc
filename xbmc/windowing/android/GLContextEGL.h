@@ -32,7 +32,7 @@ public:
                      EGLint renderable_type,
                      EGLint rendering_api);
 
-  bool CreateSurface(EGLSurface surface);
+  bool CreateSurface(EGLNativeWindowType surface);
   bool CreateContext();
   bool BindContext();
   bool SurfaceAttrib();

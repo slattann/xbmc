@@ -156,11 +156,11 @@ bool CGLContextEGL::SurfaceAttrib()
   return true;
 }
 
-bool CGLContextEGL::CreateSurface(EGLSurface surface)
+bool CGLContextEGL::CreateSurface(EGLNativeWindowType surface)
 {
   m_eglSurface = eglCreateWindowSurface(m_eglDisplay,
                                         m_eglConfig,
-					(EGLNativeWindowType)surface,
+					surface,
 					nullptr);
 
   if (m_eglSurface == EGL_NO_SURFACE)

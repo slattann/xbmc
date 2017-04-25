@@ -41,7 +41,7 @@ CWinSystemAndroid::CWinSystemAndroid()
   m_eWindowSystem = WINDOW_SYSTEM_ANDROID;
 
   m_nativeDisplay = EGL_NO_DISPLAY;
-  m_nativeWindow = EGL_NO_SURFACE;
+  m_nativeWindow = nullptr;
 
   m_displayWidth = 0;
   m_displayHeight = 0;
@@ -49,7 +49,7 @@ CWinSystemAndroid::CWinSystemAndroid()
   m_stereo_mode = RENDER_STEREO_MODE_OFF;
   m_delayDispReset = false;
 
-  m_android = new CAndroidUtils;
+  m_android = nullptr;
 }
 
 CWinSystemAndroid::~CWinSystemAndroid()
@@ -63,6 +63,8 @@ CWinSystemAndroid::~CWinSystemAndroid()
 bool CWinSystemAndroid::InitWindowSystem()
 {
   m_nativeDisplay = EGL_DEFAULT_DISPLAY;
+
+  m_android = new CAndroidUtils();
 
   return CWinSystemBase::InitWindowSystem();
 }

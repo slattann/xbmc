@@ -986,13 +986,13 @@ std::string CXBMCApp::GetFilenameFromIntent(const CJNIIntent &intent)
   return ret;
 }
 
-const ANativeWindow** CXBMCApp::GetNativeWindow(int timeout)
+ANativeWindow* CXBMCApp::GetNativeWindow(int timeout)
 {
   if (m_window)
-    return (const ANativeWindow**)&m_window;
+    return m_window;
 
   m_windowCreated.WaitMSec(timeout);
-  return (const ANativeWindow**)&m_window;
+  return m_window;
 }
 
 void CXBMCApp::RegisterInputDeviceCallbacks(IInputDeviceCallbacks* handler)

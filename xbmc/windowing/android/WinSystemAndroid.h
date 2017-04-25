@@ -57,7 +57,7 @@ protected:
   CAndroidUtils *m_android;
 
   EGLDisplay m_nativeDisplay;
-  EGLSurface m_nativeWindow;
+  EGLNativeWindowType m_nativeWindow;
 
   int m_displayWidth;
   int m_displayHeight;

@@ -200,11 +200,11 @@ CAndroidUtils::~CAndroidUtils()
 
 bool CAndroidUtils::GetNativeResolution(RESOLUTION_INFO *res) const
 {
-  EGLNativeWindowType *nativeWindow = (EGLNativeWindowType*)CXBMCApp::GetNativeWindow(30000);
+  EGLNativeWindowType nativeWindow = (EGLNativeWindowType)CXBMCApp::GetNativeWindow(30000);
   if (!nativeWindow)
     return false;
 
-  if (!*nativeWindow)
+  if (!nativeWindow)
     return false;
 
   if (s_hasModeApi)
@@ -215,10 +215,10 @@ bool CAndroidUtils::GetNativeResolution(RESOLUTION_INFO *res) const
 
   if (!m_width || !m_height)
   {
-    ANativeWindow_acquire(*nativeWindow);
-    res->iWidth = ANativeWindow_getWidth(*nativeWindow);
-    res->iHeight= ANativeWindow_getHeight(*nativeWindow);
-    ANativeWindow_release(*nativeWindow);
+    ANativeWindow_acquire(nativeWindow);
+    res->iWidth = ANativeWindow_getWidth(nativeWindow);
+    res->iHeight= ANativeWindow_getHeight(nativeWindow);
+    ANativeWindow_release(nativeWindow);
   }
   else
   {
