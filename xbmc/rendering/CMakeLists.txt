@@ -2,6 +2,12 @@ set(SOURCES RenderSystem.cpp)
 
 set(HEADERS RenderSystem.h)
 
+if(OPENGL_FOUND)
+  add_subdirectory(gl)
+elseif(OPENGLES_FOUND)
+  add_subdirectory(gles)
+endif()
+
 core_add_library(rendering)
 if(NOT CORE_SYSTEM_NAME STREQUAL windows)
   if(HAVE_SSE)

@@ -12,4 +12,12 @@ if((CORE_SYSTEM_NAME STREQUAL linux OR CORE_SYSTEM_NAME STREQUAL rbpi) AND NOT M
   list(APPEND HEADERS WinEventsLinux.h)
 endif()
 
+if(CORE_PLATFORM_NAME STREQUAL X11)
+  add_subdirectory(X11)
+elseif(CORE_PLATFORM_NAME STREQUAL MIR)
+  add_subdirectory(mir)
+elseif(CORE_PLATFORM_NAME STREQUAL AML)
+  add_subdirectory(amlogic)
+endif()
+
 core_add_library(windowing)
