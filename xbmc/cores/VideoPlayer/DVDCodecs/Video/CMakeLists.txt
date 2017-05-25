@@ -56,4 +56,11 @@ if(CORE_SYSTEM_NAME STREQUAL android)
   list(APPEND HEADERS DVDVideoCodecAndroidMediaCodec.h)
 endif()
 
+if(V4L2_FOUND)
+  list(APPEND SOURCES DVDVideoCodecV4L2.cpp
+                      V4L2Codec.cpp)
+  list(APPEND HEADERS DVDVideoCodecV4L2.h
+                      V4L2Codec.h)
+endif()
+
 core_add_library(dvdvideocodecs)
