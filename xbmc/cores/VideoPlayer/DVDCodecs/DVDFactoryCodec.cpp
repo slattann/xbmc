@@ -226,6 +226,16 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodecHW(CProcessInfo &processInfo)
 }
 #endif
 
+#if defined(HAS_V4L2)
+#define VP_VIDEOCODEC_HW
+#include "Video/DVDVideoCodecV4L2.h"
+CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodecHW(CProcessInfo &processInfo)
+{
+  CDVDVideoCodec* pCodec = new CDVDVideoCodecV4L2(processInfo);
+  return pCodec;
+}
+#endif
+
 #if !defined(VP_VIDEOCODEC_HW)
 CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodecHW(CProcessInfo &processInfo)
 {
