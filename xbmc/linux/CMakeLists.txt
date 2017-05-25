@@ -50,4 +50,9 @@ if(IMX_FOUND)
   add_subdirectory(imx)
 endif()
 
+if(V4L2_FOUND)
+  list(APPEND SOURCES V4L2.cpp)
+  list(APPEND HEADERS V4L2.h)
+endif()
+
 core_add_library(linuxsupport)
