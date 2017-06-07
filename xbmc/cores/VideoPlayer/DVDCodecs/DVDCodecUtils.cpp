@@ -277,19 +277,31 @@ VideoPicture* CDVDCodecUtils::ConvertToYUV422PackedPicture(VideoPicture *pSrc, E
 
 bool CDVDCodecUtils::CopyNV12Picture(YV12Image* pImage, VideoPicture *pSrc)
 {
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - start");
+
   uint8_t *s = pSrc->data[0];
   uint8_t *d = pImage->plane[0];
   int w = pSrc->iWidth;
   int h = pSrc->iHeight;
+
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - Y");
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - s: %d", s);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - d: %d", d);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - w: %d", w);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - h: %d", h);
+
   // Copy Y
   if ((w == pSrc->iLineSize[0]) && ((unsigned int) pSrc->iLineSize[0] == pImage->stride[0]))
   {
+    CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - copy y: memcpy(d, s, w*h)");
     memcpy(d, s, w*h);
   }
   else
   {
+    CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - copy y: memcpy(d, s, w)");
     for (int y = 0; y < h; y++)
     {
+      CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - %d", y);
       memcpy(d, s, w);
       s += pSrc->iLineSize[0];
       d += pImage->stride[0];
@@ -300,21 +312,32 @@ bool CDVDCodecUtils::CopyNV12Picture(YV12Image* pImage, VideoPicture *pSrc)
   d = pImage->plane[1];
   w = pSrc->iWidth;
   h = pSrc->iHeight >> 1;
+
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - UV");
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - s: %d", s);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - d: %d", d);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - w: %d", w);
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - h: %d", h);
+
   // Copy packed UV (width is same as for Y as it's both U and V components)
   if ((w==pSrc->iLineSize[1]) && ((unsigned int) pSrc->iLineSize[1]==pImage->stride[1]))
   {
+    CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - copy uv: memcpy(d, s, w*h)");
     memcpy(d, s, w*h);
   }
   else
   {
+    CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - copy uv: memcpy(d, s, w)");
     for (int y = 0; y < h; y++)
     {
+      CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - %d", y);
       memcpy(d, s, w);
       s += pSrc->iLineSize[1];
       d += pImage->stride[1];
     }
   }
 
+  CLog::Log(LOGDEBUG, "CDVDCodecUtils::CopyNV12Picture - stop");
   return true;
 }
 
