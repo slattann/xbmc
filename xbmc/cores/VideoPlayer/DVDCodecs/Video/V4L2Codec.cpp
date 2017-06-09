@@ -31,9 +31,9 @@
 V4L2Codec::V4L2Codec()
 {
   m_fd = nullptr;
-  m_bVideoConvert = false;
-  m_OutputBuffers = nullptr;
-  m_CaptureBuffers = nullptr;
+  m_iDequeuedToPresentBufferNumber = -1;
+  m_OutputType = -1;
+  m_CaptureType = -1;
 }
 
 V4L2Codec::~V4L2Codec()
@@ -43,32 +43,26 @@ V4L2Codec::~V4L2Codec()
 
 void V4L2Codec::CloseDecoder()
 {
-  if (m_fd != nullptr)
+  if (m_fd)
   {
     if (m_fd->g_fd() > 0)
     {
       CLog::Log(LOGDEBUG, "%s::%s - Freeing memory allocated for buffers", CLASSNAME, __func__);
-      if (m_OutputBuffers)
-      {
-        CV4L2::FreeBuffers(m_fd, m_OutputBuffers);
-        m_OutputBuffers = nullptr;
-      }
+      CV4L2::FreeBuffers(m_fd, &m_OutputBuffers);
+      memset(&(m_OutputBuffers), 0, sizeof (m_OutputBuffers));
 
-      if (m_CaptureBuffers)
-      {
-        CV4L2::FreeBuffers(m_fd, m_CaptureBuffers);
-        m_CaptureBuffers = nullptr;
-      }
+      CV4L2::FreeBuffers(m_fd, &m_CaptureBuffers);
+      memset(&(m_CaptureBuffers), 0, sizeof (m_CaptureBuffers));
 
       CLog::Log(LOGDEBUG, "%s::%s - Closing V4L2 device", CLASSNAME, __func__);
 
-      auto ret = m_fd->streamoff(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+      auto ret = m_fd->streamoff(m_OutputType);
       if (ret < 0)
       {
         CLog::Log(LOGDEBUG, "%s::%s - V4L2 OUTPUT Stream OFF", CLASSNAME, __func__);
       }
 
-      ret = m_fd->streamoff(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+      ret = m_fd->streamoff(m_CaptureType);
       if (ret < 0)
       {
         CLog::Log(LOGDEBUG, "%s::%s - V4L2 CAPTURE Stream OFF", CLASSNAME, __func__);
@@ -76,35 +70,61 @@ void V4L2Codec::CloseDecoder()
 
       m_fd->close();
     }
+
+    delete(m_fd);
+    m_fd = nullptr;
   }
 
-  delete(m_OutputBuffers);
-  m_OutputBuffers = nullptr;
-  delete(m_CaptureBuffers);
-  m_CaptureBuffers = nullptr;
-  delete(m_fd);
-  m_fd = nullptr;
+  m_iDequeuedToPresentBufferNumber = -1;
+
 }
 
 bool V4L2Codec::OpenDecoder()
 {
   CLog::Log(LOGDEBUG, "%s::%s - open", CLASSNAME, __func__);
 
-  char devname[] = "/dev/video1";
+  m_fd = new cv4l_fd();
 
-  m_fd = new cv4l_fd;
+  for (auto i = 0; i < 10; i++)
+  {
+    char devname[] = "/dev/video";
+    strcat(devname, std::to_string(i).c_str());
 
-  m_fd->open(devname, true);
+    m_fd->open(devname, true);
 
-  CLog::Log(LOGDEBUG, "%s::%s - m_fd->open", CLASSNAME, __func__);
+    struct v4l2_fmtdesc fmtdesc;
+    fmtdesc.index = 0;
+
+    int ret = 0;
+    bool found = false;
+
+    while (ret == 0)
+    {
+      ret = m_fd->enum_fmt(fmtdesc, true, fmtdesc.index); //, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+
+      if (fmtdesc.pixelformat == V4L2_PIX_FMT_NV12)
+      {
+        CLog::Log(LOGDEBUG, "found pixel format[%d]: %s", fmtdesc.index, fmtdesc.description);
+        found = true;
+        break;
+      }
+
+      fmtdesc.index++;
+    }
+
+    if (found)
+    {
+      CLog::Log(LOGDEBUG, "using device %s", devname);
+      break;
+    }
+
+    m_fd->close();
+  }
 
   if (m_fd->g_fd() > 0)
   {
-    CLog::Log(LOGDEBUG, "%s::%s - fd: %d", CLASSNAME, __func__, m_fd->g_fd());
-
     if ((m_fd->has_vid_m2m() || (m_fd->has_vid_cap() && m_fd->has_vid_out())) && m_fd->has_streaming())
     {
-      CLog::Log(LOGDEBUG, "%s::%s - driver supports m2m and streaming", CLASSNAME, __func__, m_fd->g_fd());
       v4l2_capability caps;
       m_fd->querycap(caps);
       CLog::Log(LOGDEBUG, "%s::%s - driver:       %s", CLASSNAME, __func__, caps.driver);
@@ -117,6 +137,14 @@ bool V4L2Codec::OpenDecoder()
     if (m_fd->has_vid_mplane())
     {
       CLog::Log(LOGDEBUG, "%s::%s - mplane device detected", CLASSNAME, __func__);
+      m_CaptureType = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+      m_OutputType = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+    }
+    else
+    {
+      CLog::Log(LOGDEBUG, "%s::%s - splane device detected", CLASSNAME, __func__);
+      m_CaptureType = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+      m_OutputType = V4L2_BUF_TYPE_VIDEO_OUTPUT;
     }
   }
 
@@ -131,6 +159,75 @@ bool V4L2Codec::OpenDecoder()
   }
 
   return false;
+}
+
+int V4L2Codec::AddData(uint8_t *pData, size_t size, double dts, double pts)
+{
+  timeval timestamp;
+  timestamp.tv_usec = pts;
+
+  int ret = -1;
+  int index = 0;
+
+  if (pData)
+  {
+    CLog::Log(LOGDEBUG, "%s::%s - total buffers: %d", CLASSNAME, __func__, m_OutputBuffers.g_buffers());
+    for (index = 0; index < GetOutputBuffersCount(); index++)
+    {
+      CLog::Log(LOGDEBUG, "%s::%s - trying buffer index: %d", CLASSNAME, __func__, index);
+      if (IsOutputBufferEmpty(index))
+      {
+        CLog::Log(LOGDEBUG, "%s::%s - using buffer index: %d", CLASSNAME, __func__, index);
+        break;
+      }
+    }
+
+    if (index == GetOutputBuffersCount())
+    {
+      CLog::Log(LOGDEBUG, "%s::%s - dequeuing buffer", CLASSNAME, __func__);
+      if (!DequeueOutputBuffer(&ret, &timestamp))
+      {
+        return -1;
+      }
+      index = ret;
+    }
+
+    CLog::Log(LOGDEBUG, "%s::%s - sending buffer index: %d", CLASSNAME, __func__, index);
+    if (!QueueOutputBuffer(index, pData, size, pts))
+    {
+      return -1;
+    }
+  }
+
+  if (m_iDequeuedToPresentBufferNumber >= 0)
+  {
+    CLog::Log(LOGDEBUG, "%s::%s - dequeued buffer to present buffer index: %d", CLASSNAME, __func__, m_iDequeuedToPresentBufferNumber);
+    if (!IsCaptureBufferQueued(m_iDequeuedToPresentBufferNumber))
+    {
+      CLog::Log(LOGDEBUG, "%s::%s - queuing capture buffer index: %d", CLASSNAME, __func__, m_iDequeuedToPresentBufferNumber);
+      if (!QueueCaptureBuffer(m_iDequeuedToPresentBufferNumber))
+      {
+        return -1;
+      }
+      m_iDequeuedToPresentBufferNumber = -1;
+    }
+  }
+
+  CLog::Log(LOGDEBUG, "%s::%s - dequeued decoded frame", CLASSNAME, __func__);
+  if (!DequeueCaptureBuffer(&ret, &timestamp))
+  {
+    return -1;
+  }
+  index = ret;
+
+  m_iDequeuedToPresentBufferNumber = index;
+
+  return index; // Picture is finally ready to be processed further
+}
+
+CDVDVideoCodec::VCReturn V4L2Codec::GetPicture(VideoPicture* pVideoPicture)
+{
+  return CDVDVideoCodec::VC_PICTURE;
 }
 
 bool V4L2Codec::SetupOutputFormat(CDVDStreamInfo &hints)
@@ -185,7 +282,7 @@ bool V4L2Codec::SetupOutputFormat(CDVDStreamInfo &hints)
       return false;
   }
 
-  fmt.s_type(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+  fmt.s_type(m_OutputType);
 
   auto ret = m_fd->s_fmt(fmt);
   if (ret < 0)
@@ -197,134 +294,18 @@ bool V4L2Codec::SetupOutputFormat(CDVDStreamInfo &hints)
   return true;
 }
 
-bool V4L2Codec::SetupCaptureBuffers()
-{
-  m_CaptureBuffers = new cv4l_queue;
-  if (!CV4L2::MmapBuffers(m_fd, V4L2_CAPTURE_BUFFERS_COUNT, m_CaptureBuffers, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE))
-  {
-    CLog::Log(LOGERROR, "%s::%s - cannot mmap memory for capture buffers: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-
-  CLog::Log(LOGDEBUG, "%s::%s - capture buffers successfully allocated", CLASSNAME, __func__);
-
-  auto ret = m_fd->streamon(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
-  if (ret < 0)
-  {
-    CLog::Log(LOGERROR, "%s::%s - capture VIDIOC_STREAMON failed: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-
-  CLog::Log(LOGDEBUG, "%s::%s - capture stream on", CLASSNAME, __func__);
-  return true;
-}
-
-cv4l_queue * V4L2Codec::GetCaptureBuffer() //int index)
-{
-  /*
-  cv4l_buffer buffer;
-  buffer.init(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, index);
-  return buffer;
-  */
-  //return m_CaptureBuffers != NULL && index < V4L2_CAPTURE_BUFFERS_COUNT ? &(m_CaptureBuffers[index]) : NULL;
-  return m_CaptureBuffers;
-}
-
-bool V4L2Codec::IsCaptureBufferQueued(int index)
-{
-  cv4l_buffer buffer;
-  m_fd->querybuf(buffer, index);
-  return true ? buffer.g_flags() & V4L2_BUF_FLAG_QUEUED : false;
-}
-
-bool V4L2Codec::SetCaptureFormat()
-{
-  cv4l_fmt fmt = {};
-  fmt.s_pixelformat(V4L2_PIX_FMT_NV12);
-  auto ret = m_fd->s_fmt(fmt);
-  if (ret < 0)
-  {
-    CLog::Log(LOGERROR, "%s::%s - capture VIDIOC_S_FMT failed: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-
-  CLog::Log(LOGDEBUG, "%s::%s - capture VIDIOC_S_FMT 0x%x",  CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat);
-  return true;
-}
-
 bool V4L2Codec::SetupOutputBuffers()
 {
-  m_OutputBuffers = new cv4l_queue;
-  auto ret = CV4L2::MmapBuffers(m_fd, V4L2_OUTPUT_BUFFERS_COUNT, m_OutputBuffers, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
-  if (!ret)
+  if (!CV4L2::MmapBuffers(m_fd, V4L2_OUTPUT_BUFFERS_COUNT, &m_OutputBuffers, m_OutputType))
   {
     CLog::Log(LOGERROR, "%s::%s - cannot mmap memory for output buffers: %s", CLASSNAME, __func__, strerror(errno));
     return false;
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - output buffers successfully allocated", CLASSNAME, __func__);
+  CLog::Log(LOGDEBUG, "%s::%s - output buffers %d of requested %d", CLASSNAME, __func__, m_OutputBuffers.g_buffers(), V4L2_OUTPUT_BUFFERS_COUNT);
 
-  return true;
-}
-
-cv4l_queue * V4L2Codec::GetOutputBuffer() //int index)
-{
-  /*
-  cv4l_buffer buffer;
-  buffer.init(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, index);
-  */
-  return m_OutputBuffers;
-}
-
-
-bool V4L2Codec::IsOutputBufferEmpty(int index)
-{
-  cv4l_buffer buffer;
-  m_fd->querybuf(buffer, index);
-  return (m_OutputBuffers != NULL && index < V4L2_OUTPUT_BUFFERS_COUNT ) ? buffer.g_flags() & V4L2_BUF_FLAG_QUEUED : false;
-}
-
-
-bool V4L2Codec::QueueHeader(CDVDStreamInfo &hints)
-{
-  unsigned int extraSize = 0;
-  uint8_t *extraData = NULL;
-
-  m_bVideoConvert = m_converter.Open(hints.codec, (uint8_t *)hints.extradata, hints.extrasize, true);
-  if (m_bVideoConvert)
-  {
-    if(m_converter.GetExtraData() != NULL && m_converter.GetExtraSize() > 0)
-    {
-      extraSize = m_converter.GetExtraSize();
-      extraData = m_converter.GetExtraData();
-    }
-  }
-  else
-  {
-    if(hints.extrasize > 0 && hints.extradata != NULL)
-    {
-      extraSize = hints.extrasize;
-      extraData = (uint8_t*)hints.extradata;
-    }
-  }
-
-  // Prepare header
-  cv4l_buffer buffer;
-  buffer.init(10, 1, 0);
-  buffer.s_bytesused(extraSize, 0);
-  // todo
-  memcpy((uint8_t *)m_OutputBuffers->g_mmapping(0, 0) , extraData, extraSize);
-  //m_fd->write(extraData, extraSize);
-
-  auto ret = CV4L2::QueueBuffer(m_fd, buffer);
-  if (ret < 0)
-  {
-    CLog::Log(LOGERROR, "%s::%s - error queuing header: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-  CLog::Log(LOGDEBUG, "%s::%s - %d header of size %d", CLASSNAME, __func__, ret, extraSize);
-
-  ret = m_fd->streamon(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
+  auto ret = m_fd->streamon(m_OutputType);
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - output VIDIOC_STREAMON failed: %s", CLASSNAME, __func__, strerror(errno));
@@ -335,24 +316,72 @@ bool V4L2Codec::QueueHeader(CDVDStreamInfo &hints)
   return true;
 }
 
-bool V4L2Codec::SendBuffer(int index, uint8_t* demuxer_content, int demuxer_bytes, double timestamp)
+bool V4L2Codec::SetupCaptureBuffers()
 {
-  if (m_bVideoConvert)
+  if (!CV4L2::MmapBuffers(m_fd, V4L2_CAPTURE_BUFFERS_COUNT, &m_CaptureBuffers, m_CaptureType))
   {
-    m_converter.Convert(demuxer_content, demuxer_bytes);
-    demuxer_bytes = m_converter.GetConvertSize();
-    demuxer_content = m_converter.GetConvertBuffer();
+    CLog::Log(LOGERROR, "%s::%s - cannot mmap memory for capture buffers: %s", CLASSNAME, __func__, strerror(errno));
+    return false;
   }
 
-  // todo
-  if (demuxer_bytes < m_OutputBuffers->g_mem_offset(0, 0))
+  CLog::Log(LOGDEBUG, "%s::%s - capture buffers successfully allocated", CLASSNAME, __func__);
+  CLog::Log(LOGDEBUG, "%s::%s - capture buffers %d of requested %d", CLASSNAME, __func__, m_CaptureBuffers.g_buffers(), V4L2_CAPTURE_BUFFERS_COUNT);
+
+  auto ret = m_fd->streamon(m_CaptureType);
+  if (ret < 0)
   {
-    memcpy((uint8_t *)m_OutputBuffers->g_mmapping(index, 0), demuxer_content, demuxer_bytes);
+    CLog::Log(LOGERROR, "%s::%s - capture VIDIOC_STREAMON failed: %s", CLASSNAME, __func__, strerror(errno));
+    return false;
+  }
+
+  CLog::Log(LOGDEBUG, "%s::%s - capture stream on", CLASSNAME, __func__);
+  return true;
+}
+
+cv4l_queue V4L2Codec::GetOutputBuffers()
+{
+  return m_OutputBuffers;
+}
+
+cv4l_queue V4L2Codec::GetCaptureBuffers()
+{
+  return m_CaptureBuffers;
+}
+
+cv4l_fd * V4L2Codec::GetFd()
+{
+  return m_fd;
+}
+
+bool V4L2Codec::IsOutputBufferEmpty(int index)
+{
+  cv4l_buffer buffer;
+  buffer.init(m_OutputBuffers);
+  m_fd->querybuf(buffer, index);
+  return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? false : true;
+}
+
+bool V4L2Codec::IsCaptureBufferQueued(int index)
+{
+  cv4l_buffer buffer;
+  buffer.init(m_CaptureBuffers);
+  m_fd->querybuf(buffer, index);
+  return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? true : false;
+}
+
+bool V4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double pts)
+{
+  if (size < m_OutputBuffers.g_length(0))
+  {
+    memcpy((uint8_t *)m_OutputBuffers.g_mmapping(index, 0), pData, size);
+    //m_OutputBuffers.s_mmapping(index, 0, pData);
 
     cv4l_buffer buffer;
-    buffer.init(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, index);
-    buffer.s_bytesused(demuxer_bytes, 0);
-    //buffer.s_timestamp(timestamp);
+    buffer.init(m_OutputBuffers, index);
+    buffer.s_bytesused(size, 0);
+    timeval timestamp;
+    timestamp.tv_usec = pts;
+    buffer.s_timestamp(timestamp);
 
     auto ret = CV4L2::QueueBuffer(m_fd, buffer);
     if (ret < 0)
@@ -370,12 +399,12 @@ bool V4L2Codec::SendBuffer(int index, uint8_t* demuxer_content, int demuxer_byte
   return true;
 }
 
-bool V4L2Codec::DequeueOutputBuffer(int *result, timeval timestamp)
+bool V4L2Codec::DequeueOutputBuffer(int *result, timeval *timestamp)
 {
-  auto ret = CV4L2::PollOutput(m_fd->g_fd(), 1000/3);
+  auto ret = CV4L2::PollInput(m_fd->g_fd(), -1);
   if (ret < 0)
   {
-    CLog::Log(LOGERROR, "%s::%s - poll output error %d: %s", CLASSNAME, __func__, ret, strerror(errno));
+    CLog::Log(LOGERROR, "%s::%s - poll capture error %d: %s", CLASSNAME, __func__, ret, strerror(errno));
     *result = -1; //CDVDVideoCodec::VC_ERROR;
     return false;
   }
@@ -387,9 +416,9 @@ bool V4L2Codec::DequeueOutputBuffer(int *result, timeval timestamp)
   }
   else if (ret > 1)
   {
-    cv4l_buffer buf;
-    buf.init(10, 1, 0);
-    int index = CV4L2::DequeueBuffer(m_fd, buf);//, timestamp);
+    cv4l_buffer buffer;
+    buffer.init(m_OutputBuffers);
+    int index = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
     if (index < 0)
     {
       CLog::Log(LOGERROR, "%s::%s - error dequeuing output buffer, got number %d: %s", CLASSNAME, __func__, index, strerror(errno));
@@ -405,7 +434,7 @@ bool V4L2Codec::DequeueOutputBuffer(int *result, timeval timestamp)
 bool V4L2Codec::QueueCaptureBuffer(int index)
 {
   cv4l_buffer buffer;
-  buffer.init(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, index);
+  buffer.init(m_CaptureBuffers, index);
   auto ret = CV4L2::QueueBuffer(m_fd, buffer);
   if (ret < 0)
   {
@@ -415,11 +444,11 @@ bool V4L2Codec::QueueCaptureBuffer(int index)
   return true;
 }
 
-bool V4L2Codec::DequeueDecodedFrame(int *result)//, timeval *timestamp)
+bool V4L2Codec::DequeueCaptureBuffer(int *result, timeval *timestamp)
 {
   cv4l_buffer buffer;
-  buffer.init(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP);
-  auto index = CV4L2::DequeueBuffer(m_fd, buffer); //, &timestamp);
+  buffer.init(m_CaptureBuffers);
+  auto index = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
   if (index < 0)
   {
     if (errno == EAGAIN)

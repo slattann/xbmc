@@ -28,26 +28,34 @@
 
 CDVDVideoCodecV4L2::CDVDVideoCodecV4L2(CProcessInfo &processInfo) : CDVDVideoCodec(processInfo)
 {
-  m_Codec = new V4L2Codec();
-
-  m_iDequeuedToPresentBufferNumber = -1;
+  m_Codec = nullptr;
+  m_bitstream = nullptr;
+  b_ConvertVideo = false;
 }
 
 CDVDVideoCodecV4L2::~CDVDVideoCodecV4L2()
 {
   Dispose();
-  delete m_Codec;
 }
 
 void CDVDVideoCodecV4L2::Dispose()
 {
-  m_iDequeuedToPresentBufferNumber = -1;
   memset(&(m_videoBuffer), 0, sizeof (m_videoBuffer));
 
-  if (m_Codec != nullptr)
+  if (m_Codec)
   {
     m_Codec->CloseDecoder();
+    delete m_Codec;
+    m_Codec = nullptr;
   }
+
+  if (m_bitstream)
+  {
+    delete m_bitstream;
+    m_bitstream = nullptr;
+  }
+
+  b_ConvertVideo = false;
 }
 
 bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
@@ -55,6 +63,8 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   m_hints = hints;
 
   Dispose();
+
+  m_Codec = new V4L2Codec();
 
   if (!m_Codec->OpenDecoder())
   {
@@ -68,16 +78,6 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   }
 
   if (!m_Codec->SetupOutputBuffers())
-  {
-    return false;
-  }
-
-  if (!m_Codec->QueueHeader(hints))
-  {
-    return false;
-  }
-
-  if (!m_Codec->SetCaptureFormat())
   {
     return false;
   }
@@ -122,96 +122,75 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   m_videoBuffer.pts = DVD_NOPTS_VALUE;
   m_videoBuffer.dts = DVD_NOPTS_VALUE;
 
-  m_processInfo.SetVideoDecoderName("v4l2", true);
-  m_processInfo.SetVideoPixelFormat("nv12");
+  m_processInfo.SetVideoDecoderName(m_Codec->GetOutputName(), true);
+  //m_processInfo.SetVideoPixelFormat("nv12");
   m_processInfo.SetVideoDimensions(m_hints.width, m_hints.height);
   m_processInfo.SetVideoDeintMethod("hardware");
   m_processInfo.SetVideoDAR(m_hints.aspect);
+
+  m_bitstream = new CBitstreamConverter();
+  b_ConvertVideo = m_bitstream->Open(m_hints.codec, (uint8_t*)m_hints.extradata, m_hints.extrasize, true);
 
   return true;
 }
 
 bool CDVDVideoCodecV4L2::AddData(const DemuxPacket &packet)
 {
-  // Handle Input, add demuxer packet to input queue, we must accept it or
-  // it will be discarded as VideoPlayerVideo has no concept of "try again".
-
   uint8_t *pData(packet.pData);
   int iSize(packet.iSize);
 
-  timeval timestamp;
-
-  /*
-  long* pts = (long*)&buffer->timestamp;
-  buf.timestamp.tv_sec = pts[0];
-  buf.timestamp.tv_usec = pts[1];
-
-  long pts[2] = { buf.timestamp.tv_sec, buf.timestamp.tv_usec };
-  *dequeuedTimestamp = *((double*)&pts[0]);
-
-  timestamp.tv_sec = packet.pts[0];
-  timestamp.tv_usec = packet.pts[0];
-  */
-
-  int ret = -1;
-  size_t index = 0;
-  //double dequeuedTimestamp;
-
   if (pData)
   {
-    // Find buffer ready to be filled
-    for (index = 0; index < m_Codec->GetOutputBuffersCount(); index++)
+    if (b_ConvertVideo)
     {
-      if (m_Codec->IsOutputBufferEmpty(index))
+      if(m_bitstream->GetExtraData() != NULL && m_bitstream->GetExtraSize() > 0)
       {
-        break;
+        m_hints.extrasize = m_bitstream->GetExtraSize();
+        m_hints.extradata = m_bitstream->GetExtraData();
       }
+
+      if (!m_bitstream->Convert(pData, iSize))
+      {
+        return true;
+      }
+
+      if (!m_bitstream->CanStartDecode())
+      {
+        CLog::Log(LOGDEBUG, "%s::%s - Decode waiting for keyframe (bitstream)", CLASSNAME, __func__);
+        return true;
+      }
+
+      pData = m_bitstream->GetConvertBuffer();
+      iSize = m_bitstream->GetConvertSize();
     }
 
-    if (index == m_Codec->GetOutputBuffersCount())
+    if (packet.pts == DVD_NOPTS_VALUE)
     {
-      // all input buffers are busy, dequeue needed
-      if (!m_Codec->DequeueOutputBuffer(&ret, timestamp))
-      {
-        return false;
-      }
-      index = ret;
-    }
-
-    if (!m_Codec->SendBuffer(index, pData, iSize, packet.pts))
-    {
-      return false;
+      m_hints.ptsinvalid = true;
     }
   }
 
-  if (m_iDequeuedToPresentBufferNumber >= 0)
+  CLog::Log(LOGDEBUG, "%s::%s - adding data", CLASSNAME, __func__);
+  int index = m_Codec->AddData(pData, iSize, packet.dts, m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts);
+  if (index >= 0)
   {
-    if (!m_Codec->IsCaptureBufferQueued(m_iDequeuedToPresentBufferNumber))
-    {
-      if (!m_Codec->QueueCaptureBuffer(m_iDequeuedToPresentBufferNumber))
-      {
-        return false;
-      }
-      m_iDequeuedToPresentBufferNumber = -1;
-    }
+    // todo: for debugging
+    //std::string bufferstr = Base64::Encode((char *) m_Codec->GetCaptureBuffers().g_mmapping(index, 0), m_videoBuffer.iWidth * m_videoBuffer.iHeight);
+    //CLog::Log(LOGERROR, "%s::%s - buffer: %s", CLASSNAME, __func__, bufferstr);
+
+    CLog::Log(LOGDEBUG, "%s::%s - saving to videobuffer", CLASSNAME, __func__);
+    m_videoBuffer.data[0] = (uint8_t*) m_Codec->GetCaptureBuffers().g_mmapping(index, 0);
+    m_videoBuffer.data[1] = m_videoBuffer.data[0] + (m_videoBuffer.iWidth * m_videoBuffer.iHeight);
+
+    cv4l_buffer buffer;
+    buffer.init(m_Codec->GetCaptureBuffers());
+    m_Codec->GetFd()->querybuf(buffer, index);
+    m_videoBuffer.pts = buffer.g_timestamp().tv_sec;
+
+    return true;
   }
 
-  if (!m_Codec->DequeueDecodedFrame(&ret))//, &timestamp))
-  {
-    return false;
-  }
-  index = ret;
-
-  m_videoBuffer.data[0] = (uint8_t*) m_Codec->GetCaptureBuffer()->g_mmapping(0, 0);
-  m_videoBuffer.data[1] = m_videoBuffer.data[0] + (m_videoBuffer.iWidth * m_videoBuffer.iHeight);
-  //m_videoBuffer.pts = m_Codec->GetCaptureBuffer()-> ->g_timestamp().tv_sec;
-
-  m_iDequeuedToPresentBufferNumber = index;
-
-  std::string bufferstr = Base64::Encode((char*)(m_videoBuffer.data[0]), m_videoBuffer.iWidth * m_videoBuffer.iHeight);
-  CLog::Log(LOGERROR, "%s::%s - buffer: %s", CLASSNAME, __func__, bufferstr);
-
-  return true; // Picture is finally ready to be processed further
+  return false;
 }
 
 void CDVDVideoCodecV4L2::Reset()
@@ -222,7 +201,14 @@ void CDVDVideoCodecV4L2::Reset()
 
 CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPicture)
 {
-  *pVideoPicture = m_videoBuffer;
-  return CDVDVideoCodec::VC_PICTURE;
-}
+  if (!m_Codec)
+  {
+    return VC_ERROR;
+  }
 
+  VCReturn retVal = m_Codec->GetPicture(&m_videoBuffer);
+
+  *pVideoPicture = m_videoBuffer;
+
+  return retVal;
+}

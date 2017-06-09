@@ -31,13 +31,12 @@ public:
   CV4L2();
   virtual ~CV4L2();
 
-  static bool        MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, enum v4l2_buf_type type);
+  static bool        MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type);
   static void        FreeBuffers(cv4l_fd *fd, cv4l_queue *buffers);
 
-  static int         DequeueBuffer(cv4l_fd *fd, cv4l_buffer buffer); //, timeval timestamp);
+  static int         DequeueBuffer(cv4l_fd *fd, cv4l_buffer buffer, timeval *timestamp);
   static int         QueueBuffer(cv4l_fd *fd, cv4l_buffer buffer);
 
   static int         PollInput(int device, int timeout);
   static int         PollOutput(int device, int timeout);
-  static int         SetControlValue(cv4l_fd *fd, int id, int value);
 };

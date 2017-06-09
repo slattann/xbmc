@@ -44,7 +44,8 @@ private:
 
   V4L2Codec *m_Codec;
 
-  int m_iDequeuedToPresentBufferNumber;
   CDVDStreamInfo m_hints;
   VideoPicture m_videoBuffer;
+  CBitstreamConverter *m_bitstream;
+  bool b_ConvertVideo;
 };

@@ -27,11 +27,6 @@
 #include "utils/log.h"
 #include "utils/BitstreamConverter.h"
 
-#define STREAM_BUFFER_SIZE              1048576 // compressed frame size. 1080p mpeg4 10Mb/s can be up to 786k in size, so this is to make sure frame fits into buffer
-						// for unknown reason, possibly firmware bug, if set to other values, it corrupts adjacent value in the setup data structure for h264 streams
-#define V4L2_OUTPUT_BUFFERS_CNT          2       // 1 doesn't work at all
-#define V4L2_CAPTURE_EXTRA_BUFFER_CNT    16      // these are extra buffers, better keep their count as big as going to be simultaneous dequeued buffers number
-
 class V4L2Codec
 {
 public:
@@ -40,31 +35,37 @@ public:
 
   bool OpenDecoder();
   void CloseDecoder();
-  void Reset();
 
-  bool SetupOutputFormat(CDVDStreamInfo &hints);
+  int AddData(uint8_t *pData, size_t size, double dts, double pts);
+  CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture);
+
   const char* GetOutputName() { return m_name.c_str(); };
-  bool SetupCaptureBuffers();
-  int GetCaptureBuffersCount() { return m_CaptureBuffers->g_buffers(); };
-  cv4l_queue* GetCaptureBuffer(); //int index);
-  cv4l_queue* GetOutputBuffer(); //int index);
-  bool SetCaptureFormat();
+  bool SetupOutputFormat(CDVDStreamInfo &hints);
+
   bool SetupOutputBuffers();
-  int  GetOutputBuffersCount()  { return m_OutputBuffers->g_buffers();  };
+  bool SetupCaptureBuffers();
+  int GetOutputBuffersCount()  { return m_OutputBuffers.g_buffers();  };
+  int GetCaptureBuffersCount() { return m_CaptureBuffers.g_buffers(); };
+
+  cv4l_queue GetOutputBuffers();
+  cv4l_queue GetCaptureBuffers();
+  cv4l_fd * GetFd();
+
   bool IsOutputBufferEmpty(int index);
   bool IsCaptureBufferQueued(int index);
 
-  bool QueueHeader(CDVDStreamInfo &hints);
-  bool SendBuffer(int index, uint8_t* demuxer_content, int demuxer_bytes, double timestamp);
-  bool DequeueOutputBuffer(int *result, timeval timestamp);
+  bool QueueOutputBuffer(int index, uint8_t* pData, int size, double pts);
+  bool DequeueOutputBuffer(int *result, timeval *timestamp);
   bool QueueCaptureBuffer(int index);
-  bool DequeueDecodedFrame(int *result);//, timeval timestamp);
+  bool DequeueCaptureBuffer(int *result, timeval *timestamp);
 
 private:
   cv4l_fd *m_fd;
   std::string m_name;
-  cv4l_queue *m_OutputBuffers;
-  cv4l_queue *m_CaptureBuffers;
-  bool m_bVideoConvert;
-  CBitstreamConverter m_converter;
+  cv4l_queue m_OutputBuffers;
+  cv4l_queue m_CaptureBuffers;
+
+  int m_iDequeuedToPresentBufferNumber;
+  int m_OutputType;
+  int m_CaptureType;
 };
