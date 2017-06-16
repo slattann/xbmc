@@ -161,72 +161,75 @@ bool V4L2Codec::OpenDecoder()
   return false;
 }
 
-int V4L2Codec::AddData(uint8_t *pData, size_t size, double dts, double pts)
+bool V4L2Codec::AddData(uint8_t *pData, size_t size, double dts, double pts)
 {
   timeval timestamp;
   timestamp.tv_usec = pts;
 
-  int ret = -1;
-  int index = 0;
+  CDVDVideoCodec::VCReturn ret = CDVDVideoCodec::VC_NONE;
+  int index;
 
   if (pData)
   {
-    CLog::Log(LOGDEBUG, "%s::%s - total buffers: %d", CLASSNAME, __func__, m_OutputBuffers.g_buffers());
     for (index = 0; index < GetOutputBuffersCount(); index++)
     {
-      CLog::Log(LOGDEBUG, "%s::%s - trying buffer index: %d", CLASSNAME, __func__, index);
       if (IsOutputBufferEmpty(index))
       {
-        CLog::Log(LOGDEBUG, "%s::%s - using buffer index: %d", CLASSNAME, __func__, index);
+        CLog::Log(LOGDEBUG, "%s::%s - using output buffer index: %d", CLASSNAME, __func__, index);
         break;
       }
     }
 
-    if (index == GetOutputBuffersCount())
-    {
-      CLog::Log(LOGDEBUG, "%s::%s - dequeuing buffer", CLASSNAME, __func__);
-      if (!DequeueOutputBuffer(&ret, &timestamp))
-      {
-        return -1;
-      }
-      index = ret;
-    }
-
-    CLog::Log(LOGDEBUG, "%s::%s - sending buffer index: %d", CLASSNAME, __func__, index);
+    CLog::Log(LOGDEBUG, "%s::%s - queuing output buffer index: %d", CLASSNAME, __func__, index);
     if (!QueueOutputBuffer(index, pData, size, pts))
     {
-      return -1;
+      return false;
     }
   }
 
-  if (m_iDequeuedToPresentBufferNumber >= 0)
+  CLog::Log(LOGDEBUG, "%s::%s - dequeuing buffer", CLASSNAME, __func__);
+  if (!DequeueOutputBuffer(&ret, &timestamp))
   {
-    CLog::Log(LOGDEBUG, "%s::%s - dequeued buffer to present buffer index: %d", CLASSNAME, __func__, m_iDequeuedToPresentBufferNumber);
-    if (!IsCaptureBufferQueued(m_iDequeuedToPresentBufferNumber))
-    {
-      CLog::Log(LOGDEBUG, "%s::%s - queuing capture buffer index: %d", CLASSNAME, __func__, m_iDequeuedToPresentBufferNumber);
-      if (!QueueCaptureBuffer(m_iDequeuedToPresentBufferNumber))
-      {
-        return -1;
-      }
-      m_iDequeuedToPresentBufferNumber = -1;
-    }
+    return false;
   }
 
-  CLog::Log(LOGDEBUG, "%s::%s - dequeued decoded frame", CLASSNAME, __func__);
-  if (!DequeueCaptureBuffer(&ret, &timestamp))
-  {
-    return -1;
-  }
-  index = ret;
-
-  m_iDequeuedToPresentBufferNumber = index;
-
-  return index; // Picture is finally ready to be processed further
+  return true; // Picture is finally ready to be processed further
 }
 
 CDVDVideoCodec::VCReturn V4L2Codec::GetPicture(VideoPicture* pVideoPicture)
 {
+  int index;
+  timeval timestamp;
+  CDVDVideoCodec::VCReturn ret = CDVDVideoCodec::VC_NONE;
+
+  for (index = 0; index < GetCaptureBuffersCount(); index++)
+  {
+    if (IsCaptureBufferEmpty(index))
+    {
+      CLog::Log(LOGDEBUG, "%s::%s - using capture buffer index: %d", CLASSNAME, __func__, index);
+      break;
+    }
+  }
+
+  CLog::Log(LOGDEBUG, "%s::%s - queuing capture buffer index: %d", CLASSNAME, __func__, index);
+  if (!QueueCaptureBuffer(index))
+  {
+    return false;
+  }
+
+  CLog::Log(LOGDEBUG, "%s::%s - saving to videobuffer", CLASSNAME, __func__);
+  pVideoPicture->data[0] = (uint8_t*) m_CaptureBuffers.g_mmapping(index, 0);
+  pVideoPicture->data[1] = pVideoPicture->data[0] + (pVideoPicture->iWidth * pVideoPicture->iHeight);
+
+  CLog::Log(LOGDEBUG, "%s::%s - dequeued decoded frame", CLASSNAME, __func__);
+  if (!DequeueCaptureBuffer(&ret, &timestamp))
+  {
+    return ret;
+  }
+
+  pVideoPicture->pts = timestamp.tv_sec;
+
+
   return CDVDVideoCodec::VC_PICTURE;
 }
 
@@ -361,12 +364,12 @@ bool V4L2Codec::IsOutputBufferEmpty(int index)
   return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? false : true;
 }
 
-bool V4L2Codec::IsCaptureBufferQueued(int index)
+bool V4L2Codec::IsCaptureBufferEmpty(int index)
 {
   cv4l_buffer buffer;
   buffer.init(m_CaptureBuffers);
   m_fd->querybuf(buffer, index);
-  return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? true : false;
+  return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? false : true;
 }
 
 bool V4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double pts)
@@ -374,7 +377,6 @@ bool V4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double pt
   if (size < m_OutputBuffers.g_length(0))
   {
     memcpy((uint8_t *)m_OutputBuffers.g_mmapping(index, 0), pData, size);
-    //m_OutputBuffers.s_mmapping(index, 0, pData);
 
     cv4l_buffer buffer;
     buffer.init(m_OutputBuffers, index);
@@ -399,33 +401,32 @@ bool V4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double pt
   return true;
 }
 
-bool V4L2Codec::DequeueOutputBuffer(int *result, timeval *timestamp)
+bool V4L2Codec::DequeueOutputBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp)
 {
-  auto ret = CV4L2::PollInput(m_fd->g_fd(), -1);
+  auto ret = CV4L2::PollOutput(m_fd->g_fd(), 1000/3);
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - poll capture error %d: %s", CLASSNAME, __func__, ret, strerror(errno));
-    *result = -1; //CDVDVideoCodec::VC_ERROR;
+    *result = CDVDVideoCodec::VC_ERROR;
     return false;
   }
   else if (ret == 0)
   { // buffer is still busy
     CLog::Log(LOGERROR, "%s::%s - all output buffers are queued and busy, no space for new frames to decode.", CLASSNAME, __func__);
-    *result = -1; //CDVDVideoCodec::VC_PICTURE;
+    *result = CDVDVideoCodec::VC_PICTURE;
     return false;
   }
   else if (ret > 1)
   {
     cv4l_buffer buffer;
     buffer.init(m_OutputBuffers);
-    int index = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
-    if (index < 0)
+    ret = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
+    if (ret < 0)
     {
-      CLog::Log(LOGERROR, "%s::%s - error dequeuing output buffer, got number %d: %s", CLASSNAME, __func__, index, strerror(errno));
-      *result = -1; //CDVDVideoCodec::VC_FLUSHED;
+      CLog::Log(LOGERROR, "%s::%s - error dequeuing output buffer: %s", CLASSNAME, __func__, strerror(errno));
+      *result = CDVDVideoCodec::VC_FLUSHED;
       return false;
     }
-    *result = index;
   }
 
   return true; // *result contains the buffer index
@@ -444,23 +445,22 @@ bool V4L2Codec::QueueCaptureBuffer(int index)
   return true;
 }
 
-bool V4L2Codec::DequeueCaptureBuffer(int *result, timeval *timestamp)
+bool V4L2Codec::DequeueCaptureBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp)
 {
   cv4l_buffer buffer;
   buffer.init(m_CaptureBuffers);
-  auto index = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
-  if (index < 0)
+  auto ret = CV4L2::DequeueBuffer(m_fd, buffer, timestamp);
+  if (ret < 0)
   {
     if (errno == EAGAIN)
     {
       // Buffer is still busy, queue more
-      *result = -1; //CDVDVideoCodec::VC_BUFFER;
+      *result = CDVDVideoCodec::VC_BUFFER;
       return false;
     }
-    CLog::Log(LOGERROR, "%s::%s - error dequeuing capture buffer, got number %d: %s", CLASSNAME, __func__, index, strerror(errno));
-    *result = -1; //CDVDVideoCodec::VC_FLUSHED;
+    CLog::Log(LOGERROR, "%s::%s - error dequeuing capture buffer: %s", CLASSNAME, __func__, strerror(errno));
+    *result = CDVDVideoCodec::VC_FLUSHED;
     return false;
   }
-  *result = index;
   return true; // *result contains the buffer index
 }

@@ -79,7 +79,7 @@ int CV4L2::DequeueBuffer(cv4l_fd *fd, cv4l_buffer buffer, timeval *timestamp)
     CLog::Log(LOGERROR, "%s::%s - error dequeuing buffer: %s", CLASSNAME, __func__, strerror(errno));
   }
 
-  return buffer.g_index();
+  return ret;
 }
 
 int CV4L2::QueueBuffer(cv4l_fd *fd, cv4l_buffer buffer)
@@ -89,9 +89,10 @@ int CV4L2::QueueBuffer(cv4l_fd *fd, cv4l_buffer buffer)
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - error queuing buffer: %s", CLASSNAME, __func__, strerror(errno));
+    return false;
   }
 
-  return buffer.g_index();
+  return ret;
 }
 
 int CV4L2::PollInput(int fd, int timeout)

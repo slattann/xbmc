@@ -171,26 +171,7 @@ bool CDVDVideoCodecV4L2::AddData(const DemuxPacket &packet)
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - adding data", CLASSNAME, __func__);
-  int index = m_Codec->AddData(pData, iSize, packet.dts, m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts);
-  if (index >= 0)
-  {
-    // todo: for debugging
-    //std::string bufferstr = Base64::Encode((char *) m_Codec->GetCaptureBuffers().g_mmapping(index, 0), m_videoBuffer.iWidth * m_videoBuffer.iHeight);
-    //CLog::Log(LOGERROR, "%s::%s - buffer: %s", CLASSNAME, __func__, bufferstr);
-
-    CLog::Log(LOGDEBUG, "%s::%s - saving to videobuffer", CLASSNAME, __func__);
-    m_videoBuffer.data[0] = (uint8_t*) m_Codec->GetCaptureBuffers().g_mmapping(index, 0);
-    m_videoBuffer.data[1] = m_videoBuffer.data[0] + (m_videoBuffer.iWidth * m_videoBuffer.iHeight);
-
-    cv4l_buffer buffer;
-    buffer.init(m_Codec->GetCaptureBuffers());
-    m_Codec->GetFd()->querybuf(buffer, index);
-    m_videoBuffer.pts = buffer.g_timestamp().tv_sec;
-
-    return true;
-  }
-
-  return false;
+  return m_Codec->AddData(pData, iSize, packet.dts, m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts);
 }
 
 void CDVDVideoCodecV4L2::Reset()

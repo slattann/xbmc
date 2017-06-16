@@ -36,7 +36,7 @@ public:
   bool OpenDecoder();
   void CloseDecoder();
 
-  int AddData(uint8_t *pData, size_t size, double dts, double pts);
+  bool AddData(uint8_t *pData, size_t size, double dts, double pts);
   CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture);
 
   const char* GetOutputName() { return m_name.c_str(); };
@@ -52,12 +52,12 @@ public:
   cv4l_fd * GetFd();
 
   bool IsOutputBufferEmpty(int index);
-  bool IsCaptureBufferQueued(int index);
+  bool IsCaptureBufferEmpty(int index);
 
   bool QueueOutputBuffer(int index, uint8_t* pData, int size, double pts);
-  bool DequeueOutputBuffer(int *result, timeval *timestamp);
+  bool DequeueOutputBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp);
   bool QueueCaptureBuffer(int index);
-  bool DequeueCaptureBuffer(int *result, timeval *timestamp);
+  bool DequeueCaptureBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp);
 
 private:
   cv4l_fd *m_fd;
