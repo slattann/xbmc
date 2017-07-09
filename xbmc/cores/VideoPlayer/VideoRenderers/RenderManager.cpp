@@ -43,7 +43,7 @@
 #if defined(TARGET_DARWIN_OSX)
 #include "HwDecRender/RendererVTBGL.h"
 #endif
-#elif HAS_GLES == 2
+#elif HAS_GLES >= 2
   #include "LinuxRendererGLES.h"
   #include "HwDecRender/RendererVAAPIGLES.h"
 #if defined(HAS_MMAL)
@@ -584,7 +584,7 @@ void CRenderManager::CreateRenderer()
       m_pRenderer = new CMMALRenderer;
 #elif defined(HAS_GL)
       m_pRenderer = new CLinuxRendererGL;
-#elif HAS_GLES == 2
+#elif HAS_GLES >= 2
       m_pRenderer = new CLinuxRendererGLES;
 #elif defined(HAS_DX)
       m_pRenderer = new CWinRenderer();
