@@ -91,6 +91,7 @@ CLinuxRendererGLES::CLinuxRendererGLES()
   m_pVideoFilterShader = NULL;
   m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
   m_scalingMethodGui = (ESCALINGMETHOD)-1;
+  m_fullRange = !g_Windowing.UseLimitedColor();
 
   m_NumYV12Buffers = 0;
   m_iLastRenderBuffer = 0;
@@ -180,6 +181,9 @@ bool CLinuxRendererGLES::Configure(const VideoPicture &picture, float fps, unsig
   m_bValidated = false;
 
   m_iLastRenderBuffer = -1;
+
+  // setup the background colour
+  m_clearColour = g_Windowing.UseLimitedColor() ? (16.0f / 0xff) : 0.0f;
 
   return true;
 }
@@ -525,7 +529,10 @@ void CLinuxRendererGLES::LoadShaders(int field)
 
           EShaderFormat shaderFormat = GetShaderFormat();
           m_pYUVProgShader = new YUV2RGBProgressiveShader(false, m_iFlags, shaderFormat);
+          m_pYUVProgShader->SetConvertFullColorRange(m_fullRange);
           m_pYUVBobShader = new YUV2RGBBobShader(false, m_iFlags, shaderFormat);
+          m_pYUVBobShader->SetConvertFullColorRange(m_fullRange);
+
           if ((m_pYUVProgShader && m_pYUVProgShader->CompileAndLink())
               && (m_pYUVBobShader && m_pYUVBobShader->CompileAndLink()))
           {
@@ -691,7 +698,7 @@ void CLinuxRendererGLES::Render(DWORD flags, int index)
       break;
     }
   }
-  
+
   AfterRenderHook(index);
 }
 
@@ -740,7 +747,6 @@ void CLinuxRendererGLES::RenderSinglePass(int index, int field)
     pYUVShader->SetField(0);
 
   pYUVShader->SetMatrices(glMatrixProject.Get(), glMatrixModview.Get());
-  pYUVShader->SetConvertFullColorRange(!g_Windowing.UseLimitedColor());
   pYUVShader->Enable();
 
   GLubyte idx[4] = {0, 1, 3, 2};        //determines order of triangle strip
