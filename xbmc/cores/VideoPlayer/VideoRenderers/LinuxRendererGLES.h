@@ -234,6 +234,7 @@ protected:
   Shaders::BaseVideoFilterShaderGLES *m_pVideoFilterShader;
   ESCALINGMETHOD m_scalingMethod;
   ESCALINGMETHOD m_scalingMethodGui;
+  bool m_fullRange;
 
   // clear colour for "black" bars
   float m_clearColour;

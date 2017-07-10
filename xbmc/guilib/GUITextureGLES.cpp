@@ -41,6 +41,12 @@ CGUITextureGLES::CGUITextureGLES(float posX, float posY, float width, float heig
 
 void CGUITextureGLES::Begin(color_t color)
 {
+  int range = 0;
+  if(g_Windowing.UseLimitedColor())
+    range = 235 - 16;
+  else
+    range = 255 -  0;
+
   CBaseTexture* texture = m_texture.m_textures[m_currentFrame];
   texture->LoadToGPU();
   if (m_diffuse.size())
@@ -49,9 +55,9 @@ void CGUITextureGLES::Begin(color_t color)
   texture->BindToUnit(0);
 
   // Setup Colors
-  m_col[0] = (GLubyte)GET_R(color);
-  m_col[1] = (GLubyte)GET_G(color);
-  m_col[2] = (GLubyte)GET_B(color);
+  m_col[0] = (GLubyte)GET_R(color) * range / 255;
+  m_col[1] = (GLubyte)GET_G(color) * range / 255;
+  m_col[2] = (GLubyte)GET_B(color) * range / 255;
   m_col[3] = (GLubyte)GET_A(color);
 
   bool hasAlpha = m_texture.m_textures[m_currentFrame]->HasAlpha() || m_col[3] < 255;
