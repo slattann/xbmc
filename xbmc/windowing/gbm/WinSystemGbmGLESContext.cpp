@@ -24,6 +24,10 @@
 #include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererVAAPIGLES.h"
 #endif
 
+#if defined (HAS_V4L2)
+#include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodecV4L2.h"
+#endif
+
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
@@ -55,6 +59,10 @@ bool CWinSystemGbmGLESContext::InitWindowSystem()
   {
     VAAPI::CDecoder::Register(hevc);
   }
+#endif
+
+#if defined (HAS_V4L2)
+  CDVDVideoCodecV4L2::Register();
 #endif
 
   return true;
