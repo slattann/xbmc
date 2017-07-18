@@ -55,9 +55,12 @@ bool CV4L2::RequestBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type
 
 bool CV4L2::MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type)
 {
-  RequestBuffers(fd, count, buffers, type, V4L2_MEMORY_MMAP);
+  if (!RequestBuffers(fd, count, buffers, type, V4L2_MEMORY_MMAP))
+  {
+    return false;
+  }
 
-  ret = buffers->mmap_bufs(fd);
+  auto ret = buffers->mmap_bufs(fd);
   if(ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - error mmapping buffer: %s", CLASSNAME, __func__, strerror(errno));

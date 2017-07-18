@@ -20,6 +20,7 @@
 
 #include "DVDVideoCodecV4L2.h"
 #include "DVDCodecs/DVDFactoryCodec.h"
+#include "TimingConstants.h"
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -51,8 +52,6 @@ bool CDVDVideoCodecV4L2::Register()
 
 void CDVDVideoCodecV4L2::Dispose()
 {
-  m_processInfo.GetVideoBufferManager().ReleasePools();
-
   if (m_Codec)
   {
     m_Codec->CloseDecoder();
@@ -76,7 +75,7 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 
   Dispose();
 
-  m_Codec = std::shared_ptr<CV4L2Codec>(new CV4L2Codec());
+  m_Codec = new CV4L2Codec();
 
   if (!m_Codec->OpenDecoder())
   {
@@ -99,7 +98,8 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     return false;
   }
 
-  /*
+  memset(&(m_videoBuffer), 0, sizeof(m_videoBuffer));
+
   m_videoBuffer.iFlags = 0;
 
   m_videoBuffer.color_range = 0;
@@ -121,7 +121,6 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 
   m_videoBuffer.pts = DVD_NOPTS_VALUE;
   m_videoBuffer.dts = DVD_NOPTS_VALUE;
-  */
 
   m_processInfo. SetVideoDecoderName(m_Codec->GetOutputName(), true);
   //m_processInfo.SetVideoPixelFormat("nv12");
@@ -194,18 +193,18 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     pVideoPicture->videoBuffer = nullptr;
   }
 
-  pVideoPicture->videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, pVideoPicture->iWidth * pVideoPicture->iHeight);
-
-  VCReturn retVal = m_Codec->GetPicture(pVideoPicture);
+  VCReturn retVal = m_Codec->GetPicture(&m_videoBuffer);
 
   if (retVal == VC_PICTURE)
   {
+    pVideoPicture->videoBuffer = m_videoBuffer.videoBuffer;
+
     int strides[YuvImage::MAX_PLANES];
-    strides[0] = pVideoPicture->iWidth;
-    strides[1] = pVideoPicture->iHeight;
+    strides[0] = m_videoBuffer.iWidth;
+    strides[1] = m_videoBuffer.iHeight;
     strides[2] = 0;
 
-    pVideoPicture->videoBuffer->SetDimensions(pVideoPicture->iWidth, pVideoPicture->iHeight, strides);
+    pVideoPicture->videoBuffer->SetDimensions(m_videoBuffer.iWidth, m_videoBuffer.iHeight, strides);
   }
 
   return retVal;
