@@ -19,7 +19,7 @@
  */
 
 #include "DVDVideoCodecV4L2.h"
-#include "xbmc/utils/Base64.h"
+#include "DVDCodecs/DVDFactoryCodec.h"
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -38,9 +38,20 @@ CDVDVideoCodecV4L2::~CDVDVideoCodecV4L2()
   Dispose();
 }
 
+CDVDVideoCodec* CDVDVideoCodecV4L2::Create(CProcessInfo &processInfo)
+{
+  return new CDVDVideoCodecV4L2(processInfo);
+}
+
+bool CDVDVideoCodecV4L2::Register()
+{
+  CDVDFactoryCodec::RegisterHWVideoCodec("v4l2_dec", &CDVDVideoCodecV4L2::Create);
+  return true;
+}
+
 void CDVDVideoCodecV4L2::Dispose()
 {
-  memset(&(m_videoBuffer), 0, sizeof (m_videoBuffer));
+  m_processInfo.GetVideoBufferManager().ReleasePools();
 
   if (m_Codec)
   {
@@ -61,10 +72,11 @@ void CDVDVideoCodecV4L2::Dispose()
 bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 {
   m_hints = hints;
+  m_options = options;
 
   Dispose();
 
-  m_Codec = new V4L2Codec();
+  m_Codec = std::shared_ptr<CV4L2Codec>(new CV4L2Codec());
 
   if (!m_Codec->OpenDecoder())
   {
@@ -87,7 +99,8 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     return false;
   }
 
-  m_videoBuffer.iFlags = DVP_FLAG_ALLOCATED;
+  /*
+  m_videoBuffer.iFlags = 0;
 
   m_videoBuffer.color_range = 0;
   m_videoBuffer.color_matrix = 4;
@@ -106,23 +119,11 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     }
   }
 
-  unsigned int iPixels = m_hints.width * m_hints.height;
-  unsigned int iChromaPixels = iPixels;
-  m_videoBuffer.data[0] = (uint8_t*)malloc(16 + iPixels);
-  m_videoBuffer.data[1] = (uint8_t*)malloc(16 + iChromaPixels);
-  m_videoBuffer.data[2] = NULL;
-  m_videoBuffer.data[3] = NULL;
-
-  m_videoBuffer.iLineSize[0] = m_hints.width;
-  m_videoBuffer.iLineSize[1] = m_hints.width;
-  m_videoBuffer.iLineSize[2] = 0;
-  m_videoBuffer.iLineSize[3] = 0;
-
-  m_videoBuffer.format = RENDER_FMT_NV12;
   m_videoBuffer.pts = DVD_NOPTS_VALUE;
   m_videoBuffer.dts = DVD_NOPTS_VALUE;
+  */
 
-  m_processInfo.SetVideoDecoderName(m_Codec->GetOutputName(), true);
+  m_processInfo. SetVideoDecoderName(m_Codec->GetOutputName(), true);
   //m_processInfo.SetVideoPixelFormat("nv12");
   m_processInfo.SetVideoDimensions(m_hints.width, m_hints.height);
   m_processInfo.SetVideoDeintMethod("hardware");
@@ -187,9 +188,25 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     return VC_ERROR;
   }
 
-  VCReturn retVal = m_Codec->GetPicture(&m_videoBuffer);
+  if (pVideoPicture->videoBuffer)
+  {
+    pVideoPicture->videoBuffer->Release();
+    pVideoPicture->videoBuffer = nullptr;
+  }
 
-  *pVideoPicture = m_videoBuffer;
+  pVideoPicture->videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, pVideoPicture->iWidth * pVideoPicture->iHeight);
+
+  VCReturn retVal = m_Codec->GetPicture(pVideoPicture);
+
+  if (retVal == VC_PICTURE)
+  {
+    int strides[YuvImage::MAX_PLANES];
+    strides[0] = pVideoPicture->iWidth;
+    strides[1] = pVideoPicture->iHeight;
+    strides[2] = 0;
+
+    pVideoPicture->videoBuffer->SetDimensions(pVideoPicture->iWidth, pVideoPicture->iHeight, strides);
+  }
 
   return retVal;
 }

@@ -27,11 +27,11 @@
 #include "utils/log.h"
 #include "utils/BitstreamConverter.h"
 
-class V4L2Codec
+class CV4L2Codec
 {
 public:
-  V4L2Codec();
-  virtual ~V4L2Codec();
+  CV4L2Codec();
+  virtual ~CV4L2Codec();
 
   bool OpenDecoder();
   void CloseDecoder();
@@ -55,9 +55,9 @@ public:
   bool IsCaptureBufferEmpty(int index);
 
   bool QueueOutputBuffer(int index, uint8_t* pData, int size, double pts);
-  bool DequeueOutputBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp);
+  bool DequeueOutputBuffer(timeval *timestamp);
   bool QueueCaptureBuffer(int index);
-  bool DequeueCaptureBuffer(CDVDVideoCodec::VCReturn *result, timeval *timestamp);
+  CDVDVideoCodec::VCReturn DequeueCaptureBuffer(timeval *timestamp);
 
 private:
   cv4l_fd *m_fd;

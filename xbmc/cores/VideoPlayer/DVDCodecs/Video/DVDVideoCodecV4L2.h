@@ -25,6 +25,7 @@
 #include "utils/log.h"
 #include "guilib/GraphicContext.h"
 #include "settings/DisplaySettings.h"
+#include "cores/VideoPlayer/Process/VideoBuffer.h"
 #include "V4L2Codec.h"
 
 class CDVDVideoCodecV4L2 : public CDVDVideoCodec
@@ -39,13 +40,17 @@ public:
   virtual CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture) override;
   virtual const char* GetName() override { return m_Codec != NULL ? m_Codec->GetOutputName() : ""; };
 
+  // registration
+  static CDVDVideoCodec* Create(CProcessInfo &processInfo);
+  static bool Register();
+
 private:
   void Dispose();
 
-  V4L2Codec *m_Codec;
+  std::shared_ptr<CV4L2Codec> *m_Codec;
 
   CDVDStreamInfo m_hints;
-  VideoPicture m_videoBuffer;
+  CDVDCodecOptions m_options;
   CBitstreamConverter *m_bitstream;
   bool b_ConvertVideo;
 };

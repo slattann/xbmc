@@ -38,9 +38,9 @@ CV4L2::~CV4L2()
 {
 }
 
-bool CV4L2::MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type)
+bool CV4L2::RequestBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type, int memory)
 {
-  buffers->init(type, V4L2_MEMORY_MMAP);
+  buffers->init(type, memory);
 
   auto ret = buffers->reqbufs(fd, count);
   if (ret < 0)
@@ -50,6 +50,12 @@ bool CV4L2::MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type)
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - got %d of requested %d", CLASSNAME, __func__, buffers->g_buffers(), V4L2_OUTPUT_BUFFERS_COUNT);
+  return true;
+}
+
+bool CV4L2::MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type)
+{
+  RequestBuffers(fd, count, buffers, type, V4L2_MEMORY_MMAP);
 
   ret = buffers->mmap_bufs(fd);
   if(ret < 0)

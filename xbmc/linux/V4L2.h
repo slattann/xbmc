@@ -31,6 +31,8 @@ public:
   CV4L2();
   virtual ~CV4L2();
 
+  static bool        RequestBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type, int memory);
+
   static bool        MmapBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type);
   static void        FreeBuffers(cv4l_fd *fd, cv4l_queue *buffers);
 
