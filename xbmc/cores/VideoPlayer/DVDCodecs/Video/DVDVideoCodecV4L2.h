@@ -38,7 +38,7 @@ public:
   virtual bool AddData(const DemuxPacket &packet) override;
   virtual void Reset() override;
   virtual CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture) override;
-  virtual const char* GetName() override { return m_Codec != nullptr ? m_Codec->GetOutputName() : ""; };
+  virtual const char* GetName() override { return m_decoder != nullptr ? m_decoder->GetOutputName() : ""; };
 
   // registration
   static CDVDVideoCodec* Create(CProcessInfo &processInfo);
@@ -48,10 +48,10 @@ private:
   void Dispose();
 
   VideoPicture m_videoBuffer;
-  CV4L2Codec *m_Codec;
+  CV4L2Codec *m_decoder;
 
   CDVDStreamInfo m_hints;
   CDVDCodecOptions m_options;
   CBitstreamConverter *m_bitstream;
-  bool b_ConvertVideo;
+  bool b_convertVideo;
 };
