@@ -23,6 +23,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <poll.h>
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -45,21 +46,12 @@ CV4L2Codec::~CV4L2Codec()
 
 void CV4L2Codec::CloseDecoder()
 {
+  int ret;
+
   if (m_fd)
   {
     if (m_fd->g_fd() > 0)
     {
-      CLog::Log(LOGDEBUG, "%s::%s - Freeing memory allocated for buffers", CLASSNAME, __func__);
-      CV4L2::FreeBuffers(m_fd, m_OutputBuffers);
-      delete(m_OutputBuffers);
-      m_OutputBuffers = nullptr;
-
-      CV4L2::FreeBuffers(m_fd, m_CaptureBuffers);
-      delete(m_CaptureBuffers);
-      m_CaptureBuffers = nullptr;
-
-      CLog::Log(LOGDEBUG, "%s::%s - Closing V4L2 device", CLASSNAME, __func__);
-
       auto ret = m_fd->streamoff(m_OutputType);
       if (ret < 0)
       {
@@ -71,6 +63,26 @@ void CV4L2Codec::CloseDecoder()
       {
         CLog::Log(LOGDEBUG, "%s::%s - V4L2 CAPTURE Stream OFF", CLASSNAME, __func__);
       }
+
+      CLog::Log(LOGDEBUG, "%s::%s - Freeing memory allocated for buffers", CLASSNAME, __func__);
+
+      ret = m_OutputBuffers->munmap_bufs(m_fd);
+      if (ret < 0)
+      {
+        CLog::Log(LOGERROR, "%s::%s - error munmaping output buffer: %s", CLASSNAME, __func__, strerror(errno));
+      }
+      delete(m_OutputBuffers);
+      m_OutputBuffers = nullptr;
+
+      ret = m_CaptureBuffers->munmap_bufs(m_fd);
+      if (ret < 0)
+      {
+        CLog::Log(LOGERROR, "%s::%s - error munmaping capture buffer: %s", CLASSNAME, __func__, strerror(errno));
+      }
+      delete(m_CaptureBuffers);
+      m_CaptureBuffers = nullptr;
+
+      CLog::Log(LOGDEBUG, "%s::%s - Closing V4L2 device", CLASSNAME, __func__);
 
       m_fd->close();
     }
@@ -228,25 +240,27 @@ bool CV4L2Codec::SetupOutputFormat(CDVDStreamInfo &hints)
 
 bool CV4L2Codec::SetupOutputBuffers()
 {
-  if (!CV4L2::MmapBuffers(m_fd, V4L2_OUTPUT_BUFFERS_COUNT, m_OutputBuffers, m_OutputType))
+  int ret;
+  m_OutputBuffers->init(V4L2_MEMORY_MMAP, m_OutputType);
+
+  ret =  m_OutputBuffers->reqbufs(m_fd, V4L2_OUTPUT_BUFFERS_COUNT);
+  if (ret < 0)
   {
-    CLog::Log(LOGERROR, "%s::%s - cannot mmap memory for output buffers: %s", CLASSNAME, __func__, strerror(errno));
+    CLog::Log(LOGERROR, "%s::%s - error requesting buffers: %s", CLASSNAME, __func__, strerror(errno));
+    return false;
+  }
+
+  ret =  m_OutputBuffers->mmap_bufs(m_fd);
+  if(ret < 0)
+  {
+    CLog::Log(LOGERROR, "%s::%s - error mmapping buffer: %s", CLASSNAME, __func__, strerror(errno));
     return false;
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - output buffers successfully allocated", CLASSNAME, __func__);
-
-  /*
-  if (!CV4L2::RequestBuffers(m_fd, V4L2_CAPTURE_BUFFERS_COUNT, &m_CaptureBuffers, m_CaptureType, V4L2_MEMORY_USERPTR))
-  {
-    CLog::Log(LOGERROR, "%s::%s - error requesting capture buffers: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-  */
-
   CLog::Log(LOGDEBUG, "%s::%s - output buffers %d of requested %d", CLASSNAME, __func__, m_OutputBuffers->g_buffers(), V4L2_OUTPUT_BUFFERS_COUNT);
 
-  auto ret = m_fd->streamon(m_OutputType);
+  ret = m_fd->streamon(m_OutputType);
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - output VIDIOC_STREAMON failed: %s", CLASSNAME, __func__, strerror(errno));
@@ -259,26 +273,27 @@ bool CV4L2Codec::SetupOutputBuffers()
 
 bool CV4L2Codec::SetupCaptureBuffers()
 {
+  int ret;
+  m_CaptureBuffers->init(V4L2_MEMORY_MMAP, m_CaptureType);
 
-  if (!CV4L2::MmapBuffers(m_fd, V4L2_CAPTURE_BUFFERS_COUNT, m_CaptureBuffers, m_CaptureType))
+  ret =  m_CaptureBuffers->reqbufs(m_fd, V4L2_CAPTURE_BUFFERS_COUNT);
+  if (ret < 0)
   {
-    CLog::Log(LOGERROR, "%s::%s - cannot mmap memory for capture buffers: %s", CLASSNAME, __func__, strerror(errno));
+    CLog::Log(LOGERROR, "%s::%s - error requesting buffers: %s", CLASSNAME, __func__, strerror(errno));
+    return false;
+  }
+
+  ret =  m_CaptureBuffers->mmap_bufs(m_fd);
+  if(ret < 0)
+  {
+    CLog::Log(LOGERROR, "%s::%s - error mmapping buffer: %s", CLASSNAME, __func__, strerror(errno));
     return false;
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - capture buffers successfully allocated", CLASSNAME, __func__);
-
-  /*
-  if (!CV4L2::RequestBuffers(m_fd, V4L2_CAPTURE_BUFFERS_COUNT, &m_CaptureBuffers, m_CaptureType, V4L2_MEMORY_USERPTR))
-  {
-    CLog::Log(LOGERROR, "%s::%s - error requesting capture buffers: %s", CLASSNAME, __func__, strerror(errno));
-    return false;
-  }
-  */
-
   CLog::Log(LOGDEBUG, "%s::%s - capture buffers %d of requested %d", CLASSNAME, __func__, m_CaptureBuffers->g_buffers(), V4L2_CAPTURE_BUFFERS_COUNT);
 
-  auto ret = m_fd->streamon(m_CaptureType);
+  ret = m_fd->streamon(m_CaptureType);
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - capture VIDIOC_STREAMON failed: %s", CLASSNAME, __func__, strerror(errno));
@@ -351,33 +366,43 @@ bool CV4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double p
 
 bool CV4L2Codec::DequeueOutputBuffer(int *index, timeval *timestamp)
 {
-  auto ret = CV4L2::PollOutput(m_fd->g_fd(), 1000/3);
-  if (ret < 0)
-  {
-    CLog::Log(LOGERROR, "%s::%s - poll capture error %d: %s", CLASSNAME, __func__, ret, strerror(errno));
-    return false;
-  }
-  else if (ret == 0)
-  {
-    CLog::Log(LOGERROR, "%s::%s - all output buffers are queued and busy, no space for new frames to decode.", CLASSNAME, __func__);
-    return false;
-  }
-  else if (ret > 1)
-  {
-    cv4l_buffer buffer(*m_OutputBuffers);
+  int ret;
+  int timeout = 1000/3;
+  struct pollfd p;
+  p.fd = m_fd->g_fd();
+  p.events = POLLIN;
+  p.revents = 0;
 
-    auto ret = m_fd->dqbuf(buffer);
+  while (true)
+  {
+    ret = poll(&p, 1, timeout);
     if (ret < 0)
     {
-      CLog::Log(LOGERROR, "%s::%s - error dequeuing buffer: %s", CLASSNAME, __func__, strerror(errno));
+      CLog::Log(LOGERROR, "%s::%s - error polling input: %s", CLASSNAME, __func__, strerror(errno));
       return false;
     }
+    else if (p.revents & (POLLHUP | POLLERR))
+    {
+      CLog::Log(LOGERROR, "%s::%s - hangup polling input: %s", CLASSNAME, __func__, strerror(errno));
+      return false;
+    }
+    else if(p.revents & POLLIN)
+    {
+      cv4l_buffer buffer(*m_OutputBuffers);
 
-    *timestamp = buffer.g_timestamp();
-    *index = buffer.g_index();
+      ret = m_fd->dqbuf(buffer);
+      if (ret < 0)
+      {
+        CLog::Log(LOGERROR, "%s::%s - error dequeuing buffer: %s", CLASSNAME, __func__, strerror(errno));
+        return false;
+      }
+
+      *timestamp = buffer.g_timestamp();
+      *index = buffer.g_index();
+
+      return true;
+    }
   }
-
-  return true;
 }
 
 bool CV4L2Codec::QueueCaptureBuffer(int index)

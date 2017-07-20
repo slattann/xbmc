@@ -19,13 +19,15 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-
-#include "linux/V4L2.h"
+#include <cv4l-helpers.h>
 
 #include "DVDVideoCodec.h"
 #include "DVDStreamInfo.h"
 #include "utils/log.h"
 #include "utils/BitstreamConverter.h"
+
+#define V4L2_CAPTURE_BUFFERS_COUNT 10
+#define V4L2_OUTPUT_BUFFERS_COUNT 10
 
 class CV4L2Codec
 {

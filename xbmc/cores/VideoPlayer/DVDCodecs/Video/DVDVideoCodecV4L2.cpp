@@ -174,7 +174,7 @@ bool CDVDVideoCodecV4L2::AddData(const DemuxPacket &packet)
   timeval timestamp;
   timestamp.tv_usec = m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts;
 
-  int index;
+  int index = 0;
   int ret;
 
   if (pData)
