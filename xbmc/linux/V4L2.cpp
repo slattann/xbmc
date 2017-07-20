@@ -30,14 +30,6 @@
 #endif
 #define CLASSNAME "CV4L2"
 
-CV4L2::CV4L2()
-{
-}
-
-CV4L2::~CV4L2()
-{
-}
-
 bool CV4L2::RequestBuffers(cv4l_fd *fd, int count, cv4l_queue *buffers, int type, int memory)
 {
   buffers->init(type, memory);
@@ -79,16 +71,17 @@ void CV4L2::FreeBuffers(cv4l_fd *fd, cv4l_queue *buffers)
   }
 }
 
-int CV4L2::DequeueBuffer(cv4l_fd *fd, cv4l_buffer buffer, timeval *timestamp)
+int CV4L2::DequeueBuffer(cv4l_fd *fd, cv4l_buffer *buffer, timeval *timestamp)
 {
-  *timestamp = buffer.g_timestamp();
-  auto ret = fd->dqbuf(buffer);
+  *timestamp = buffer->g_timestamp();
+  auto ret = fd->dqbuf(*buffer);
   if (ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - error dequeuing buffer: %s", CLASSNAME, __func__, strerror(errno));
+    return ret;
   }
 
-  return ret;
+  return buffer->g_index();
 }
 
 int CV4L2::QueueBuffer(cv4l_fd *fd, cv4l_buffer buffer)

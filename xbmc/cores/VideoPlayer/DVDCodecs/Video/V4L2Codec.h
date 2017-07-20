@@ -36,36 +36,32 @@ public:
   bool OpenDecoder();
   void CloseDecoder();
 
-  bool AddData(uint8_t *pData, size_t size, double dts, double pts);
-  CDVDVideoCodec::VCReturn GetPicture(VideoPicture* pVideoPicture);
-
   const char* GetOutputName() { return m_name.c_str(); };
   bool SetupOutputFormat(CDVDStreamInfo &hints);
 
   bool SetupOutputBuffers();
   bool SetupCaptureBuffers();
-  int GetOutputBuffersCount()  { return m_OutputBuffers.g_buffers();  };
-  int GetCaptureBuffersCount() { return m_CaptureBuffers.g_buffers(); };
+  int GetOutputBuffersCount()  { return m_OutputBuffers->g_buffers();  };
+  int GetCaptureBuffersCount() { return m_CaptureBuffers->g_buffers(); };
 
-  cv4l_queue GetOutputBuffers();
-  cv4l_queue GetCaptureBuffers();
+  cv4l_queue* GetOutputBuffers();
+  cv4l_queue* GetCaptureBuffers();
   cv4l_fd * GetFd();
 
   bool IsOutputBufferEmpty(int index);
   bool IsCaptureBufferEmpty(int index);
 
   bool QueueOutputBuffer(int index, uint8_t* pData, int size, double pts);
-  bool DequeueOutputBuffer(timeval *timestamp);
+  bool DequeueOutputBuffer(int *index, timeval *timestamp);
   bool QueueCaptureBuffer(int index);
-  CDVDVideoCodec::VCReturn DequeueCaptureBuffer(timeval *timestamp);
+  bool DequeueCaptureBuffer(int *index, timeval *timestamp);
 
 private:
   cv4l_fd *m_fd;
   std::string m_name;
-  cv4l_queue m_OutputBuffers;
-  cv4l_queue m_CaptureBuffers;
+  cv4l_queue *m_OutputBuffers;
+  cv4l_queue *m_CaptureBuffers;
 
-  int m_iDequeuedToPresentBufferNumber;
   int m_OutputType;
   int m_CaptureType;
 };

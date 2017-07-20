@@ -28,10 +28,10 @@
 #define CLASSNAME "CDVDVideoCodecV4L2"
 
 CDVDVideoCodecV4L2::CDVDVideoCodecV4L2(CProcessInfo &processInfo) : CDVDVideoCodec(processInfo)
+  , m_Codec(nullptr)
+  , m_bitstream(nullptr)
+  , b_ConvertVideo(false)
 {
-  m_Codec = nullptr;
-  m_bitstream = nullptr;
-  b_ConvertVideo = false;
 }
 
 CDVDVideoCodecV4L2::~CDVDVideoCodecV4L2()
@@ -171,7 +171,47 @@ bool CDVDVideoCodecV4L2::AddData(const DemuxPacket &packet)
   }
 
   CLog::Log(LOGDEBUG, "%s::%s - adding data", CLASSNAME, __func__);
-  return m_Codec->AddData(pData, iSize, packet.dts, m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts);
+  timeval timestamp;
+  timestamp.tv_usec = m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts;
+
+  int index;
+  int ret;
+
+  if (pData)
+  {
+    for (index = 0; index < m_Codec->GetOutputBuffersCount(); index++)
+    {
+      if (m_Codec->IsOutputBufferEmpty(index))
+      {
+        CLog::Log(LOGDEBUG, "%s::%s - using output buffer index: %d", CLASSNAME, __func__, index);
+        break;
+      }
+    }
+
+    if (index == m_Codec->GetOutputBuffersCount())
+    {
+      // all input buffers are busy, dequeue needed
+      CLog::Log(LOGDEBUG, "%s::%s - dequeuing output buffer", CLASSNAME, __func__);
+      if (!m_Codec->DequeueOutputBuffer(&ret, &timestamp))
+      {
+        return false;
+      }
+      index = ret;
+    }
+
+    CLog::Log(LOGDEBUG, "%s::%s - queuing output buffer index: %d", CLASSNAME, __func__, index);
+    if (!m_Codec->QueueOutputBuffer(index, pData, iSize, m_hints.ptsinvalid ? DVD_NOPTS_VALUE : packet.pts))
+    {
+      return false;
+    }
+  }
+
+  if (!m_Codec->QueueCaptureBuffer(index))
+  {
+    return false;
+  }
+
+  return true; // Picture is finally ready to be processed further
 }
 
 void CDVDVideoCodecV4L2::Reset()
@@ -193,19 +233,35 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     pVideoPicture->videoBuffer = nullptr;
   }
 
-  VCReturn retVal = m_Codec->GetPicture(&m_videoBuffer);
+  timeval timestamp;
+  int index;
 
-  if (retVal == VC_PICTURE)
+  if (!m_Codec->DequeueCaptureBuffer(&index, &timestamp))
   {
-    pVideoPicture->videoBuffer = m_videoBuffer.videoBuffer;
-
-    int strides[YuvImage::MAX_PLANES];
-    strides[0] = m_videoBuffer.iWidth;
-    strides[1] = m_videoBuffer.iHeight;
-    strides[2] = 0;
-
-    pVideoPicture->videoBuffer->SetDimensions(m_videoBuffer.iWidth, m_videoBuffer.iHeight, strides);
+    return VC_ERROR;
   }
 
-  return retVal;
+  cv4l_queue *captureBuffers = m_Codec->GetCaptureBuffers();
+  cv4l_buffer buffer(*captureBuffers, index);
+
+  CVideoBuffer *videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, buffer.g_bytesused(0));
+  if (!videoBuffer)
+  {
+    CLog::Log(LOGDEBUG, "%s::%s - failed to allocate buffer", CLASSNAME, __func__);
+    return VC_ERROR;
+  }
+
+  memcpy(videoBuffer->GetMemPtr(), captureBuffers->g_mmapping(index, 0), buffer.g_bytesused(0));
+
+  pVideoPicture = &m_videoBuffer;
+  pVideoPicture->videoBuffer = static_cast<CVideoBuffer*>(videoBuffer);
+
+  int strides[YuvImage::MAX_PLANES];
+  strides[0] = m_videoBuffer.iWidth;
+  strides[1] = m_videoBuffer.iWidth;
+  strides[2] = 0;
+
+  pVideoPicture->videoBuffer->SetDimensions(m_videoBuffer.iWidth, m_videoBuffer.iHeight, strides);
+
+  return VC_PICTURE;
 }
