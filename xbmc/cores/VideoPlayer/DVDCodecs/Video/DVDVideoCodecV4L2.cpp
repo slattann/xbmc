@@ -241,8 +241,8 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     return VC_ERROR;
   }
 
-  cv4l_queue *captureBuffers = m_decoder->GetCaptureBuffers();
-  cv4l_buffer buffer(*captureBuffers, index);
+  cv4l_queue captureBuffers = m_decoder->GetCaptureBuffers();
+  cv4l_buffer buffer(captureBuffers, index);
 
   CVideoBuffer *videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, buffer.g_bytesused(0));
   if (!videoBuffer)
@@ -251,7 +251,7 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     return VC_ERROR;
   }
 
-  memcpy(videoBuffer->GetMemPtr(), captureBuffers->g_mmapping(index, 0), buffer.g_bytesused(0));
+  memcpy(videoBuffer->GetMemPtr(), captureBuffers.g_mmapping(index, 0), buffer.g_bytesused(0));
 
   pVideoPicture = &m_videoBuffer;
   pVideoPicture->videoBuffer = static_cast<CVideoBuffer*>(videoBuffer);

@@ -43,11 +43,11 @@ public:
 
   bool SetupOutputBuffers();
   bool SetupCaptureBuffers();
-  int GetOutputBuffersCount()  { return m_OutputBuffers->g_buffers();  };
-  int GetCaptureBuffersCount() { return m_CaptureBuffers->g_buffers(); };
+  int GetOutputBuffersCount()  { return m_OutputBuffers.g_buffers();  };
+  int GetCaptureBuffersCount() { return m_CaptureBuffers.g_buffers(); };
 
-  cv4l_queue* GetOutputBuffers();
-  cv4l_queue* GetCaptureBuffers();
+  cv4l_queue GetOutputBuffers();
+  cv4l_queue GetCaptureBuffers();
   cv4l_fd * GetFd();
 
   bool IsOutputBufferEmpty(int index);
@@ -61,8 +61,8 @@ public:
 private:
   cv4l_fd *m_fd;
   std::string m_name;
-  cv4l_queue *m_OutputBuffers;
-  cv4l_queue *m_CaptureBuffers;
+  cv4l_queue m_OutputBuffers;
+  cv4l_queue m_CaptureBuffers;
 
   int m_OutputType;
   int m_CaptureType;
