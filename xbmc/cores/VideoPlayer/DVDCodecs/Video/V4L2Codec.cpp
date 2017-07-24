@@ -309,14 +309,16 @@ bool CV4L2Codec::SetupCaptureBuffers()
   return true;
 }
 
-cv4l_queue CV4L2Codec::GetOutputBuffers()
+int CV4L2Codec::GetOutputBufferSize(int index)
 {
-  return m_OutputBuffers;
+  cv4l_buffer buffer(m_OutputBuffers, index);
+  return buffer.g_bytesused(0);
 }
 
-cv4l_queue CV4L2Codec::GetCaptureBuffers()
+int CV4L2Codec::GetCaptureBufferSize(int index)
 {
-  return m_CaptureBuffers;
+  cv4l_buffer buffer(m_CaptureBuffers, index);
+  return buffer.g_bytesused(0);
 }
 
 cv4l_fd * CV4L2Codec::GetFd()
@@ -343,15 +345,17 @@ bool CV4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double p
   timeval timestamp;
   timestamp.tv_usec = pts;
 
-  if (size < m_OutputBuffers.g_length(0))
-  {
-    memcpy((uint8_t *)m_OutputBuffers.g_mmapping(index, 0), pData, size);
-    //m_OutputBuffers.s_userptr(index, 0, pData);
-
+  CLog::Log(LOGDEBUG, "%s::%s - output buffer total size: %d", CLASSNAME, __func__, m_OutputBuffers.g_length(0));
+//  if (size < m_OutputBuffers.g_length(0))
+//  {
     cv4l_buffer buffer(m_OutputBuffers, index);
     buffer.s_bytesused(size, 0);
     buffer.s_timestamp(timestamp);
     buffer.or_flags(V4L2_BUF_FLAG_TIMESTAMP_COPY);
+
+    CLog::Log(LOGDEBUG, "%s::%s - output buffer size: %d", CLASSNAME, __func__, size);
+    memcpy((uint8_t *)m_OutputBuffers.g_mmapping(index, 0), pData, size);
+    //m_OutputBuffers.s_userptr(index, 0, pData);
 
     auto ret = m_fd->qbuf(buffer);
     if (ret < 0)
@@ -359,12 +363,12 @@ bool CV4L2Codec::QueueOutputBuffer(int index, uint8_t* pData, int size, double p
       CLog::Log(LOGERROR, "%s::%s - error queuing output buffer: %s", CLASSNAME, __func__, strerror(errno));
       return false;
     }
-  }
-  else
-  {
-    CLog::Log(LOGERROR, "%s::%s - packet too big for stream buffer", CLASSNAME, __func__);
-    return false;
-  }
+//  }
+//  else
+//  {
+//    CLog::Log(LOGERROR, "%s::%s - packet too big for stream buffer", CLASSNAME, __func__);
+//    return false;
+//  }
 
   return true;
 }
@@ -439,4 +443,11 @@ bool CV4L2Codec::DequeueCaptureBuffer(int *index, timeval *timestamp)
   *timestamp = buffer.g_timestamp();
   *index = buffer.g_index();
   return true;
+}
+
+void CV4L2Codec::GetPicture(VideoPicture *pVideoPicture, int index)
+{
+  cv4l_buffer buffer(m_CaptureBuffers, index);
+  memcpy(pVideoPicture->videoBuffer->GetMemPtr(), (uint8_t *)m_CaptureBuffers.g_mmapping(index, 0), buffer.g_bytesused(0));
+  CLog::Log(LOGDEBUG, "%s::%s - capture buffer size: %d", CLASSNAME, __func__, buffer.g_bytesused(0));
 }

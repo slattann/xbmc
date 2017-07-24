@@ -46,8 +46,8 @@ public:
   int GetOutputBuffersCount()  { return m_OutputBuffers.g_buffers();  };
   int GetCaptureBuffersCount() { return m_CaptureBuffers.g_buffers(); };
 
-  cv4l_queue GetOutputBuffers();
-  cv4l_queue GetCaptureBuffers();
+  int GetOutputBufferSize(int index);
+  int GetCaptureBufferSize(int index);
   cv4l_fd * GetFd();
 
   bool IsOutputBufferEmpty(int index);
@@ -57,6 +57,8 @@ public:
   bool DequeueOutputBuffer(int *index, timeval *timestamp);
   bool QueueCaptureBuffer(int index);
   bool DequeueCaptureBuffer(int *index, timeval *timestamp);
+
+  void GetPicture(VideoPicture *pVideoPicture, int index);
 
 private:
   cv4l_fd *m_fd;

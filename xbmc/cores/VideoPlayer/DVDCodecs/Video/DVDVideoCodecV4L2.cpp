@@ -61,6 +61,7 @@ void CDVDVideoCodecV4L2::Dispose()
 
   if (m_bitstream)
   {
+    m_bitstream->Close();
     delete m_bitstream;
     m_bitstream = nullptr;
   }
@@ -222,10 +223,7 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     return VC_ERROR;
   }
 
-  cv4l_queue captureBuffers = m_decoder->GetCaptureBuffers();
-  cv4l_buffer buffer(captureBuffers, index);
-
-  CVideoBuffer *videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, buffer.g_bytesused(0));
+  CVideoBuffer *videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, m_decoder->GetCaptureBufferSize(index));
   if (!videoBuffer)
   {
     CLog::Log(LOGDEBUG, "%s::%s - failed to allocate buffer", CLASSNAME, __func__);
@@ -234,13 +232,12 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
 
   pVideoPicture->videoBuffer = static_cast<CVideoBuffer*>(videoBuffer);
 
-  memcpy(pVideoPicture->videoBuffer->GetMemPtr(), captureBuffers.g_mmapping(index, 0), buffer.g_bytesused(0));
+  m_decoder->GetPicture(pVideoPicture, index);
 
   int strides[YuvImage::MAX_PLANES];
   strides[0] = m_videoBuffer.iWidth;
   strides[1] = m_videoBuffer.iWidth;
   strides[2] = 0;
-
 
   pVideoPicture->videoBuffer->SetDimensions(m_videoBuffer.iWidth, m_videoBuffer.iHeight, strides);
 
