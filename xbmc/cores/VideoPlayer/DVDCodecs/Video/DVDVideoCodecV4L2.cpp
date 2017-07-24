@@ -100,25 +100,6 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 
   memset(&(m_videoBuffer), 0, sizeof(m_videoBuffer));
 
-  m_videoBuffer.iFlags = 0;
-
-  m_videoBuffer.color_range = 0;
-  m_videoBuffer.color_matrix = 4;
-
-  m_videoBuffer.iWidth  = m_hints.width;
-  m_videoBuffer.iHeight = m_hints.height;
-  m_videoBuffer.iDisplayWidth  = m_videoBuffer.iWidth;
-  m_videoBuffer.iDisplayHeight = m_videoBuffer.iHeight;
-  if (m_hints.aspect > 0.0 && !m_hints.forced_aspect)
-  {
-    m_videoBuffer.iDisplayWidth  = ((int)lrint(m_videoBuffer.iHeight * m_hints.aspect)) & ~3;
-    if (m_videoBuffer.iDisplayWidth > m_videoBuffer.iWidth)
-    {
-      m_videoBuffer.iDisplayWidth  = m_videoBuffer.iWidth;
-      m_videoBuffer.iDisplayHeight = ((int)lrint(m_videoBuffer.iWidth / m_hints.aspect)) & ~3;
-    }
-  }
-
   m_videoBuffer.pts = DVD_NOPTS_VALUE;
   m_videoBuffer.dts = DVD_NOPTS_VALUE;
 
@@ -251,17 +232,39 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecV4L2::GetPicture(VideoPicture* pVideoPict
     return VC_ERROR;
   }
 
-  memcpy(videoBuffer->GetMemPtr(), captureBuffers.g_mmapping(index, 0), buffer.g_bytesused(0));
-
-  pVideoPicture = &m_videoBuffer;
   pVideoPicture->videoBuffer = static_cast<CVideoBuffer*>(videoBuffer);
+
+  memcpy(pVideoPicture->videoBuffer->GetMemPtr(), captureBuffers.g_mmapping(index, 0), buffer.g_bytesused(0));
 
   int strides[YuvImage::MAX_PLANES];
   strides[0] = m_videoBuffer.iWidth;
   strides[1] = m_videoBuffer.iWidth;
   strides[2] = 0;
 
+
   pVideoPicture->videoBuffer->SetDimensions(m_videoBuffer.iWidth, m_videoBuffer.iHeight, strides);
+
+  pVideoPicture->iFlags = 0;
+
+  pVideoPicture->color_range = 0;
+  pVideoPicture->color_matrix = 4;
+
+  pVideoPicture->iWidth  = m_hints.width;
+  pVideoPicture->iHeight = m_hints.height;
+  pVideoPicture->iDisplayWidth  = pVideoPicture->iWidth;
+  pVideoPicture->iDisplayHeight = pVideoPicture->iHeight;
+  if (m_hints.aspect > 0.0 && !m_hints.forced_aspect)
+  {
+    pVideoPicture->iDisplayWidth  = ((int)lrint(pVideoPicture->iHeight * m_hints.aspect)) & ~3;
+    if (pVideoPicture->iDisplayWidth > pVideoPicture->iWidth)
+    {
+      pVideoPicture->iDisplayWidth  = pVideoPicture->iWidth;
+      pVideoPicture->iDisplayHeight = ((int)lrint(pVideoPicture->iWidth / m_hints.aspect)) & ~3;
+    }
+  }
+
+  pVideoPicture->pts = static_cast<double>(timestamp.tv_usec);
+  pVideoPicture->dts = DVD_NOPTS_VALUE;
 
   return VC_PICTURE;
 }

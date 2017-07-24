@@ -244,7 +244,7 @@ bool CV4L2Codec::SetupOutputBuffers()
   int ret;
   memset(&(m_OutputBuffers), 0, sizeof(m_OutputBuffers));
 
-  m_OutputBuffers.init(V4L2_MEMORY_MMAP, m_OutputType);
+  m_OutputBuffers.init(m_OutputType, V4L2_MEMORY_MMAP);
 
   ret =  m_OutputBuffers.reqbufs(m_fd, V4L2_OUTPUT_BUFFERS_COUNT);
   if (ret < 0)
@@ -279,7 +279,7 @@ bool CV4L2Codec::SetupCaptureBuffers()
   int ret;
   memset(&(m_CaptureBuffers), 0, sizeof(m_CaptureBuffers));
 
-  m_CaptureBuffers.init(V4L2_MEMORY_MMAP, m_CaptureType);
+  m_CaptureBuffers.init(m_CaptureType, V4L2_MEMORY_MMAP);
 
   ret =  m_CaptureBuffers.reqbufs(m_fd, V4L2_CAPTURE_BUFFERS_COUNT);
   if (ret < 0)
@@ -326,14 +326,14 @@ cv4l_fd * CV4L2Codec::GetFd()
 
 bool CV4L2Codec::IsOutputBufferEmpty(int index)
 {
-  cv4l_buffer buffer(m_OutputBuffers);
+  cv4l_buffer buffer(m_OutputBuffers, index);
   m_fd->querybuf(buffer, index);
   return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? false : true;
 }
 
 bool CV4L2Codec::IsCaptureBufferEmpty(int index)
 {
-  cv4l_buffer buffer(m_CaptureBuffers);
+  cv4l_buffer buffer(m_CaptureBuffers, index);
   m_fd->querybuf(buffer, index);
   return buffer.g_flags() & V4L2_BUF_FLAG_QUEUED ? false : true;
 }
