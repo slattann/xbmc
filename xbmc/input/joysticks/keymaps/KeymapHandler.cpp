@@ -48,6 +48,8 @@ CKeymapHandler::CKeymapHandler(IActionListener *actionHandler, const IKeymap *ke
     m_easterEgg.reset(new CJoystickEasterEgg(ControllerID()));
 }
 
+CKeymapHandler::~CKeymapHandler() = default;
+
 bool CKeymapHandler::HotkeysPressed(const std::set<std::string> &keyNames) const
 {
   bool bHotkeysPressed = true;

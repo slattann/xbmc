@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "input/joysticks/IButtonSequence.h"
 #include "input/joysticks/IInputHandler.h"
 #include "input/joysticks/interfaces/IKeymapHandler.h"
 #include "input/joysticks/JoystickTypes.h"
@@ -30,6 +29,7 @@
 
 class IActionListener;
 class IKeymap;
+class IButtonSequence;
 
 namespace KODI
 {
@@ -47,7 +47,7 @@ namespace JOYSTICK
   public:
     CKeymapHandler(IActionListener *actionHandler, const IKeymap *keymap);
 
-    virtual ~CKeymapHandler() = default;
+    virtual ~CKeymapHandler();
 
     // implementation of IKeymapHandler
     virtual bool HotkeysPressed(const std::set<std::string>& keyNames) const override;
