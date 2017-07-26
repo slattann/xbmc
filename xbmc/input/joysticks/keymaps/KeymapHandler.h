@@ -65,11 +65,7 @@ namespace JOYSTICK
     virtual bool OnAccelerometerMotion(const FeatureName& feature, float x, float y, float z) override;
 
   protected:
-    /*!
-     * \brief Keep track of cheat code presses
-     *
-     * Child classes should initialize this with the appropriate controller ID.
-     */
+    // Keep track of cheat code presses
     std::unique_ptr<IButtonSequence> m_easterEgg;
 
   private:
