@@ -239,6 +239,27 @@ bool CV4L2Codec::SetupOutputFormat(CDVDStreamInfo &hints)
   return true;
 }
 
+bool CV4L2Codec::SetupCaptureFormat()
+{
+  cv4l_fmt fmt = {};
+  fmt.s_pixelformat(V4L2_PIX_FMT_NV12);
+  fmt.s_type(m_CaptureType);
+
+  auto ret = m_fd->s_fmt(fmt);
+  if (ret < 0)
+  {
+    CLog::Log(LOGERROR, "%s::%s - capture VIDIOC_S_FMT failed", CLASSNAME, __func__);
+    if (ret == EINVAL)
+    {
+      CLog::Log(LOGERROR, "%s::%s - pixelformat %d not supported.", CLASSNAME, __func__, fmt.g_pixelformat());
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
 bool CV4L2Codec::SetupOutputBuffers()
 {
   int ret;

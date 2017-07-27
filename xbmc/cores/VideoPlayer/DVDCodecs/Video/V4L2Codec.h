@@ -40,6 +40,7 @@ public:
 
   const char* GetOutputName() { return m_name.c_str(); };
   bool SetupOutputFormat(CDVDStreamInfo &hints);
+  bool SetupCaptureFormat();
 
   bool SetupOutputBuffers();
   bool SetupCaptureBuffers();

@@ -89,6 +89,11 @@ bool CDVDVideoCodecV4L2::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
     return false;
   }
 
+  if (!m_decoder->SetupCaptureBuffers())
+  {
+    return false;
+  }
+
   if (!m_decoder->SetupOutputBuffers())
   {
     return false;
