@@ -66,8 +66,7 @@ CDVDVideoCodec::VCReturn CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
 
 bool CDecoder::GetPicture(AVCodecContext* avctx, VideoPicture* pPicture)
 {
-  CDVDVideoCodecFFmpeg* ctx = static_cast<CDVDVideoCodecFFmpeg *>(avctx->opaque);
-  bool ret = ctx->GetPictureCommon(pPicture);
+  bool ret = ((ICallbackHWAccel*)avctx->opaque)->GetPictureCommon(pPicture);
   if (!ret)
   {
     return false;
