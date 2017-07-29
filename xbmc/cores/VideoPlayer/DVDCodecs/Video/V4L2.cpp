@@ -23,11 +23,22 @@
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
 #include "cores/VideoPlayer/Process/ProcessInfo.h"
 #include "DVDVideoCodec.h"
+#include "threads/SingleLock.h"
+
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
 
 using namespace V4L2;
 
+//------------------------------------------------------------------------------
+// main class
+//------------------------------------------------------------------------------
+
+
 CDecoder::CDecoder(CProcessInfo& processInfo)
   : m_processInfo(processInfo)
+  , m_videoBuffer(nullptr)
 {
 }
 
@@ -54,8 +65,14 @@ CDVDVideoCodec::VCReturn CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
     return status;
   }
 
-  if (frame)
+  if(frame)
   {
+    if (m_videoBuffer)
+    {
+      m_videoBuffer->Release();
+    }
+    m_videoBuffer = m_processInfo.GetVideoBufferManager().Get((AVPixelFormat)frame->format, frame->width * frame->height);
+    memcpy(m_videoBuffer->GetMemPtr(), frame->data, frame->pkt_size);
     return CDVDVideoCodec::VC_PICTURE;
   }
   else
@@ -66,42 +83,21 @@ CDVDVideoCodec::VCReturn CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
 
 bool CDecoder::GetPicture(AVCodecContext* avctx, VideoPicture* pPicture)
 {
-  bool ret = ((ICallbackHWAccel*)avctx->opaque)->GetPictureCommon(pPicture);
-  if (!ret)
-  {
-    return false;
-  }
+  ((ICallbackHWAccel*)avctx->opaque)->GetPictureCommon(pPicture);
 
   if (pPicture->videoBuffer)
   {
     pPicture->videoBuffer->Release();
-    pPicture->videoBuffer = nullptr;
   }
 
-  CVideoBuffer *videoBuffer = m_processInfo.GetVideoBufferManager().Get(AV_PIX_FMT_NV12, pPicture->iWidth * pPicture->iHeight);
-  if (!videoBuffer)
-  {
-    return false;
-  }
-
-  int strides[YuvImage::MAX_PLANES] = {};
-  strides[0] = pPicture->iWidth;
-  strides[1] = pPicture->iWidth;
-  videoBuffer->SetDimensions(pPicture->iWidth, pPicture->iHeight, strides);
-
-  pPicture->videoBuffer = videoBuffer;
-
+  pPicture->videoBuffer = m_videoBuffer;
+  pPicture->videoBuffer->Acquire();
   return true;
 }
 
 CDVDVideoCodec::VCReturn CDecoder::Check(AVCodecContext* avctx)
 {
   return CDVDVideoCodec::VC_NONE;
-}
-
-unsigned CDecoder::GetAllowedReferences()
-{
-  return 4;
 }
 
 IHardwareDecoder* CDecoder::Create(CDVDStreamInfo &hint, CProcessInfo &processInfo, AVPixelFormat fmt)

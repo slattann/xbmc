@@ -20,12 +20,16 @@
 #pragma once
 
 #include "DVDVideoCodecFFmpeg.h"
+#include "cores/VideoPlayer/Process/VideoBuffer.h"
+
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
 
 class CProcessInfo;
 
 namespace V4L2
 {
-
 class CDecoder : public IHardwareDecoder
 {
 public:
@@ -35,7 +39,7 @@ public:
   CDVDVideoCodec::VCReturn Decode(AVCodecContext* avctx, AVFrame* frame) override;
   bool GetPicture(AVCodecContext* avctx, VideoPicture* picture) override;
   CDVDVideoCodec::VCReturn Check(AVCodecContext* avctx) override;
-  unsigned GetAllowedReferences() override;
+  unsigned GetAllowedReferences() override { return 4; }
   const std::string Name() override { return "v4l2"; }
 
   static IHardwareDecoder* Create(CDVDStreamInfo &hint, CProcessInfo &processInfo, AVPixelFormat fmt);
@@ -43,6 +47,7 @@ public:
 
 protected:
   CProcessInfo& m_processInfo;
+  CVideoBuffer *m_videoBuffer;
 };
 
 }
