@@ -365,7 +365,36 @@ bool CDVDVideoCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options
   m_formats.push_back(AV_PIX_FMT_NONE); /* always add none to get a terminated list in ffmpeg world */
   m_processInfo.SetSwDeinterlacingMethods();
 
-  pCodec = avcodec_find_decoder(hints.codec);
+  switch(hints.codec)
+  {
+    case AV_CODEC_ID_H263:
+      pCodec = avcodec_find_decoder_by_name("h263_v4l2m2m");
+      break;
+    case AV_CODEC_ID_H264:
+      pCodec = avcodec_find_decoder_by_name("h264_v4l2m2m");
+      break;
+    case AV_CODEC_ID_MPEG4:
+      pCodec = avcodec_find_decoder_by_name("mpeg4_v4l2m2m");
+      break;
+    case AV_CODEC_ID_MPEG1VIDEO:
+      pCodec = avcodec_find_decoder_by_name("mpeg1_v4l2m2m");
+      break;
+    case AV_CODEC_ID_MPEG2VIDEO:
+      pCodec = avcodec_find_decoder_by_name("mpeg2_v4l2m2m");
+      break;
+    case AV_CODEC_ID_VC1:
+      pCodec = avcodec_find_decoder_by_name("vc1_v4l2m2m");
+      break;
+    case AV_CODEC_ID_VP8:
+      pCodec = avcodec_find_decoder_by_name("vp8_v4l2m2m");
+      break;
+    case AV_CODEC_ID_VP9:
+      pCodec = avcodec_find_decoder_by_name("vp9_v4l2m2m");
+      break;
+  }
+
+  if (pCodec == NULL)
+    pCodec = avcodec_find_decoder(hints.codec);
 
   if(pCodec == NULL)
   {
