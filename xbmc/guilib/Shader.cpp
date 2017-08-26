@@ -192,6 +192,7 @@ bool CGLSLPixelShader::Compile()
     CLog::Log(LOGERROR, "GL: Error compiling pixel shader");
     glGetShaderInfoLog(m_pixelShader, LOG_SIZE, NULL, log);
     CLog::Log(LOGERROR, "%s", log);
+    CLog::Log(LOGDEBUG, "%s", m_source.c_str());
     m_lastLog = log;
     m_compiled = false;
   }
