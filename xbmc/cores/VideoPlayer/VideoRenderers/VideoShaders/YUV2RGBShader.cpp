@@ -374,10 +374,10 @@ YUV2RGBProgressiveShader::YUV2RGBProgressiveShader(bool rect, unsigned flags, ES
 {
 #ifdef HAS_GL
   PixelShader()->LoadSource("yuv2rgb_basic.glsl", m_defines);
-  PixelShader()->AppendSource("output.glsl");
 #elif HAS_GLES >= 2
   PixelShader()->LoadSource("yuv2rgb_basic_gles.glsl", m_defines);
 #endif
+  PixelShader()->AppendSource("output.glsl");
 }
 
 

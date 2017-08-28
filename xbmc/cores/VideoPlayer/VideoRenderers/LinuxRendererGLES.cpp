@@ -91,6 +91,8 @@ CLinuxRendererGLES::CLinuxRendererGLES()
   m_pVideoFilterShader = NULL;
   m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
   m_scalingMethodGui = (ESCALINGMETHOD)-1;
+  m_useDithering = CServiceBroker::GetSettings().GetBool("videoscreen.dither");
+  m_ditherDepth = CServiceBroker::GetSettings().GetInt("videoscreen.ditherdepth");
   m_fullRange = !g_Windowing.UseLimitedColor();
 
   m_NumYV12Buffers = 0;
@@ -99,6 +101,17 @@ CLinuxRendererGLES::CLinuxRendererGLES()
   m_bValidated = false;
   m_StrictBinding = false;
   m_clearColour = 0.0f;
+  m_nonLinStretch = false;
+  m_nonLinStretchGui = false;
+  m_pixelRatio = 0.0f;
+
+
+  m_ColorManager.reset(new CColorManager());
+  m_tCLUTTex = 0;
+  m_CLUT = NULL;
+  m_CLUTsize = 0;
+  m_cmsToken = -1;
+  m_cmsOn = false;
 
 #if defined(EGL_KHR_reusable_sync) && !defined(EGL_EGLEXT_PROTOTYPES)
   if (!eglCreateSyncKHR) {
@@ -182,8 +195,30 @@ bool CLinuxRendererGLES::Configure(const VideoPicture &picture, float fps, unsig
 
   m_iLastRenderBuffer = -1;
 
+  m_nonLinStretch    = false;
+  m_nonLinStretchGui = false;
+  m_pixelRatio       = 1.0;
+
   // setup the background colour
   m_clearColour = g_Windowing.UseLimitedColor() ? (16.0f / 0xff) : 0.0f;
+
+  // load 3DLUT
+  if (m_ColorManager->IsEnabled())
+  {
+    if (!m_ColorManager->CheckConfiguration(m_cmsToken, m_iFlags))
+    {
+      CLog::Log(LOGDEBUG, "CMS configuration changed, reload LUT");
+      /*
+      if (!LoadCLUT())
+        return false;
+      */
+    }
+    m_cmsOn = true;
+  }
+  else
+  {
+    m_cmsOn = false;
+  }
 
   return true;
 }
@@ -445,8 +480,58 @@ void CLinuxRendererGLES::FlipPage(int source)
 
 void CLinuxRendererGLES::UpdateVideoFilter()
 {
-  if (m_scalingMethodGui == CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ScalingMethod)
+  bool pixelRatioChanged    = (CDisplaySettings::GetInstance().GetPixelRatio() > 1.001f || CDisplaySettings::GetInstance().GetPixelRatio() < 0.999f) !=
+                              (m_pixelRatio > 1.001f || m_pixelRatio < 0.999f);
+  bool nonLinStretchChanged = false;
+  bool cmsChanged           = (m_cmsOn != m_ColorManager->IsEnabled())
+                              || (m_cmsOn && !m_ColorManager->CheckConfiguration(m_cmsToken, m_iFlags));
+  if (m_nonLinStretchGui != CDisplaySettings::GetInstance().IsNonLinearStretched() || pixelRatioChanged)
+  {
+    m_nonLinStretchGui   = CDisplaySettings::GetInstance().IsNonLinearStretched();
+    m_pixelRatio         = CDisplaySettings::GetInstance().GetPixelRatio();
+    m_reloadShaders      = 1;
+    nonLinStretchChanged = true;
+
+    if (m_nonLinStretchGui && (m_pixelRatio < 0.999f || m_pixelRatio > 1.001f) && Supports(RENDERFEATURE_NONLINSTRETCH))
+    {
+      m_nonLinStretch = true;
+      CLog::Log(LOGDEBUG, "GL: Enabling non-linear stretch");
+    }
+    else
+    {
+      m_nonLinStretch = false;
+      CLog::Log(LOGDEBUG, "GL: Disabling non-linear stretch");
+    }
+  }
+
+  if (m_scalingMethodGui == CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ScalingMethod && !nonLinStretchChanged && !cmsChanged)
     return;
+  else
+    m_reloadShaders = 1;
+
+  //recompile YUV shader when non-linear stretch is turned on/off
+  //or when it's on and the scaling method changed
+  if (m_nonLinStretch || nonLinStretchChanged)
+    m_reloadShaders = 1;
+
+  if (cmsChanged)
+  {
+    if (m_ColorManager->IsEnabled())
+    {
+      if (!m_ColorManager->CheckConfiguration(m_cmsToken, m_iFlags))
+      {
+        CLog::Log(LOGDEBUG, "CMS configuration changed, reload LUT");
+        // todo
+        //LoadCLUT();
+      }
+      m_cmsOn = true;
+    }
+    else
+    {
+      m_cmsOn = false;
+    }
+  }
+
   m_scalingMethodGui = CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ScalingMethod;
   m_scalingMethod    = m_scalingMethodGui;
 
@@ -527,9 +612,23 @@ void CLinuxRendererGLES::LoadShaders(int field)
           // create regular scan shader
           CLog::Log(LOGNOTICE, "GL: Selecting Single Pass YUV 2 RGB shader");
 
+
+          // if single pass, create GLSLOutput helper and pass it to YUV2RGB shader
+          GLSLOutput *out = nullptr;
+          if (m_renderQuality == RQ_SINGLEPASS)
+          {
+            out = new GLSLOutput(3, m_useDithering, m_ditherDepth,
+                                 m_cmsOn ? m_fullRange : false,
+                                 m_cmsOn ? m_tCLUTTex : 0,
+                                 m_CLUTsize);
+          }
           EShaderFormat shaderFormat = GetShaderFormat();
-          m_pYUVProgShader = new YUV2RGBProgressiveShader(false, m_iFlags, shaderFormat);
-          m_pYUVProgShader->SetConvertFullColorRange(m_fullRange);
+          m_pYUVProgShader = new YUV2RGBProgressiveShader(false, m_iFlags, shaderFormat,
+                                                          m_nonLinStretch && m_renderQuality == RQ_SINGLEPASS,
+                                                          out);
+          if (!m_cmsOn)
+            m_pYUVProgShader->SetConvertFullColorRange(m_fullRange);
+
           m_pYUVBobShader = new YUV2RGBBobShader(false, m_iFlags, shaderFormat);
           m_pYUVBobShader->SetConvertFullColorRange(m_fullRange);
 
@@ -538,16 +637,15 @@ void CLinuxRendererGLES::LoadShaders(int field)
           {
             m_renderMethod = RENDER_GLSL;
             UpdateVideoFilter();
-            break;
           }
           else
           {
             ReleaseShaders();
             CLog::Log(LOGERROR, "GL: Error enabling YUV2RGB GLSL shader");
             m_renderMethod = -1;
-            break;
           }
         }
+        break;
       default:
         {
           m_renderMethod = -1 ;

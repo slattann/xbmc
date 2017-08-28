@@ -33,6 +33,7 @@
 #include "RenderInfo.h"
 #include "guilib/GraphicContext.h"
 #include "BaseRenderer.h"
+#include "ColorManager.h"
 #include "xbmc/cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodec.h"
 
 class CRenderCapture;
@@ -228,10 +229,24 @@ protected:
   Shaders::BaseVideoFilterShader *m_pVideoFilterShader;
   ESCALINGMETHOD m_scalingMethod;
   ESCALINGMETHOD m_scalingMethodGui;
+  bool m_useDithering;
+  unsigned int m_ditherDepth;
   bool m_fullRange;
 
   // clear colour for "black" bars
   float m_clearColour;
+
+  bool  m_nonLinStretch;
+  bool  m_nonLinStretchGui;
+  float m_pixelRatio;
+
+  // color management
+  std::unique_ptr<CColorManager> m_ColorManager;
+  GLuint m_tCLUTTex;
+  uint16_t *m_CLUT;
+  int m_CLUTsize;
+  int m_cmsToken;
+  bool m_cmsOn;
 };
 
 
