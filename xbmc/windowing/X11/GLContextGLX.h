@@ -33,6 +33,7 @@ public:
   void SetVSync(bool enable) override;
   void SwapBuffers() override;
   void QueryExtensions() override;
+  XVisualInfo* GetVisual();
   GLXWindow m_glxWindow;
   GLXContext m_glxContext;
 protected:

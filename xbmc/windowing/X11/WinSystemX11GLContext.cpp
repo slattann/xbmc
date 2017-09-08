@@ -23,7 +23,6 @@
 #include <X11/Xutil.h>
 
 #include "WinSystemX11GLContext.h"
-#include "GLContextGLX.h"
 #include "GLContextEGL.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
@@ -33,7 +32,12 @@
 #include <vector>
 #include "Application.h"
 #include "VideoSyncDRM.h"
+
+#ifdef HAS_GLX
 #include "VideoSyncGLX.h"
+#include "GLContextGLX.h"
+#endif // HAS_GLX
+
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
 #include "cores/VideoPlayer/Process/X11/ProcessInfoX11.h"
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGL.h"
@@ -50,7 +54,7 @@ void CWinSystemX11GLContext::PresentRenderImpl(bool rendered)
 {
   if (rendered)
     m_pGLContext->SwapBuffers();
-  
+
   if (m_delayDispReset && m_dispResetTimer.IsTimePast())
   {
     m_delayDispReset = false;
@@ -74,6 +78,7 @@ bool CWinSystemX11GLContext::IsExtSupported(const char* extension)
   return m_pGLContext->IsExtSupported(extension);
 }
 
+#ifdef HAS_GLX
 GLXWindow CWinSystemX11GLContext::GetWindow() const
 {
   return static_cast<CGLContextGLX*>(m_pGLContext)->m_glxWindow;
@@ -83,6 +88,7 @@ GLXContext CWinSystemX11GLContext::GetGlxContext() const
 {
   return static_cast<CGLContextGLX*>(m_pGLContext)->m_glxContext;
 }
+#endif // HAS_GLX
 
 EGLDisplay CWinSystemX11GLContext::GetEGLDisplay() const
 {
@@ -177,18 +183,14 @@ bool CWinSystemX11GLContext::DestroyWindow()
 
 XVisualInfo* CWinSystemX11GLContext::GetVisual()
 {
-  GLint att[] =
+  XVisualInfo* vi = nullptr;
+  if(!m_pGLContext)
   {
-    GLX_RGBA,
-    GLX_RED_SIZE, 8,
-    GLX_GREEN_SIZE, 8,
-    GLX_BLUE_SIZE, 8,
-    GLX_ALPHA_SIZE, 8,
-    GLX_DEPTH_SIZE, 24,
-    GLX_DOUBLEBUFFER,
-    None
-  };
-  return glXChooseVisual(m_dpy, m_nScreen, att);
+    RefreshGLContext(true);
+  }
+  vi = m_pGLContext->GetVisual();
+
+  return vi;
 }
 
 #if defined (HAVE_LIBVA)
@@ -239,6 +241,7 @@ bool CWinSystemX11GLContext::RefreshGLContext(bool force)
     delete m_pGLContext;
   }
 
+#ifdef HAS_GLX
   // fallback for vdpau
   m_pGLContext = new CGLContextGLX(m_dpy);
   success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
@@ -249,6 +252,7 @@ bool CWinSystemX11GLContext::RefreshGLContext(bool force)
     CRendererVDPAU::Register();
 #endif
   }
+#endif // HAS_GLX
   return success;
 }
 
@@ -260,10 +264,12 @@ std::unique_ptr<CVideoSync> CWinSystemX11GLContext::GetVideoSync(void *clock)
   {
     pVSync.reset(new CVideoSyncDRM(clock));
   }
+#ifdef HAS_GLX
   else if (dynamic_cast<CGLContextGLX*>(m_pGLContext))
   {
     pVSync.reset(new CVideoSyncGLX(clock));
   }
+#endif // HAS_GLX
   return pVSync;
 }
 
