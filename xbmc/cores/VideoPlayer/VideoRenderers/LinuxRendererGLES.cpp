@@ -37,7 +37,7 @@
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "VideoShaders/YUV2RGBShader.h"
-#include "VideoShaders/VideoFilterShader.h"
+#include "VideoShaders/VideoFilterShaderGLES.h"
 #include "windowing/WindowingFactory.h"
 #include "guilib/Texture.h"
 #include "threads/SingleLock.h"
