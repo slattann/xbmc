@@ -383,26 +383,26 @@ XVisualInfo* CGLContextEGL::GetVisual()
       m_eglDisplay = eglGetDisplay((EGLNativeDisplayType)m_dpy);
       if (m_eglDisplay == EGL_NO_DISPLAY)
       {
-        CLog::Log(LOGERROR, "failed to get egl display\n");
-	return NULL;
+        CLog::Log(LOGERROR, "failed to get egl display");
+        return NULL;
       }
       if (!eglInitialize(m_eglDisplay, NULL, NULL))
       {
-	CLog::Log(LOGERROR, "failed to initialize egl display\n");
-	return NULL;
+        CLog::Log(LOGERROR, "failed to initialize egl display");
+        return NULL;
       }
     }
 
     EGLint numConfigs;
     EGLConfig eglConfig = 0;
     if (!eglChooseConfig(m_eglDisplay, att, &eglConfig, 1, &numConfigs) || numConfigs == 0) {
-      CLog::Log(LOGERROR, "Failed to choose a config %d\n", eglGetError());
+      CLog::Log(LOGERROR, "Failed to choose a config %d", eglGetError());
     }
     m_eglConfig=eglConfig;
 
     XVisualInfo x11_visual_info_template;
     if (!eglGetConfigAttrib(m_eglDisplay, m_eglConfig, EGL_NATIVE_VISUAL_ID, (EGLint*)&x11_visual_info_template.visualid)) {
-      CLog::Log(LOGERROR, "Failed to query native visual id\n");
+      CLog::Log(LOGERROR, "Failed to query native visual id");
     }
     int num_visuals;
     return XGetVisualInfo(m_dpy,
