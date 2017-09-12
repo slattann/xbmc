@@ -183,14 +183,24 @@ bool CWinSystemX11GLContext::DestroyWindow()
 
 XVisualInfo* CWinSystemX11GLContext::GetVisual()
 {
-  XVisualInfo* vi = nullptr;
-  if(!m_pGLContext)
+  if (!m_pGLContext)
   {
-    RefreshGLContext(true);
+#ifdef HAS_GLX
+    std::string gpuvendor;
+    const char* vend = (const char*) glGetString(GL_VENDOR);
+    if (vend)
+      gpuvendor = vend;
+    std::transform(gpuvendor.begin(), gpuvendor.end(), gpuvendor.begin(), ::tolower);
+    if (gpuvendor.compare(0, 5, "intel") == 0)
+#endif // HAS_GLX
+      m_pGLContext = new CGLContextEGL(m_dpy);
+#ifdef HAS_GLX
+    delete m_pGLContext;
+    m_pGLContext = new CGLContextGLX(m_dpy, m_nScreen);
+#endif // HAS_GLX
   }
-  vi = m_pGLContext->GetVisual();
 
-  return vi;
+  return m_pGLContext->GetVisual();
 }
 
 #if defined (HAVE_LIBVA)
@@ -206,9 +216,11 @@ XVisualInfo* CWinSystemX11GLContext::GetVisual()
 bool CWinSystemX11GLContext::RefreshGLContext(bool force)
 {
   bool success = false;
-  if (m_pGLContext)
+
+  success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
+
+  if(!m_bFirstRun)
   {
-    success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
     return success;
   }
 
@@ -217,16 +229,9 @@ bool CWinSystemX11GLContext::RefreshGLContext(bool force)
   VIDEOPLAYER::CRendererFactory::ClearRenderer();
   CLinuxRendererGL::Register();
 
-  m_pGLContext = new CGLContextEGL(m_dpy);
-  success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
   if (success)
   {
-    std::string gpuvendor;
-    const char* vend = (const char*) glGetString(GL_VENDOR);
-    if (vend)
-      gpuvendor = vend;
-    std::transform(gpuvendor.begin(), gpuvendor.end(), gpuvendor.begin(), ::tolower);
-    if (gpuvendor.compare(0, 5, "intel") == 0)
+    if(dynamic_cast<CGLContextEGL*>(m_pGLContext))
     {
 #if defined (HAVE_LIBVA)
       EGLDisplay eglDpy = static_cast<CGLContextEGL*>(m_pGLContext)->m_eglDisplay;
@@ -236,23 +241,20 @@ bool CWinSystemX11GLContext::RefreshGLContext(bool force)
       if (general)
         VAAPI::CDecoder::Register(hevc);
 #endif
-      return success;
     }
-    delete m_pGLContext;
-  }
-
 #ifdef HAS_GLX
-  // fallback for vdpau
-  m_pGLContext = new CGLContextGLX(m_dpy);
-  success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
-  if (success)
-  {
+    else if(dynamic_cast<CGLContextGLX*>(m_pGLContext))
+    {
 #if defined (HAVE_LIBVDPAU)
-    VDPAU::CDecoder::Register();
-    CRendererVDPAU::Register();
+      VDPAU::CDecoder::Register();
+      CRendererVDPAU::Register();
+#endif
+    }
 #endif
   }
-#endif // HAS_GLX
+
+  m_bFirstRun = false;
+
   return success;
 }
 

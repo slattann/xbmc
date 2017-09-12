@@ -68,6 +68,7 @@ protected:
 
   CGLContext *m_pGLContext = nullptr;
   bool m_newGlContext;
+  bool m_bFirstRun = true;
 };
 
 XBMC_GLOBAL_REF(CWinSystemX11GLContext,g_Windowing);
