@@ -26,7 +26,7 @@
 class CGLContextGLX : public CGLContext
 {
 public:
-  explicit CGLContextGLX(Display *dpy, int nScreen);
+  explicit CGLContextGLX(Display *dpy);
   bool Refresh(bool force, int screen, Window glWindow, bool &newContext) override;
   void Destroy() override;
   void Detach() override;

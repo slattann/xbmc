@@ -24,13 +24,12 @@
 #include "GLContextGLX.h"
 #include "utils/log.h"
 
-CGLContextGLX::CGLContextGLX(Display *dpy, int nScreen) : CGLContext(dpy)
+CGLContextGLX::CGLContextGLX(Display *dpy) : CGLContext(dpy)
 {
   m_extPrefix = "GLX_";
   m_glxWindow = 0;
   m_glxContext = 0;
   m_vsyncMode = 0;
-  m_nScreen = nScreen;
 }
 
 bool CGLContextGLX::Refresh(bool force, int screen, Window glWindow, bool &newContext)
