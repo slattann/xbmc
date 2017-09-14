@@ -183,14 +183,12 @@ bool CWinSystemX11GLContext::DestroyWindow()
 
 XVisualInfo* CWinSystemX11GLContext::GetVisual()
 {
-  XVisualInfo* vi = nullptr;
-  if(!m_pGLContext)
-  {
-    RefreshGLContext(true);
-  }
-  vi = m_pGLContext->GetVisual();
+  int count;
+  XVisualInfo* visuals = nullptr;
 
-  return vi;
+  visuals = XGetVisualInfo(m_dpy, 0, NULL, &count);
+
+  return visuals;
 }
 
 #if defined (HAVE_LIBVA)
@@ -238,10 +236,11 @@ bool CWinSystemX11GLContext::RefreshGLContext(bool force)
 #endif
       return success;
     }
-    delete m_pGLContext;
   }
 
 #ifdef HAS_GLX
+  delete m_pGLContext;
+
   // fallback for vdpau
   m_pGLContext = new CGLContextGLX(m_dpy);
   success = m_pGLContext->Refresh(force, m_nScreen, m_glWindow, m_newGlContext);
