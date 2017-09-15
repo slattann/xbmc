@@ -46,7 +46,6 @@ public:
   virtual void SwapBuffers() = 0;
   virtual void QueryExtensions() = 0;
   bool IsExtSupported(const char* extension) const;
-  virtual XVisualInfo* GetVisual() = 0;
 
   std::string ExtPrefix(){ return m_extPrefix; };
   std::string m_extPrefix;

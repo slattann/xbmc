@@ -293,19 +293,3 @@ void CGLContextGLX::QueryExtensions()
   else
     m_glXSwapIntervalEXT = NULL;
 }
-
-XVisualInfo* CGLContextGLX::GetVisual()
-{
-  GLint att[] =
-  {
-    GLX_RGBA,
-    GLX_RED_SIZE, 8,
-    GLX_GREEN_SIZE, 8,
-    GLX_BLUE_SIZE, 8,
-    GLX_ALPHA_SIZE, 8,
-    GLX_DEPTH_SIZE, 24,
-    GLX_DOUBLEBUFFER,
-    None
-  };
-  return glXChooseVisual(m_dpy, m_nScreen, att);
-}

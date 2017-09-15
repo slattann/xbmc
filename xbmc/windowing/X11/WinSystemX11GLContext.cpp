@@ -183,12 +183,21 @@ bool CWinSystemX11GLContext::DestroyWindow()
 
 XVisualInfo* CWinSystemX11GLContext::GetVisual()
 {
-  int count;
-  XVisualInfo* visuals = nullptr;
+  XVisualInfo vTemplate;
+  XVisualInfo *visual = nullptr;
+  int count = 0;
+  int vMask = 0;
 
-  visuals = XGetVisualInfo(m_dpy, 0, NULL, &count);
+  vTemplate.screen = m_nScreen;
+  vTemplate.depth = 24;
+  vTemplate.c_class = TrueColor;
+  vTemplate.bits_per_rgb = 8;
 
-  return visuals;
+  vMask = VisualScreenMask | VisualDepthMask | VisualClassMask | VisualBitsPerRGBMask;
+
+  visual = XGetVisualInfo(m_dpy, vMask, &vTemplate, &count);
+
+  return visual;
 }
 
 #if defined (HAVE_LIBVA)
