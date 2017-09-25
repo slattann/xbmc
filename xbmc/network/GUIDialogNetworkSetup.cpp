@@ -200,9 +200,7 @@ void CGUIDialogNetworkSetup::InitializeSettings()
   labels.push_back(std::make_pair(20173, NET_PROTOCOL_FTP));
   labels.push_back(std::make_pair(20175, NET_PROTOCOL_UPNP));
   labels.push_back(std::make_pair(20304, NET_PROTOCOL_RSS));
-#ifdef HAS_FILESYSTEM_NFS
   labels.push_back(std::make_pair(20259, NET_PROTOCOL_NFS));
-#endif
 #ifdef HAS_FILESYSTEM_SFTP
   labels.push_back(std::make_pair(20260, NET_PROTOCOL_SFTP));
 #endif
@@ -266,8 +264,8 @@ void CGUIDialogNetworkSetup::OnProtocolChange()
     // set defaults for the port
     if (m_protocol == NET_PROTOCOL_FTP)
       m_port = "21";
-    else if (m_protocol == NET_PROTOCOL_HTTP || 
-       m_protocol == NET_PROTOCOL_RSS || 
+    else if (m_protocol == NET_PROTOCOL_HTTP ||
+       m_protocol == NET_PROTOCOL_RSS ||
        m_protocol == NET_PROTOCOL_DAV)
       m_port = "80";
     else if (m_protocol == NET_PROTOCOL_HTTPS || m_protocol == NET_PROTOCOL_DAVS)
@@ -404,7 +402,7 @@ std::string CGUIDialogNetworkSetup::ConstructPath() const
     url.SetProtocol("nfs");
   else if (m_protocol == NET_PROTOCOL_SFTP)
     url.SetProtocol("sftp");
-    
+
   if (!m_username.empty())
   {
     url.SetUserName(m_username);

@@ -106,9 +106,6 @@
 #if defined(TARGET_POSIX) && defined(HAS_FILESYSTEM_SMB)
 #include "filesystem/SMBDirectory.h"
 #endif
-#ifdef HAS_FILESYSTEM_NFS
-#include "filesystem/NFSFile.h"
-#endif
 #ifdef HAS_FILESYSTEM_SFTP
 #include "filesystem/SFTPFile.h"
 #endif
@@ -1707,7 +1704,7 @@ bool CApplication::LoadSkin(const std::string& skinID)
       break;
     }
   }
-  
+
   return true;
 }
 
@@ -3972,7 +3969,7 @@ void CApplication::CheckScreenSaverAndDPMS()
   {
     m_screensaverInhibitor.Release();
   }
-  
+
   // Has the screen saver window become active?
   if (maybeScreensaver && g_windowManager.IsWindowActive(WINDOW_SCREENSAVER))
   {
@@ -4534,10 +4531,6 @@ void CApplication::ProcessSlow()
 
 #if defined(TARGET_POSIX) && defined(HAS_FILESYSTEM_SMB)
   smb.CheckIfIdle();
-#endif
-
-#ifdef HAS_FILESYSTEM_NFS
-  gNfsConnection.CheckIfIdle();
 #endif
 
 #ifdef HAS_FILESYSTEM_SFTP
@@ -5171,10 +5164,6 @@ void CApplication::CloseNetworkShares()
 
 #if defined(HAS_FILESYSTEM_SMB) && !defined(TARGET_WINDOWS)
   smb.Deinit();
-#endif
-
-#ifdef HAS_FILESYSTEM_NFS
-  gNfsConnection.Deinit();
 #endif
 
 #ifdef HAS_FILESYSTEM_SFTP
