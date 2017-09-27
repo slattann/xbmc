@@ -142,7 +142,6 @@ set(optional_deps Alsa
                   MySqlClient
                   PulseAudio
                   Python
-                  SmbClient
                   Sndio
                   SSH
                   UDEV

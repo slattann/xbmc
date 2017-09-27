@@ -48,13 +48,6 @@
 #elif defined(TARGET_WINDOWS)
 #include "win32/Win32Directory.h"
 #endif
-#ifdef HAS_FILESYSTEM_SMB
-#ifdef TARGET_WINDOWS
-#include "win32/Win32SMBDirectory.h"
-#else
-#include "SMBDirectory.h"
-#endif
-#endif
 #ifdef HAS_FILESYSTEM_CDDA
 #include "CDDADirectory.h"
 #endif
@@ -155,13 +148,6 @@ IDirectory* CDirectoryFactory::Create(const CURL& url)
     if (url.IsProtocol("dav") || url.IsProtocol("davs")) return new CDAVDirectory();
 #ifdef HAS_FILESYSTEM_SFTP
     if (url.IsProtocol("sftp") || url.IsProtocol("ssh")) return new CSFTPDirectory();
-#endif
-#ifdef HAS_FILESYSTEM_SMB
-#ifdef TARGET_WINDOWS
-    if (url.IsProtocol("smb")) return new CWin32SMBDirectory();
-#else
-    if (url.IsProtocol("smb")) return new CSMBDirectory();
-#endif
 #endif
 #ifdef HAS_UPNP
     if (url.IsProtocol("upnp")) return new CUPnPDirectory();

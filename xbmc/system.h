@@ -38,9 +38,7 @@
 
 #define HAS_FILESYSTEM_CDDA
 
-#ifdef HAVE_LIBSMBCLIENT
-  #define HAS_FILESYSTEM_SMB
-#endif
+#define HAS_FILESYSTEM_SMB
 
 #ifdef HAVE_LIBPLIST
   #define HAS_AIRPLAY
@@ -57,6 +55,7 @@
 #if defined(USE_UPNP)
   #define HAS_UPNP
 #endif
+
 
 #if defined(HAVE_LIBMDNS)
   #define HAS_ZEROCONF

@@ -3,7 +3,7 @@ include ../../depends/Makefile.include
 OBJS = libcurl.so \
   libplist.so libshairplay.so \
   libass.so \
-  libbluray.so libsmbclient.so
+  libbluray.so
 
 PLATFORM_OBJS =
 EXCLUDED_ADDONS = 

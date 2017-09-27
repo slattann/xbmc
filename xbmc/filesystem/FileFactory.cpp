@@ -29,13 +29,6 @@
 #include "CurlFile.h"
 #include "DAVFile.h"
 #include "ShoutcastFile.h"
-#ifdef HAS_FILESYSTEM_SMB
-#ifdef TARGET_WINDOWS
-#include "win32/Win32SMBFile.h"
-#else
-#include "SMBFile.h"
-#endif
-#endif
 #ifdef HAS_FILESYSTEM_CDDA
 #include "CDDAFile.h"
 #endif
@@ -145,13 +138,6 @@ IFile* CFileFactory::CreateLoader(const CURL& url)
     else if (url.IsProtocol("sftp") || url.IsProtocol("ssh")) return new CSFTPFile();
 #endif
     else if (url.IsProtocol("shout")) return new CShoutcastFile();
-#ifdef HAS_FILESYSTEM_SMB
-#ifdef TARGET_WINDOWS
-    else if (url.IsProtocol("smb")) return new CWin32SMBFile();
-#else
-    else if (url.IsProtocol("smb")) return new CSMBFile();
-#endif
-#endif
 #ifdef HAS_UPNP
     else if (url.IsProtocol("upnp")) return new CUPnPFile();
 #endif

@@ -190,9 +190,7 @@ void CGUIDialogNetworkSetup::InitializeSettings()
 
   // Add our protocols
   TranslatableIntegerSettingOptions labels;
-#ifdef HAS_FILESYSTEM_SMB
   labels.push_back(std::make_pair(20171, NET_PROTOCOL_SMB));
-#endif
   labels.push_back(std::make_pair(20301, NET_PROTOCOL_HTTPS));
   labels.push_back(std::make_pair(20300, NET_PROTOCOL_HTTP));
   labels.push_back(std::make_pair(20254, NET_PROTOCOL_DAVS));

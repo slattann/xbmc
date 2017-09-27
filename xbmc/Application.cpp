@@ -103,9 +103,6 @@
 #include "network/upnp/UPnP.h"
 #include "filesystem/UPnPDirectory.h"
 #endif
-#if defined(TARGET_POSIX) && defined(HAS_FILESYSTEM_SMB)
-#include "filesystem/SMBDirectory.h"
-#endif
 #ifdef HAS_FILESYSTEM_SFTP
 #include "filesystem/SFTPFile.h"
 #endif
@@ -2906,10 +2903,6 @@ void CApplication::Stop(int exitCode)
     for (const auto& vfsAddon : CServiceBroker::GetVFSAddonCache().GetAddonInstances())
       vfsAddon->DisconnectAll();
 
-#if defined(TARGET_POSIX) && defined(HAS_FILESYSTEM_SMB)
-    smb.Deinit();
-#endif
-
 #if defined(TARGET_DARWIN_OSX)
     if (XBMCHelper::GetInstance().IsAlwaysOn() == false)
       XBMCHelper::GetInstance().Stop();
@@ -4529,10 +4522,6 @@ void CApplication::ProcessSlow()
     UPNP::CUPnP::GetInstance()->UpdateState();
 #endif
 
-#if defined(TARGET_POSIX) && defined(HAS_FILESYSTEM_SMB)
-  smb.CheckIfIdle();
-#endif
-
 #ifdef HAS_FILESYSTEM_SFTP
   CSFTPSessionManager::ClearOutIdleSessions();
 #endif
@@ -5161,10 +5150,6 @@ void CApplication::SetLoggingIn(bool switchingProfiles)
 void CApplication::CloseNetworkShares()
 {
   CLog::Log(LOGDEBUG,"CApplication::CloseNetworkShares: Closing all network shares");
-
-#if defined(HAS_FILESYSTEM_SMB) && !defined(TARGET_WINDOWS)
-  smb.Deinit();
-#endif
 
 #ifdef HAS_FILESYSTEM_SFTP
   CSFTPSessionManager::DisconnectAllSessions();
