@@ -21,21 +21,47 @@
 #include "utils/log.h"
 
 #include "DRM.h"
+#include "DRMAtomic.h"
 #include "DRMLegacy.h"
+
+CDRM::CDRM()
+  : m_hasAtomic(false)
+{
+}
 
 void CDRM::FlipPage(CGLContextEGL *pGLContext)
 {
-  CDRMLegacy::FlipPage(pGLContext);
+  if (m_hasAtomic)
+  {
+    CDRMAtomic::FlipPage(pGLContext);
+  }
+  else
+  {
+    CDRMLegacy::FlipPage(pGLContext);
+  }
 }
 
 bool CDRM::SetVideoMode(RESOLUTION_INFO res)
 {
-  return CDRMLegacy::SetVideoMode(res);
+  if (m_hasAtomic)
+  {
+    return CDRMAtomic::SetVideoMode(res);
+  }
+  else
+  {
+    return CDRMLegacy::SetVideoMode(res);
+  }
 }
 
 bool CDRM::InitDrm(drm *drm, gbm *gbm)
 {
-  if (CDRMLegacy::InitDrmLegacy(drm, gbm))
+  if (CDRMAtomic::InitDrmAtomic(drm, gbm))
+  {
+    m_hasAtomic = true;
+    CLog::Log(LOGNOTICE, "CDRM::%s - initialized Atomic DRM", __FUNCTION__);
+    return true;
+  }
+  else if (CDRMLegacy::InitDrmLegacy(drm, gbm))
   {
     CLog::Log(LOGNOTICE, "CDRM::%s - initialized Legacy DRM", __FUNCTION__);
     return true;
@@ -46,5 +72,12 @@ bool CDRM::InitDrm(drm *drm, gbm *gbm)
 
 void CDRM::DestroyDrm()
 {
-  CDRMLegacy::DestroyDrmLegacy();
+  if (m_hasAtomic)
+  {
+    CDRMAtomic::DestroyDrmAtomic();
+  }
+  else
+  {
+    CDRMLegacy::DestroyDrmLegacy();
+  }
 }

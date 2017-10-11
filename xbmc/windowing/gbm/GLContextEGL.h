@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "EGL/egl.h"
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 class CGLContextEGL
 {
@@ -40,9 +41,18 @@ public:
   void Detach();
   bool SetVSync(bool enable);
   void SwapBuffers();
+  EGLSyncKHR CreateFence(int fd);
+  void CreateGPUFence();
+  void CreateKMSFence(int kms_out_fence_fd);
+  EGLint FlushFence();
+  void WaitSyncGPU();
+  void WaitSyncCPU();
 
   EGLDisplay m_eglDisplay;
   EGLSurface m_eglSurface;
   EGLContext m_eglContext;
   EGLConfig m_eglConfig;
+
+  EGLSyncKHR m_gpuFence;
+  EGLSyncKHR m_kmsFence;
 };

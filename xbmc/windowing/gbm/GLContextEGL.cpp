@@ -24,14 +24,15 @@
 #include "settings/AdvancedSettings.h"
 #include "utils/log.h"
 
-#include <EGL/eglext.h>
 #include <string.h>
 
 CGLContextEGL::CGLContextEGL() :
   m_eglDisplay(EGL_NO_DISPLAY),
   m_eglSurface(EGL_NO_SURFACE),
   m_eglContext(EGL_NO_CONTEXT),
-  m_eglConfig(0)
+  m_eglConfig(0),
+  m_gpuFence(nullptr),
+  m_kmsFence(nullptr)
 {
 }
 
@@ -249,4 +250,88 @@ void CGLContextEGL::SwapBuffers()
   }
 
   eglSwapBuffers(m_eglDisplay, m_eglSurface);
+}
+
+EGLSyncKHR CGLContextEGL::CreateFence(int fd)
+{
+  EGLint attrib_list[] =
+  {
+    EGL_SYNC_NATIVE_FENCE_FD_ANDROID, fd,
+    EGL_NONE,
+  };
+
+  PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)eglGetProcAddress("eglCreateSyncKHR");
+
+  EGLSyncKHR fence = eglCreateSyncKHR(m_eglDisplay, EGL_SYNC_NATIVE_FENCE_ANDROID, attrib_list);
+
+  return fence;
+}
+
+void CGLContextEGL::CreateGPUFence()
+{
+  m_gpuFence = CreateFence(EGL_NO_NATIVE_FENCE_FD_ANDROID);
+}
+
+void CGLContextEGL::CreateKMSFence(int kms_out_fence_fd)
+{
+  m_kmsFence = CreateFence(kms_out_fence_fd);
+}
+
+EGLint CGLContextEGL::FlushFence()
+{
+  PFNEGLDUPNATIVEFENCEFDANDROIDPROC eglDupNativeFenceFDANDROID = (PFNEGLDUPNATIVEFENCEFDANDROIDPROC)eglGetProcAddress("eglDupNativeFenceFDANDROID");
+  PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
+
+  auto fd = eglDupNativeFenceFDANDROID(m_eglDisplay, m_gpuFence);
+
+  if (fd < 0)
+  {
+    return -1;
+  }
+
+  eglDestroySyncKHR(m_eglDisplay, m_gpuFence);
+
+  return fd;
+}
+
+void CGLContextEGL::WaitSyncGPU()
+{
+  if (m_kmsFence == 0)
+  {
+    return;
+  }
+
+  PFNEGLWAITSYNCKHRPROC eglWaitSyncKHR = (PFNEGLWAITSYNCKHRPROC)eglGetProcAddress("eglWaitSyncKHR");
+
+  /* wait "on the gpu" (ie. this won't necessarily block, but
+   * will block the rendering until fence is signaled), until
+   * the previous pageflip completes so we don't render into
+   * the buffer that is still on screen.
+   */
+  eglWaitSyncKHR(m_eglDisplay, m_kmsFence, 0);
+}
+
+void CGLContextEGL::WaitSyncCPU()
+{
+  if (m_kmsFence)
+  {
+    EGLint status;
+    PFNEGLCLIENTWAITSYNCKHRPROC eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)eglGetProcAddress("eglClientWaitSyncKHR");
+    PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)eglGetProcAddress("eglDestroySyncKHR");
+
+    /* Wait on the CPU side for the _previous_ commit to
+     * complete before we post the flip through KMS, as
+     * atomic will reject the commit if we post a new one
+     * whilst the previous one is still pending.
+     */
+    do
+    {
+      status = eglClientWaitSyncKHR(m_eglDisplay,
+                                    m_kmsFence,
+                                    0,
+                                    EGL_FOREVER_KHR);
+    } while (status != EGL_CONDITION_SATISFIED_KHR);
+
+    eglDestroySyncKHR(m_eglDisplay, m_kmsFence);
+  }
 }
