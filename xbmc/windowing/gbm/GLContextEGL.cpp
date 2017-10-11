@@ -24,7 +24,6 @@
 #include "settings/AdvancedSettings.h"
 #include "utils/log.h"
 
-#include <EGL/eglext.h>
 #include <string.h>
 
 CGLContextEGL::CGLContextEGL() :

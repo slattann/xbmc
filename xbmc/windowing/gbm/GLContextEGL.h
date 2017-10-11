@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "EGL/egl.h"
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 class CGLContextEGL
 {

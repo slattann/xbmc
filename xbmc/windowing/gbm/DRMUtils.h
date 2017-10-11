@@ -68,6 +68,10 @@ struct drm
   drmModeModeInfo *mode;
 
   int crtc_index;
+
+  bool need_modeset;
+
+  drmModeAtomicReq *req;
 };
 
 struct drm_fb

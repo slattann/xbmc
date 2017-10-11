@@ -478,6 +478,24 @@ bool CDRMUtils::InitDrm(drm *drm)
 
     if(m_drm->fd >= 0)
     {
+      /* caps need to be set before allocating connectors, encoders, crtcs, and planes */
+      auto ret = drmSetClientCap(m_drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+      if (ret)
+      {
+        CLog::Log(LOGERROR, "CDRMUtils::%s - failed to set Universal planes capability: %s", __FUNCTION__, strerror(errno));
+        return false;
+      }
+
+      if (m_drm->req)
+      {
+        auto ret = drmSetClientCap(m_drm->fd, DRM_CLIENT_CAP_ATOMIC, 1);
+        if (ret)
+        {
+          CLog::Log(LOGERROR, "CDRMUtils::%s - no atomic modesetting support: %s", __FUNCTION__, strerror(errno));
+          return false;
+        }
+      }
+
       if(!GetResources())
       {
         continue;
@@ -496,13 +514,6 @@ bool CDRMUtils::InitDrm(drm *drm)
       if(!GetCrtc())
       {
         continue;
-      }
-
-      auto ret = drmSetClientCap(m_drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
-      if (ret)
-      {
-        CLog::Log(LOGERROR, "CDRMUtils::%s - failed to set Universal planes capability: %s", __FUNCTION__, strerror(errno));
-        return false;
       }
 
       if(!GetPlanes())
@@ -570,12 +581,12 @@ void CDRMUtils::DestroyDrm()
   if (m_drm_resources)
   {
     drmModeFreeResources(m_drm_resources);
+    m_drm_resources = nullptr;
+
   }
 
   drmDropMaster(m_drm->fd);
   close(m_drm->fd);
-
-  m_drm_resources = nullptr;
 
   m_drm->primary_plane = nullptr;
   m_drm->overlay_plane = nullptr;

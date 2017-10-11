@@ -21,18 +21,18 @@
 #pragma once
 
 #include "DRMUtils.h"
-#include "GLContextEGL.h"
 
-class CDRM
+class CDRMAtomic : public CDRMUtils
 {
 public:
-  CDRM();
-  ~CDRM() = default;
-  void FlipPage();
-  bool SetVideoMode(RESOLUTION_INFO res);
-  bool InitDrm(drm *drm, gbm *gbm);
-  void DestroyDrm();
+  static void FlipPage();
+  static bool SetVideoMode(RESOLUTION_INFO res);
+  static bool InitDrmAtomic(drm *drm, gbm *gbm);
+  static void DestroyDrmAtomic();
 
 private:
-  bool m_atomic;
+  static bool AddConnectorProperty(drmModeAtomicReq *req, int obj_id, const char *name, int value);
+  static bool AddCrtcProperty(drmModeAtomicReq *req, int obj_id, const char *name, int value);
+  static bool AddPlaneProperty(drmModeAtomicReq *req, struct plane *obj, const char *name, int value);
+  static bool DrmAtomicCommit(int fb_id, int flags);
 };

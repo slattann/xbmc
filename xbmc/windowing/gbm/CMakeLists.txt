@@ -3,6 +3,7 @@ set(SOURCES GLContextEGL.cpp
             GBMUtils.cpp
             DRMUtils.cpp
             DRMLegacy.cpp
+            DRMAtomic.cpp
             DRM.cpp)
 
 set(HEADERS GLContextEGL.h
@@ -10,6 +11,7 @@ set(HEADERS GLContextEGL.h
             GBMUtils.h
             DRMUtils.h
             DRMLegacy.h
+            DRMAtomic.h
             DRM.h)
 
 if(OPENGLES_FOUND)
