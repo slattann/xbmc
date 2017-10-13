@@ -193,6 +193,12 @@ void CDRMAtomic::FlipPage(CGLContextEGL *pGLContext)
 {
   int flags = DRM_MODE_ATOMIC_NONBLOCK;
 
+  if(m_drm->need_modeset)
+  {
+    flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
+    m_drm->need_modeset = false;
+  }
+
   pGLContext->CreateGPUFence();
   m_drm->kms_in_fence_fd = pGLContext->FlushFence();
   pGLContext->WaitSyncCPU();
@@ -420,30 +426,7 @@ void CDRMAtomic::DestroyDrmAtomic()
 bool CDRMAtomic::SetVideoMode(RESOLUTION_INFO res)
 {
   CDRMUtils::GetMode(res);
-
-  gbm_surface_release_buffer(m_gbm->surface, m_bo);
-  m_bo = m_next_bo;
-
-  m_next_bo = gbm_surface_lock_front_buffer(m_gbm->surface);
-  if (!m_next_bo)
-  {
-    CLog::Log(LOGERROR, "CDRMAtomic::%s - Failed to lock frontbuffer", __FUNCTION__);
-    return false;
-  }
-
-  m_drm_fb = CDRMUtils::DrmFbGetFromBo(m_next_bo);
-  if (!m_drm_fb)
-  {
-    CLog::Log(LOGERROR, "CDRMAtomic::%s - Failed to get a new FBO", __FUNCTION__);
-    return false;
-  }
-
-  auto ret = DrmAtomicCommit(m_drm_fb->fb_id, DRM_MODE_ATOMIC_ALLOW_MODESET);
-  if (!ret)
-  {
-    CLog::Log(LOGERROR, "CDRMAtomic::%s - failed to commit modeset: %s", __FUNCTION__, strerror(errno));
-    return false;
-  }
+  m_drm->need_modeset = true;
 
   return true;
 }

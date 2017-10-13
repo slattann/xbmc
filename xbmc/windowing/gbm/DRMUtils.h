@@ -64,6 +64,8 @@ struct drm
   drmModeModeInfo *mode;
   uint32_t crtc_id;
   uint32_t connector_id;
+
+  bool need_modeset;
 };
 
 struct drm_fb
