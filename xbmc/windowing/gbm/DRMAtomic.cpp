@@ -425,7 +425,6 @@ void CDRMAtomic::DestroyDrmAtomic()
 
 bool CDRMAtomic::SetVideoMode(RESOLUTION_INFO res)
 {
-  CDRMUtils::GetMode(res);
   m_drm->need_modeset = true;
 
   return true;
