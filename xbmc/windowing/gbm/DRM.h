@@ -34,5 +34,5 @@ public:
   void DestroyDrm();
 
 private:
-  bool m_hasAtomic;
+  bool m_atomic;
 };

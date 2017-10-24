@@ -25,13 +25,13 @@
 #include "DRMLegacy.h"
 
 CDRM::CDRM()
-  : m_hasAtomic(false)
+  : m_atomic(false)
 {
 }
 
 void CDRM::FlipPage(CGLContextEGL *pGLContext)
 {
-  if (m_hasAtomic)
+  if (m_atomic)
   {
     CDRMAtomic::FlipPage(pGLContext);
   }
@@ -43,7 +43,7 @@ void CDRM::FlipPage(CGLContextEGL *pGLContext)
 
 bool CDRM::SetVideoMode(RESOLUTION_INFO res)
 {
-  if (m_hasAtomic)
+  if (m_atomic)
   {
     return CDRMAtomic::SetVideoMode(res);
   }
@@ -57,7 +57,7 @@ bool CDRM::InitDrm(drm *drm, gbm *gbm)
 {
   if (CDRMAtomic::InitDrmAtomic(drm, gbm))
   {
-    m_hasAtomic = true;
+    m_atomic = true;
     CLog::Log(LOGNOTICE, "CDRM::%s - initialized Atomic DRM", __FUNCTION__);
     return true;
   }
@@ -72,7 +72,7 @@ bool CDRM::InitDrm(drm *drm, gbm *gbm)
 
 void CDRM::DestroyDrm()
 {
-  if (m_hasAtomic)
+  if (m_atomic)
   {
     CDRMAtomic::DestroyDrmAtomic();
   }
