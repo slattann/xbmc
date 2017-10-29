@@ -187,38 +187,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
 
       break;
     }
-    case VA_FOURCC('B','G','R','A'):
-    {
-      attrib = attribs;
-      *attrib++ = EGL_DRM_BUFFER_FORMAT_MESA;
-      *attrib++ = EGL_DRM_BUFFER_FORMAT_ARGB32_MESA;
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = m_glSurface.vaImage.width;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = m_glSurface.vaImage.height;
-      *attrib++ = EGL_DRM_BUFFER_STRIDE_MESA;
-      *attrib++ = m_glSurface.vaImage.pitches[0] / 4;
-      *attrib++ = EGL_NONE;
-      m_glSurface.eglImage = m_interop.eglCreateImageKHR(m_interop.eglDisplay, EGL_NO_CONTEXT,
-                                         EGL_DRM_BUFFER_MESA,
-                                         (EGLClientBuffer)m_glSurface.vBufInfo.handle,
-                                         attribs);
-      if (!m_glSurface.eglImage)
-      {
-        EGLint err = eglGetError();
-        CLog::Log(LOGERROR, "failed to import VA buffer BGRA into EGL image: %d", err);
-        return false;
-      }
-
-      glGenTextures(1, &m_texture);
-      glBindTexture(m_interop.textureTarget, m_texture);
-
-      m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImage);
-
-      glBindTexture(m_interop.textureTarget, 0);
-
-      break;
-    }
     default:
       return false;
   }

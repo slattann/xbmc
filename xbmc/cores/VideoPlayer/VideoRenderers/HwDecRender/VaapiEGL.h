@@ -54,7 +54,6 @@ public:
   void Init(InteropInfo &interop);
   static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
 
-  GLuint m_texture = 0;
   GLuint m_textureY = 0;
   GLuint m_textureVU = 0;
   int m_texWidth = 0;
@@ -69,7 +68,6 @@ protected:
   {
     VAImage vaImage;
     VABufferInfo vBufInfo;
-    EGLImageKHR eglImage;
     EGLImageKHR eglImageY, eglImageVU;
   } m_glSurface;
 };
