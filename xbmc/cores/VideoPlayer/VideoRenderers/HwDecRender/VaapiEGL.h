@@ -59,7 +59,7 @@ public:
   int m_texWidth = 0;
   int m_texHeight = 0;
 
-protected:
+private:
   static bool TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay);
 
   InteropInfo m_interop;
