@@ -113,8 +113,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
         return false;
       }
 
-      GLint format;
-
       glGenTextures(1, &m_textureY);
       glBindTexture(m_interop.textureTarget, m_textureY);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -122,7 +120,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageY);
-      glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
 
       glGenTextures(1, &m_textureVU);
       glBindTexture(m_interop.textureTarget, m_textureVU);
@@ -131,7 +128,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageVU);
-      glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
 
       glBindTexture(m_interop.textureTarget, 0);
 
@@ -187,8 +183,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
         return false;
       }
 
-      GLint format;
-
       glGenTextures(1, &m_textureY);
       glBindTexture(m_interop.textureTarget, m_textureY);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -196,7 +190,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageY);
-      glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
 
       glGenTextures(1, &m_textureVU);
       glBindTexture(m_interop.textureTarget, m_textureVU);
@@ -205,7 +198,6 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageVU);
-      glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
 
       glBindTexture(m_interop.textureTarget, 0);
 
