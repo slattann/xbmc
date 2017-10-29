@@ -24,24 +24,164 @@
 #include <va/va_drmcommon.h>
 #include <drm_fourcc.h>
 #include "utils/log.h"
+#include "utils/EGLUtils.h"
 
 using namespace VAAPI;
+
+CVaapiTexture::CVaapiTexture()
+{
+  m_glSurface.vaImage.image_id = VA_INVALID_ID;
+}
 
 void CVaapiTexture::Init(InteropInfo &interop)
 {
   m_interop = interop;
+  m_hasPlaneModifiers = CEGLUtils::HasExtension(m_interop.eglDisplay, "EGL_EXT_image_dma_buf_import_modifiers");
 }
 
-bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
+GLuint CVaapiTexture::ImportImageToTexture(EGLImageKHR image)
 {
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(m_interop.textureTarget, texture);
+  m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, image);
+  glBindTexture(m_interop.textureTarget, 0);
+  return texture;
+}
+
+bool CVaapiTexture::MapEsh(CVaapiRenderPicture *pic)
+{
+#if VA_CHECK_VERSION(1, 1, 0)
+  if (m_exportSurfaceUnimplemented)
+    return false;
+  
   VAStatus status;
+  
+  status = vaExportSurfaceHandle(pic->vadsp, pic->procPic.videoSurface,
+                                 VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                                 VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS,
+                                 &m_glSurface.vaDrmPrimeSurface);
+  
+  if (status != VA_STATUS_SUCCESS)
+  {
+    if (status == VA_STATUS_ERROR_UNIMPLEMENTED)
+    {
+      CLog::LogFunction(LOGDEBUG, "CVaapiTexture::MapEsh", "No driver support for vaExportSurfaceHandle");
+      // No need to retry at any time
+      m_exportSurfaceUnimplemented = true;
+    }
+    CLog::LogFunction(LOGWARNING, "CVaapiTexture::MapEsh", "vaExportSurfaceHandle failed - Error: %s (%d)", vaErrorStr(status), status);
+    return false;
+  }
+  
+  auto const& surface = m_glSurface.vaDrmPrimeSurface;
+  
+  // Remember fds to close them later
+  if (surface.num_objects > m_drmFDs.size())
+    throw std::logic_error("Too many fds returned by vaExportSurfaceHandle");
+    
+  for (int object = 0; object < surface.num_objects; object++)
+  {
+    m_drmFDs[object].attach(surface.objects[object].fd);
+  }
+  
+  status = vaSyncSurface(pic->vadsp, pic->procPic.videoSurface);
+  if (status != VA_STATUS_SUCCESS)
+  {
+    CLog::LogFunction(LOGERROR, "CVaapiTexture::MapEsh", "vaSyncSurface - Error: %s (%d)", vaErrorStr(status), status);
+    return false;
+  }
+  
+  m_texWidth = surface.width;
+  m_texHeight = surface.height;
+  
+  for (int layerNo = 0; layerNo < surface.num_layers; layerNo++)
+  {
+    int plane = 0;
+    auto const& layer = surface.layers[layerNo];
+    if (layer.num_planes != 1)
+    {
+      CLog::LogFunction(LOGDEBUG, "CVaapiTexture::MapEsh", "DRM-exported layer has %d planes - only 1 supported", layer.num_planes);
+      return false;
+    }
+    auto const& object = surface.objects[layer.object_index[plane]];
 
-  if (m_vaapiPic)
-    return true;
+    EGLImageKHR* eglImage{};
+    GLuint* glTexture{};
+    EGLint width{m_texWidth};
+    EGLint height{m_texHeight};
 
+    switch (surface.num_layers)
+    {
+      case 2:
+        switch (layerNo)
+        {
+          case 0:
+            eglImage = &m_glSurface.eglImageY;
+            glTexture = &m_textureY;
+            break;
+          case 1:
+            eglImage = &m_glSurface.eglImageVU;
+            glTexture = &m_textureVU;
+            if (surface.fourcc == VA_FOURCC_NV12 || surface.fourcc == VA_FOURCC_P010 || surface.fourcc == VA_FOURCC_P016)
+            {
+              // Adjust w/h for 4:2:0 subsampling on UV plane
+              width = (width + 1) >> 1;
+              height = (height + 1) >> 1;
+            }
+            break;
+          default:
+            throw std::logic_error("Impossible layer number");
+        }
+        break;
+      default:
+        CLog::LogFunction(LOGDEBUG, "CVaapiTexture::MapEsh", "DRM-exported surface %d layers - only 2 supported", surface.num_layers);
+        return false;
+    }
+    
+    EGLint attribs[13 + 4 /* modifiers */] = {
+      EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint> (layer.drm_format),
+      EGL_WIDTH, static_cast<EGLint> (width),
+      EGL_HEIGHT, static_cast<EGLint> (height),
+      EGL_DMA_BUF_PLANE0_FD_EXT, object.fd,
+      EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (layer.offset[plane]),
+      EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (layer.pitch[plane]),
+      // When adding parameters, be sure to update the &attribs reference for the
+      // plane modifiers below
+      EGL_NONE
+    };
+    if (m_hasPlaneModifiers)
+    {
+      EGLint* attrib = &attribs[12];
+      *attrib++ = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
+      *attrib++ = static_cast<EGLint> (object.drm_format_modifier);
+      *attrib++ = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
+      *attrib++ = static_cast<EGLint> (object.drm_format_modifier >> 32);
+      *attrib++ = EGL_NONE;
+    }
+    
+    *eglImage = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
+                                            EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
+                                            attribs);
+    if (!*eglImage)
+    {
+      CEGLUtils::LogError("Failed to import VA DRM surface into EGL image");
+      return false;
+    }
+    
+    *glTexture = ImportImageToTexture(*eglImage);
+   }
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool CVaapiTexture::MapImage(CVaapiRenderPicture *pic)
+{
   vaSyncSurface(pic->vadsp, pic->procPic.videoSurface);
 
-  status = vaDeriveImage(pic->vadsp, pic->procPic.videoSurface, &m_glSurface.vaImage);
+  VAStatus status = vaDeriveImage(pic->vadsp, pic->procPic.videoSurface, &m_glSurface.vaImage);
   if (status != VA_STATUS_SUCCESS)
   {
     CLog::Log(LOGERROR, "CVaapiTexture::%s - Error: %s(%d)", __FUNCTION__, vaErrorStr(status), status);
@@ -113,15 +253,8 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
         return false;
       }
 
-      glGenTextures(1, &m_textureY);
-      glBindTexture(m_interop.textureTarget, m_textureY);
-      m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageY);
-
-      glGenTextures(1, &m_textureVU);
-      glBindTexture(m_interop.textureTarget, m_textureVU);
-      m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageVU);
-
-      glBindTexture(m_interop.textureTarget, 0);
+      m_textureY = ImportImageToTexture(m_glSurface.eglImageY);
+      m_textureVU = ImportImageToTexture(m_glSurface.eglImageVU);
 
       break;
     }
@@ -175,21 +308,25 @@ bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
         return false;
       }
 
-      glGenTextures(1, &m_textureY);
-      glBindTexture(m_interop.textureTarget, m_textureY);
-      m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageY);
-
-      glGenTextures(1, &m_textureVU);
-      glBindTexture(m_interop.textureTarget, m_textureVU);
-      m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, m_glSurface.eglImageVU);
-
-      glBindTexture(m_interop.textureTarget, 0);
+      m_textureY = ImportImageToTexture(m_glSurface.eglImageY);
+      m_textureVU = ImportImageToTexture(m_glSurface.eglImageVU);
 
       break;
     }
     default:
       return false;
   }
+  
+  return true;
+}
+
+bool CVaapiTexture::Map(CVaapiRenderPicture *pic)
+{
+  if (m_vaapiPic)
+    return true;
+  
+  if (!MapEsh(pic) && !MapImage(pic))
+    return false;
 
   m_vaapiPic = pic;
   m_vaapiPic->Acquire();
@@ -201,29 +338,39 @@ void CVaapiTexture::Unmap()
   if (!m_vaapiPic)
     return;
 
-  if (m_glSurface.vaImage.image_id == VA_INVALID_ID)
-    return;
-
-  m_interop.eglDestroyImageKHR(m_interop.eglDisplay, m_glSurface.eglImageY);
-  m_interop.eglDestroyImageKHR(m_interop.eglDisplay, m_glSurface.eglImageVU);
-
-  VAStatus status;
-  status = vaReleaseBufferHandle(m_vaapiPic->vadsp, m_glSurface.vaImage.buf);
-  if (status != VA_STATUS_SUCCESS)
+  if (m_glSurface.eglImageY != EGL_NO_IMAGE_KHR)
   {
-    CLog::Log(LOGERROR, "VAAPI::%s - Error: %s(%d)", __FUNCTION__, vaErrorStr(status), status);
+    m_interop.eglDestroyImageKHR(m_interop.eglDisplay, m_glSurface.eglImageY);
+    glDeleteTextures(1, &m_textureY);
+    m_glSurface.eglImageY = EGL_NO_IMAGE_KHR;
+  }
+  if (m_glSurface.eglImageVU != EGL_NO_IMAGE_KHR)
+  {
+    m_interop.eglDestroyImageKHR(m_interop.eglDisplay, m_glSurface.eglImageVU);
+    glDeleteTextures(1, &m_textureVU);
+    m_glSurface.eglImageVU = EGL_NO_IMAGE_KHR;
   }
 
-  status = vaDestroyImage(m_vaapiPic->vadsp, m_glSurface.vaImage.image_id);
-  if (status != VA_STATUS_SUCCESS)
+  if (m_glSurface.vaImage.image_id != VA_INVALID_ID)
   {
-    CLog::Log(LOGERROR, "VAAPI::%s - Error: %s(%d)", __FUNCTION__, vaErrorStr(status), status);
+    VAStatus status;
+    status = vaReleaseBufferHandle(m_vaapiPic->vadsp, m_glSurface.vaImage.buf);
+    if (status != VA_STATUS_SUCCESS)
+    {
+      CLog::Log(LOGERROR, "VAAPI::%s - Error: %s(%d)", __FUNCTION__, vaErrorStr(status), status);
+    }
+    
+    status = vaDestroyImage(m_vaapiPic->vadsp, m_glSurface.vaImage.image_id);
+    if (status != VA_STATUS_SUCCESS)
+    {
+      CLog::Log(LOGERROR, "VAAPI::%s - Error: %s(%d)", __FUNCTION__, vaErrorStr(status), status);
+    }
   }
-
-  m_glSurface.vaImage.image_id = VA_INVALID_ID;
-
-  glDeleteTextures(1, &m_textureY);
-  glDeleteTextures(1, &m_textureVU);
+  
+  for (auto& fd : m_drmFDs)
+  {
+    fd.reset();
+  }
 
   m_vaapiPic->Release();
   m_vaapiPic = nullptr;
@@ -432,7 +579,6 @@ bool CVaapiTexture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   }
   
   vaDestroySurfaces(vaDpy, &surface, 1);
-
+  
   return ret;
 }
-

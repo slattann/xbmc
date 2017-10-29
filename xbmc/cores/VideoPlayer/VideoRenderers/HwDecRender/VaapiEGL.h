@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <array>
+
 #if defined(HAS_GL)
 #include <GL/gl.h>
 #elif defined(HAS_GLES)
@@ -31,6 +33,9 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <va/va.h>
+#include <va/va_drmcommon.h>
+
+#include "utils/posix/FileHandle.h"
 
 namespace VAAPI
 {
@@ -49,6 +54,7 @@ struct InteropInfo
 class CVaapiTexture
 {
 public:
+  CVaapiTexture();
   bool Map(CVaapiRenderPicture *pic);
   void Unmap();
   void Init(InteropInfo &interop);
@@ -60,6 +66,9 @@ public:
   int m_texHeight = 0;
 
 private:
+  bool MapImage(CVaapiRenderPicture *pic);
+  bool MapEsh(CVaapiRenderPicture *pic);
+  GLuint ImportImageToTexture(EGLImageKHR image);
   static bool TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay);
   static bool TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, VASurfaceID surface, int width, int height);
 
@@ -69,8 +78,12 @@ private:
   {
     VAImage vaImage;
     VABufferInfo vBufInfo;
-    EGLImageKHR eglImageY, eglImageVU;
+    VADRMPRIMESurfaceDescriptor vaDrmPrimeSurface;
+    EGLImageKHR eglImageY{EGL_NO_IMAGE_KHR}, eglImageVU{EGL_NO_IMAGE_KHR};
   } m_glSurface;
+  bool m_exportSurfaceUnimplemented{false};
+  bool m_hasPlaneModifiers{false};
+  std::array<KODI::UTILS::POSIX::CFileHandle, 4> m_drmFDs;
 };
 }
 
