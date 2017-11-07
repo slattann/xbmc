@@ -24,6 +24,7 @@
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "utils/log.h"
 #include "windowing/gbm/DRMUtils.h"
+#include "windowing/gbm/DRMAtomic.h"
 
 CRendererDRMPRIME::CRendererDRMPRIME()
 {
@@ -210,16 +211,30 @@ void CRendererDRMPRIME::SetVideoPlane(CVideoBufferDRMPRIME* buffer)
     uint32_t src_w = buffer->GetWidth() << 16;
     uint32_t src_h = buffer->GetHeight() << 16;
 
-    // TODO: use atomic or legacy api
-
-    // show the video frame FB on the video plane
-    ret = drmModeSetPlane(drm->fd, drm->video_plane_id, drm->crtc_id, buffer->m_fb_id, 0,
-                          crtc_x, crtc_y, crtc_w, crtc_h,
-                          src_x, src_y, src_w, src_h);
-    if (ret < 0)
+    if(drm->req)
     {
-      CLog::Log(LOGERROR, "CRendererDRMPRIME::%s - failed to set drm plane %d, buffer = %d, ret = %d", __FUNCTION__, drm->video_plane_id, buffer->m_fb_id, ret);
-      return;
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "FB_ID",   buffer->m_fb_id);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "CRTC_ID", drm->crtc_id);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "SRC_X",   src_x);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "SRC_Y",   src_y);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "SRC_W",   src_w);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "SRC_H",   src_h);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "CRTC_X",  crtc_x);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "CRTC_Y",  crtc_y);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "CRTC_W",  crtc_w);
+      CDRMAtomic::AddPlaneProperty(drm->req, drm->primary_plane, "CRTC_H",  crtc_h);
+    }
+    else
+    {
+      // show the video frame FB on the video plane
+      ret = drmModeSetPlane(drm->fd, drm->primary_plane->plane->plane_id, drm->crtc_id, buffer->m_fb_id, 0,
+                            crtc_x, crtc_y, crtc_w, crtc_h,
+                            src_x, src_y, src_w, src_h);
+      if (ret < 0)
+      {
+        CLog::Log(LOGERROR, "CRendererDRMPRIME::%s - failed to set drm plane %d, buffer = %d, ret = %d", __FUNCTION__, drm->primary_plane->plane->plane_id, buffer->m_fb_id, ret);
+        return;
+      }
     }
   }
 }

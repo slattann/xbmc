@@ -29,11 +29,11 @@ CDRM::CDRM()
 {
 }
 
-void CDRM::FlipPage()
+void CDRM::FlipPage(bool rendered)
 {
   if (m_atomic)
   {
-    CDRMAtomic::FlipPage();
+    CDRMAtomic::FlipPage(rendered);
   }
   else
   {

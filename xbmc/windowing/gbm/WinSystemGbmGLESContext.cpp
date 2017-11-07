@@ -140,12 +140,16 @@ bool CWinSystemGbmGLESContext::SetFullScreen(bool fullScreen, RESOLUTION_INFO& r
   return true;
 }
 
-void CWinSystemGbmGLESContext::PresentRenderImpl(bool rendered)
+void CWinSystemGbmGLESContext::PresentRender(bool rendered, bool videoLayer)
 {
-  if (rendered)
+  if (!m_bRenderCreated)
+    return;
+
+  if (rendered || videoLayer)
   {
-    m_pGLContext.SwapBuffers();
-    CWinSystemGbm::FlipPage();
+    if (rendered)
+      m_pGLContext.SwapBuffers();
+    CWinSystemGbm::FlipPage(rendered);
   }
 }
 

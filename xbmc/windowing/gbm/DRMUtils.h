@@ -54,7 +54,8 @@ struct drm
   int fd;
 
   /* only used for atomic: */
-  struct plane *plane;
+  struct plane *primary_plane;
+  struct plane *overlay_plane;
   struct crtc *crtc;
   struct connector *connector;
   int crtc_index;
@@ -64,6 +65,8 @@ struct drm
   uint32_t connector_id;
 
   bool need_modeset;
+
+  drmModeAtomicReq *req;
 };
 
 struct drm_fb
