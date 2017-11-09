@@ -26,7 +26,7 @@
 class CDRMAtomic : public CDRMUtils
 {
 public:
-  static void FlipPage(CGLContextEGL *pGLContext);
+  static void FlipPage();
   static bool SetVideoMode(RESOLUTION_INFO res);
   static bool InitDrmAtomic(drm *drm, gbm *gbm);
   static void DestroyDrmAtomic();
