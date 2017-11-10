@@ -29,11 +29,11 @@ CDRM::CDRM()
 {
 }
 
-void CDRM::FlipPage(bool rendered)
+void CDRM::FlipPage(bool rendered, bool videoLayer)
 {
   if (m_atomic)
   {
-    CDRMAtomic::FlipPage(rendered);
+    CDRMAtomic::FlipPage(rendered, videoLayer);
   }
   else
   {

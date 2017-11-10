@@ -125,9 +125,10 @@ bool CDRMAtomic::AddPlaneProperty(drmModeAtomicReq *req, struct plane *obj, cons
   return true;
 }
 
-bool CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered)
+bool CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer)
 {
   uint32_t blob_id;
+  struct plane *plane;
 
   if (flags & DRM_MODE_ATOMIC_ALLOW_MODESET)
   {
@@ -154,16 +155,21 @@ bool CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered)
 
   if (rendered)
   {
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "FB_ID", fb_id);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "CRTC_ID", m_drm->crtc_id);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "SRC_X", 0);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "SRC_Y", 0);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "SRC_W", m_drm->mode->hdisplay << 16);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "SRC_H", m_drm->mode->vdisplay << 16);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "CRTC_X", 0);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "CRTC_Y", 0);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "CRTC_W", m_drm->mode->hdisplay);
-    AddPlaneProperty(m_drm->req, m_drm->overlay_plane, "CRTC_H", m_drm->mode->vdisplay);
+    if (videoLayer)
+      plane = m_drm->overlay_plane;
+    else
+      plane = m_drm->primary_plane;
+
+    AddPlaneProperty(m_drm->req, plane, "FB_ID", fb_id);
+    AddPlaneProperty(m_drm->req, plane, "CRTC_ID", m_drm->crtc_id);
+    AddPlaneProperty(m_drm->req, plane, "SRC_X", 0);
+    AddPlaneProperty(m_drm->req, plane, "SRC_Y", 0);
+    AddPlaneProperty(m_drm->req, plane, "SRC_W", m_drm->mode->hdisplay << 16);
+    AddPlaneProperty(m_drm->req, plane, "SRC_H", m_drm->mode->vdisplay << 16);
+    AddPlaneProperty(m_drm->req, plane, "CRTC_X", 0);
+    AddPlaneProperty(m_drm->req, plane, "CRTC_Y", 0);
+    AddPlaneProperty(m_drm->req, plane, "CRTC_W", m_drm->mode->hdisplay);
+    AddPlaneProperty(m_drm->req, plane, "CRTC_H", m_drm->mode->vdisplay);
   }
 
   auto ret = drmModeAtomicCommit(m_drm->fd, m_drm->req, flags, nullptr);
@@ -179,7 +185,7 @@ bool CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered)
   return true;
 }
 
-void CDRMAtomic::FlipPage(bool rendered)
+void CDRMAtomic::FlipPage(bool rendered, bool videoLayer)
 {
   uint32_t flags = 0;
 
@@ -209,7 +215,7 @@ void CDRMAtomic::FlipPage(bool rendered)
     }
   }
 
-  auto ret = DrmAtomicCommit(m_drm_fb->fb_id, flags, rendered);
+  auto ret = DrmAtomicCommit(m_drm_fb->fb_id, flags, rendered, videoLayer);
   if (!ret) {
     CLog::Log(LOGERROR, "CDRMAtomic::%s - failed to commit: %s", __FUNCTION__, strerror(errno));
     return;
@@ -286,7 +292,7 @@ bool CDRMAtomic::InitDrmAtomic(drm *drm, gbm *gbm)
   ret = drmSetClientCap(m_drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
   if (ret)
   {
-    CLog::Log(LOGERROR, "CDRMAtomic::%s - failed to set Universal planes capability: %s", __FUNCTION__, strerror(errno));
+    CLog::Log(LOGERROR, "CDRMAtomic::%s - failed to set universal planes capability: %s", __FUNCTION__, strerror(errno));
     return false;
   }
 

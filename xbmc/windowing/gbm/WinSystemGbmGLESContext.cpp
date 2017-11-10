@@ -149,7 +149,7 @@ void CWinSystemGbmGLESContext::PresentRender(bool rendered, bool videoLayer)
   {
     if (rendered)
       m_pGLContext.SwapBuffers();
-    CWinSystemGbm::FlipPage(rendered);
+    CWinSystemGbm::FlipPage(rendered, videoLayer);
   }
 }
 

@@ -148,9 +148,9 @@ bool CWinSystemGbm::SetFullScreen(bool fullScreen, RESOLUTION_INFO& res, bool bl
   return true;
 }
 
-void CWinSystemGbm::FlipPage(bool rendered)
+void CWinSystemGbm::FlipPage(bool rendered, bool videoLayer)
 {
-  m_DRM.FlipPage(rendered);
+  m_DRM.FlipPage(rendered, videoLayer);
 }
 
 void* CWinSystemGbm::GetVaDisplay()
