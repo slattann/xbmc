@@ -42,6 +42,11 @@ static drmModeConnectorPtr m_drm_connector = nullptr;
 static drmModeEncoderPtr m_drm_encoder = nullptr;
 static drmModeCrtcPtr m_orig_crtc = nullptr;
 
+struct drm *CDRMUtils::GetDrm()
+{
+  return m_drm;
+}
+
 bool CDRMUtils::SetMode(RESOLUTION_INFO res)
 {
   m_drm->mode = &m_drm_connector->modes[atoi(res.strId.c_str())];
