@@ -46,6 +46,7 @@ namespace PERIPHERALS
     PERIPHERAL_BUS_ANDROID,
 #endif
     PERIPHERAL_BUS_APPLICATION,
+    PERIPHERAL_BUS_CEC_FRAMEWORK,
   };
 
   enum PeripheralFeature
@@ -62,6 +63,7 @@ namespace PERIPHERALS
     FEATURE_JOYSTICK,
     FEATURE_RUMBLE,
     FEATURE_POWER_OFF,
+    FEATURE_CEC_FRAMEWORK,
   };
 
   enum PeripheralType
@@ -77,6 +79,7 @@ namespace PERIPHERALS
     PERIPHERAL_IMON,
     PERIPHERAL_JOYSTICK,
     PERIPHERAL_JOYSTICK_EMULATION,
+    PERIPHERAL_CEC_FRAMEWORK,
   };
 
   class CPeripheral;
@@ -169,6 +172,8 @@ namespace PERIPHERALS
         return PERIPHERAL_JOYSTICK;
       else if (strTypeLowerCase == "joystickemulation")
         return PERIPHERAL_JOYSTICK_EMULATION;
+      else if (strTypeLowerCase == "cecframework")
+        return PERIPHERAL_CEC_FRAMEWORK;
 
       return PERIPHERAL_UNKNOWN;
     };
@@ -185,6 +190,8 @@ namespace PERIPHERALS
         return "rpi";
       case PERIPHERAL_BUS_CEC:
         return "cec";
+      case PERIPHERAL_BUS_CEC_FRAMEWORK:
+        return "cecframework";
       case PERIPHERAL_BUS_ADDON:
         return "addon";
 #ifdef TARGET_ANDROID

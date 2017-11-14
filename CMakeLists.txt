@@ -140,6 +140,7 @@ set(optional_deps Alsa
                   Bluetooth
                   CAP
                   CCache
+                  CECFramework
                   DBus
                   LCMS2
                   MDNS

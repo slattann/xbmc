@@ -34,6 +34,7 @@
 #endif
 #include "bus/virtual/PeripheralBusAddon.h"
 #include "devices/PeripheralBluetooth.h"
+#include "devices/PeripheralCecFrameworkAdapter.h"
 #include "devices/PeripheralCecAdapter.h"
 #include "devices/PeripheralDisk.h"
 #include "devices/PeripheralHID.h"
@@ -67,8 +68,10 @@
 #include "utils/XMLUtils.h"
 #include "ServiceBroker.h"
 
-#if defined(HAVE_LIBCEC)
-#include "bus/virtual/PeripheralBusCEC.h"
+#if defined(HAVE_CECFRAMEWORK)
+  #include "bus/virtual/PeripheralBusCECFramework.h"
+#elif defined(HAVE_LIBCEC)
+  #include "bus/virtual/PeripheralBusCEC.h"
 #endif
 
 using namespace KODI;
@@ -112,7 +115,9 @@ void CPeripherals::Initialise()
 #if defined(HAVE_PERIPHERAL_BUS_USB)
   busses.push_back(std::make_shared<CPeripheralBusUSB>(*this));
 #endif
-#if defined(HAVE_LIBCEC)
+#if defined(HAVE_CECFRAMEWORK)
+  busses.push_back(std::make_shared<CPeripheralBusCECFramework>(*this));
+#elif defined(HAVE_LIBCEC)
   busses.push_back(std::make_shared<CPeripheralBusCEC>(*this));
 #endif
   busses.push_back(std::make_shared<CPeripheralBusAddon>(*this));
@@ -164,6 +169,9 @@ void CPeripherals::Clear()
     m_mappings.clear();
   }
 
+#if !defined(HAVE_CECFRAMEWORK)
+  m_bMissingCecFrameworkWarningDisplayed = false;
+#endif
 #if !defined(HAVE_LIBCEC)
   m_bMissingLibCecWarningDisplayed = false;
 #endif
@@ -352,6 +360,19 @@ void CPeripherals::CreatePeripheral(CPeripheralBus &bus, const PeripheralScanRes
 
   case PERIPHERAL_JOYSTICK_EMULATION:
     peripheral = PeripheralPtr(new CPeripheralJoystickEmulation(*this, mappedResult, &bus));
+    break;
+
+  case PERIPHERAL_CEC_FRAMEWORK:
+#if defined(HAVE_CECFRAMEWORK)
+    peripheral = PeripheralPtr(new CPeripheralCecFrameworkAdapter(*this, mappedResult, &bus));
+#else
+    if (!m_bMissingCecFrameworkWarningDisplayed)
+    {
+      m_bMissingCecFrameworkWarningDisplayed = true;
+      CLog::Log(LOGWARNING, "%s - CEC Framework support has not been compiled in, so the CEC Framework cannot be used.", __FUNCTION__);
+      CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(36000), g_localizeStrings.Get(36017));
+    }
+#endif
     break;
 
   default:

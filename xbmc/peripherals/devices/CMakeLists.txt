@@ -20,7 +20,10 @@ set(HEADERS Peripheral.h
             PeripheralNyxboard.h
             PeripheralTuner.h)
 
-if(CEC_FOUND)
+if(CECFRAMEWORK_FOUND)
+  list(APPEND SOURCES PeripheralCecFrameworkAdapter.cpp)
+  list(APPEND HEADERS PeripheralCecFrameworkAdapter.h)
+elseif(CEC_FOUND)
   list(APPEND SOURCES PeripheralCecAdapter.cpp)
   list(APPEND HEADERS PeripheralCecAdapter.h)
 endif()
