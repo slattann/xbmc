@@ -28,7 +28,7 @@ class CDRM
 public:
   CDRM();
   ~CDRM() = default;
-  void FlipPage();
+  void FlipPage(CGLContextEGL *pGLContext);
   bool SetVideoMode(RESOLUTION_INFO res);
   bool InitDrm(drm *drm, gbm *gbm);
   void DestroyDrm();

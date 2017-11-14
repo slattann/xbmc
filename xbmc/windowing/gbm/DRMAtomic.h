@@ -21,11 +21,12 @@
 #pragma once
 
 #include "DRMUtils.h"
+#include "GLContextEGL.h"
 
 class CDRMAtomic : public CDRMUtils
 {
 public:
-  static void FlipPage();
+  static void FlipPage(CGLContextEGL *pGLContext);
   static bool SetVideoMode(RESOLUTION_INFO res);
   static bool InitDrmAtomic(drm *drm, gbm *gbm);
   static void DestroyDrmAtomic();

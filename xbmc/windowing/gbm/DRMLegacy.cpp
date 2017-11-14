@@ -158,7 +158,7 @@ bool CDRMLegacy::QueueFlip()
   return true;
 }
 
-void CDRMLegacy::FlipPage()
+void CDRMLegacy::FlipPage(CGLContextEGL *pGLContext)
 {
   if(WaitingForFlip())
   {

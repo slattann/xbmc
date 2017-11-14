@@ -20,6 +20,8 @@
 
 #include <errno.h>
 #include <drm/drm_mode.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -166,24 +168,40 @@ bool CDRMAtomic::DrmAtomicCommit(int fb_id, int flags)
   AddPlaneProperty(req, plane_id, "CRTC_W", m_drm->mode->hdisplay);
   AddPlaneProperty(req, plane_id, "CRTC_H", m_drm->mode->vdisplay);
 
+  if (m_drm->kms_in_fence_fd != -1)
+  {
+    AddCrtcProperty(req, m_drm->crtc_id, "OUT_FENCE_PTR", (uint64_t)(unsigned long)&m_drm->kms_out_fence_fd);
+    AddPlaneProperty(req, plane_id, "IN_FENCE_FD", m_drm->kms_in_fence_fd);
+  }
+
   auto ret = drmModeAtomicCommit(m_drm->fd, req, flags, nullptr);
   if (ret)
   {
     return false;
   }
 
+  if (m_drm->kms_in_fence_fd != -1)
+  {
+    close(m_drm->kms_in_fence_fd);
+    m_drm->kms_in_fence_fd = -1;
+  }
+
   return true;
 }
 
-void CDRMAtomic::FlipPage()
+void CDRMAtomic::FlipPage(CGLContextEGL *pGLContext)
 {
-  uint32_t flags = 0;
+  uint32_t flags = DRM_MODE_ATOMIC_NONBLOCK;
 
   if(m_drm->need_modeset)
   {
     flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
     m_drm->need_modeset = false;
   }
+
+  pGLContext->CreateGPUFence();
+  m_drm->kms_in_fence_fd = pGLContext->FlushFence();
+  pGLContext->WaitSyncCPU();
 
   gbm_surface_release_buffer(m_gbm->surface, m_bo);
   m_bo = m_next_bo;
@@ -207,6 +225,10 @@ void CDRMAtomic::FlipPage()
     CLog::Log(LOGERROR, "CDRMAtomic::%s - failed to commit: %s", __FUNCTION__, strerror(errno));
     return;
   }
+
+  pGLContext->CreateKMSFence(m_drm->kms_out_fence_fd);
+  pGLContext->WaitSyncGPU();
+  m_drm->kms_out_fence_fd = -1;
 }
 
 int CDRMAtomic::GetPlaneId()
@@ -270,6 +292,8 @@ bool CDRMAtomic::InitDrmAtomic(drm *drm, gbm *gbm)
 
   m_drm = drm;
   m_gbm = gbm;
+
+  m_drm->kms_out_fence_fd = -1;
 
   if (!CDRMUtils::InitDrm(m_drm))
   {

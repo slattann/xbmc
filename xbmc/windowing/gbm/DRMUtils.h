@@ -58,6 +58,8 @@ struct drm
   struct crtc *crtc;
   struct connector *connector;
   int crtc_index;
+  int kms_in_fence_fd;
+  int kms_out_fence_fd;
 
   drmModeModeInfo *mode;
   uint32_t crtc_id;

@@ -29,15 +29,15 @@ CDRM::CDRM()
 {
 }
 
-void CDRM::FlipPage()
+void CDRM::FlipPage(CGLContextEGL *pGLContext)
 {
   if (m_atomic)
   {
-    CDRMAtomic::FlipPage();
+    CDRMAtomic::FlipPage(pGLContext);
   }
   else
   {
-    CDRMLegacy::FlipPage();
+    CDRMLegacy::FlipPage(pGLContext);
   }
 }
 
