@@ -190,6 +190,9 @@ bool CDRMLegacy::InitDrmLegacy(drm *drm, gbm *gbm)
 
 void CDRMLegacy::DestroyDrmLegacy()
 {
+  gbm_surface_release_buffer(m_gbm->surface, m_bo);
+  m_bo = m_next_bo = nullptr;
+
   CDRMUtils::DestroyDrm();
 
   if(m_gbm->surface)
