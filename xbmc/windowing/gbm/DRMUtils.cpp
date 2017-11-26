@@ -347,6 +347,7 @@ bool CDRMUtils::GetPlanes()
   for (uint32_t i = 0; i < m_drm->primary_plane->props->count_props; i++)
   {
     m_drm->primary_plane->props_info[i] = drmModeGetProperty(m_drm->fd, m_drm->primary_plane->props->props[i]);
+    CLog::Log(LOGDEBUG, "CDRMUtils::%s - primary plane property: %s - %lld", __FUNCTION__, m_drm->primary_plane->props_info[i]->name, (long long)m_drm->primary_plane->props->prop_values[i]);
   }
 
   for (uint32_t i = 0; i < m_drm->primary_plane->plane->count_formats; i++)
@@ -392,6 +393,7 @@ bool CDRMUtils::GetPlanes()
   for (uint32_t i = 0; i < m_drm->overlay_plane->props->count_props; i++)
   {
     m_drm->overlay_plane->props_info[i] = drmModeGetProperty(m_drm->fd, m_drm->overlay_plane->props->props[i]);
+    CLog::Log(LOGDEBUG, "CDRMUtils::%s - overlay plane property: %s - %lld", __FUNCTION__, m_drm->overlay_plane->props_info[i]->name, (long long)m_drm->overlay_plane->props->prop_values[i]);
   }
 
   fourcc = 0;
