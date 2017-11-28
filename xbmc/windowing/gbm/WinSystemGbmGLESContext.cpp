@@ -20,6 +20,7 @@
 
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodecDRMPRIME.h"
 #include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererDRMPRIME.h"
+#include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererDRMPRIMEGLES.h"
 
 #include "cores/RetroPlayer/process/RPProcessInfo.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererGuiTexture.h"
@@ -86,7 +87,8 @@ bool CWinSystemGbmGLESContext::InitWindowSystem()
   }
 #endif
 
-  CRendererDRMPRIME::Register();
+  CRendererDRMPRIMEGLES::Register(this);
+  //CRendererDRMPRIME::Register();
   CDVDVideoCodecDRMPRIME::Register();
 
   return true;
