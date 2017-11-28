@@ -20,6 +20,7 @@
 
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodecDRMPRIME.h"
 #include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererDRMPRIME.h"
+#include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererDRMPRIMEGLES.h"
 
 #include "cores/RetroPlayer/process/gbm/RPProcessInfoGbm.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererOpenGLES.h"
@@ -67,7 +68,7 @@ bool CWinSystemGbmGLESContext::InitWindowSystem()
     GBM::VAAPIRegister(m_vaapiProxy.get(), deepColor);
   }
 
-  CRendererDRMPRIME::Register(this);
+  CRendererDRMPRIMEGLES::Register(this);
   CDVDVideoCodecDRMPRIME::Register();
 
   return true;
