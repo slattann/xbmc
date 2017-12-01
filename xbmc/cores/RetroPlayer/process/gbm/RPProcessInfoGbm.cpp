@@ -18,7 +18,7 @@
  *
  */
 
-#include "RPProcessInfoWayland.h"
+#include "RPProcessInfoGbm.h"
 
 using namespace KODI;
 using namespace RETRO;
