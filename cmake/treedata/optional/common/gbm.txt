@@ -1,1 +1,2 @@
 xbmc/windowing/gbm windowing/gbm # GBM
+xbmc/cores/RetroPlayer/process/gbm cores/RetroPlayer/process/gbm # GBM
