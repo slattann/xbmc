@@ -53,7 +53,7 @@ bool CRendererDRMPRIMEGLES::Register(CWinSystemGbmGLESContext *winSystem)
   VIDEOPLAYER::CRendererFactory::RegisterRenderer("drm_prime_gles", CRendererDRMPRIMEGLES::Create);
   m_pWinSystem = winSystem;
 
-  return CServiceBroker::GetRenderSystem().IsExtSupported("GL_EXT_texture_rg");
+  return true; //CServiceBroker::GetRenderSystem().IsExtSupported("GL_EXT_texture_rg");
 }
 
 bool CRendererDRMPRIMEGLES::Configure(const VideoPicture &picture, float fps, unsigned flags, unsigned int orientation)
