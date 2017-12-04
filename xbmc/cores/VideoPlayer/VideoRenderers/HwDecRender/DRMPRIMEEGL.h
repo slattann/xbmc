@@ -48,16 +48,13 @@ public:
   void Unmap();
   void Init(InteropInfo &interop);
 
-  GLuint m_textureY = 0;
-  GLuint m_textureVU = 0;
+  GLuint m_texture = 0;
   int m_texWidth = 0;
   int m_texHeight = 0;
 
 protected:
   InteropInfo m_interop;
   CVideoBufferDRMPRIME *m_primebuffer = nullptr;
-  EGLImageKHR eglImageY;
-  EGLImageKHR eglImageVU;
-
+  EGLImageKHR eglImage;
 };
 

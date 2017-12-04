@@ -34,10 +34,8 @@ CRendererDRMPRIMEGLES::CRendererDRMPRIMEGLES() = default;
 
 CRendererDRMPRIMEGLES::~CRendererDRMPRIMEGLES()
 {
-  for (int i = 0; i < NUM_BUFFERS; ++i)
-  {
-    DeleteTexture(i);
-  }
+  for (int i(0); i < NUM_BUFFERS; ++i)
+    ReleaseBuffer(i);
 }
 
 CBaseRenderer* CRendererDRMPRIMEGLES::Create(CVideoBuffer* buffer)
@@ -59,21 +57,17 @@ bool CRendererDRMPRIMEGLES::Register(CWinSystemGbmGLESContext *winSystem)
 bool CRendererDRMPRIMEGLES::Configure(const VideoPicture &picture, float fps, unsigned flags, unsigned int orientation)
 {
   InteropInfo interop;
-  interop.textureTarget = GL_TEXTURE_2D;
+  interop.textureTarget = GL_TEXTURE_EXTERNAL_OES;
   interop.eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
   interop.eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
   interop.glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
   interop.eglDisplay = m_pWinSystem->GetEGLDisplay();
 
-  for (auto &tex : m_DRMPRIMETextures)
-  {
-    tex.Init(interop);
-  }
+  for (auto &texture : m_DRMPRIMETextures)
+    texture.Init(interop);
 
   for (auto &fence : m_fences)
-  {
     fence = GL_NONE;
-  }
 
   return CLinuxRendererGLES::Configure(picture, fps, flags, orientation);
 }
@@ -98,35 +92,22 @@ bool CRendererDRMPRIMEGLES::Supports(ESCALINGMETHOD method)
 
 EShaderFormat CRendererDRMPRIMEGLES::GetShaderFormat()
 {
-  return SHADER_NV12_RRG;
-}
-
-bool CRendererDRMPRIMEGLES::LoadShadersHook()
-{
-  return false;
-}
-
-bool CRendererDRMPRIMEGLES::RenderHook(int idx)
-{
-  return false;
+  return SHADER_NV12;
 }
 
 bool CRendererDRMPRIMEGLES::CreateTexture(int index)
 {
-  YUVBUFFER &buf = m_buffers[index];
-  YuvImage &im = buf.image;
-  YUVPLANE (&planes)[YuvImage::MAX_PLANES] = buf.fields[0];
+  YUVBUFFER &buf(m_buffers[index]);
 
-  DeleteTexture(index);
+  buf.image.height = m_sourceHeight;
+  buf.image.width  = m_sourceWidth;
 
-  memset(&im, 0, sizeof(im));
-  memset(&planes, 0, sizeof(YUVPLANE[YuvImage::MAX_PLANES]));
-  im.height = m_sourceHeight;
-  im.width  = m_sourceWidth;
-  im.cshift_x = 1;
-  im.cshift_y = 1;
+  YUVPLANE  &plane  = buf.fields[0][0];
 
-  planes[0].id = 1;
+  plane.texwidth  = m_sourceWidth;
+  plane.texheight = m_sourceHeight;
+  plane.pixpertex_x = 1;
+  plane.pixpertex_y = 1;
 
   return true;
 }
@@ -134,15 +115,27 @@ bool CRendererDRMPRIMEGLES::CreateTexture(int index)
 void CRendererDRMPRIMEGLES::DeleteTexture(int index)
 {
   ReleaseBuffer(index);
-
-  YUVBUFFER &buf = m_buffers[index];
-  buf.fields[FIELD_FULL][0].id = 0;
-  buf.fields[FIELD_FULL][1].id = 0;
-  buf.fields[FIELD_FULL][2].id = 0;
 }
 
 bool CRendererDRMPRIMEGLES::UploadTexture(int index)
 {
+  ReleaseBuffer(index);
+  CalculateTextureSourceRects(index, 1);
+  return true;
+}
+
+bool CRendererDRMPRIMEGLES::LoadShadersHook()
+{
+  CLog::Log(LOGNOTICE, "Using DRMPRIMEGLES render method");
+  m_textureTarget = GL_TEXTURE_2D;
+  m_renderMethod = RENDER_DRMPRIME;
+  return true;
+}
+
+bool CRendererDRMPRIMEGLES::RenderHook(int index)
+{
+  YUVPLANE &plane = m_buffers[index].fields[0][0];
+  YUVPLANE &planef = m_buffers[index].fields[m_currentField][0];
   YUVBUFFER &buf = m_buffers[index];
 
   CVideoBufferDRMPRIME *buffer = dynamic_cast<CVideoBufferDRMPRIME*>(buf.videoBuffer);
@@ -154,44 +147,102 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
 
   m_DRMPRIMETextures[index].Map(buffer);
 
-  YuvImage &im = buf.image;
-  YUVPLANE (&planes)[3] = buf.fields[0];
+  plane.id = m_DRMPRIMETextures[index].m_texture;
+  //planef.id = m_DRMPRIMETextures[index].m_texture;
 
-  planes[0].texwidth  = m_DRMPRIMETextures[index].m_texWidth;
-  planes[0].texheight = m_DRMPRIMETextures[index].m_texHeight;
+  glDisable(GL_DEPTH_TEST);
 
-  planes[1].texwidth  = planes[0].texwidth  >> im.cshift_x;
-  planes[1].texheight = planes[0].texheight >> im.cshift_y;
-  planes[2].texwidth  = planes[1].texwidth;
-  planes[2].texheight = planes[1].texheight;
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_EXTERNAL_OES, plane.id);
 
-  for (int p = 0; p < 3; p++)
+  CRenderSystemGLES& renderSystem = dynamic_cast<CRenderSystemGLES&>(CServiceBroker::GetRenderSystem());
+
+  if (m_currentField != FIELD_FULL)
   {
-    planes[p].pixpertex_x = 1;
-    planes[p].pixpertex_y = 1;
+    renderSystem.EnableGUIShader(SM_TEXTURE_RGBA_BOB_OES);
+    GLint   fieldLoc = renderSystem.GUIShaderGetField();
+    GLint   stepLoc = renderSystem.GUIShaderGetStep();
+
+    // Y is inverted, so invert fields
+    if     (m_currentField == FIELD_TOP)
+      glUniform1i(fieldLoc, 0);
+    else if(m_currentField == FIELD_BOT)
+      glUniform1i(fieldLoc, 1);
+    glUniform1f(stepLoc, 1.0f / (float)plane.texheight);
+  }
+  else
+    renderSystem.EnableGUIShader(SM_TEXTURE_RGBA_OES);
+
+  GLint   contrastLoc = renderSystem.GUIShaderGetContrast();
+  glUniform1f(contrastLoc, m_videoSettings.m_Contrast * 0.02f);
+  GLint   brightnessLoc = renderSystem.GUIShaderGetBrightness();
+  glUniform1f(brightnessLoc, m_videoSettings.m_Brightness * 0.01f - 0.5f);
+
+  glUniformMatrix4fv(renderSystem.GUIShaderGetCoord0Matrix(), 1, GL_FALSE, m_textureMatrix);
+
+  GLubyte idx[4] = {0, 1, 3, 2};        //determines order of triangle strip
+  GLfloat ver[4][4];
+  GLfloat tex[4][4];
+
+  GLint   posLoc = renderSystem.GUIShaderGetPos();
+  GLint   texLoc = renderSystem.GUIShaderGetCoord0();
+
+  glVertexAttribPointer(posLoc, 4, GL_FLOAT, 0, 0, ver);
+  glVertexAttribPointer(texLoc, 4, GL_FLOAT, 0, 0, tex);
+
+  glEnableVertexAttribArray(posLoc);
+  glEnableVertexAttribArray(texLoc);
+
+  // Set vertex coordinates
+  for(int i = 0; i < 4; i++)
+  {
+    ver[i][0] = m_rotatedDestCoords[i].x;
+    ver[i][1] = m_rotatedDestCoords[i].y;
+    ver[i][2] = 0.0f;        // set z to 0
+    ver[i][3] = 1.0f;
   }
 
-  // set textures
-  planes[0].id = m_DRMPRIMETextures[index].m_textureY;
-  planes[1].id = m_DRMPRIMETextures[index].m_textureVU;
-  planes[2].id = m_DRMPRIMETextures[index].m_textureVU;
-
-  glEnable(m_textureTarget);
-
-  for (int p=0; p<2; p++)
+  // Set texture coordinates (MediaCodec is flipped in y)
+  if (m_currentField == FIELD_FULL)
   {
-    glBindTexture(m_textureTarget, planes[p].id);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(m_textureTarget, 0);
-    VerifyGLState();
+    tex[0][0] = tex[3][0] = plane.rect.x1;
+    tex[0][1] = tex[1][1] = plane.rect.y2;
+    tex[1][0] = tex[2][0] = plane.rect.x2;
+    tex[2][1] = tex[3][1] = plane.rect.y1;
+  }
+  else
+  {
+    tex[0][0] = tex[3][0] = planef.rect.x1;
+    tex[0][1] = tex[1][1] = planef.rect.y2 * 2.0f;
+    tex[1][0] = tex[2][0] = planef.rect.x2;
+    tex[2][1] = tex[3][1] = planef.rect.y1 * 2.0f;
   }
 
-  CalculateTextureSourceRects(index, 3);
-  glDisable(m_textureTarget);
+  for(int i = 0; i < 4; i++)
+  {
+    tex[i][2] = 0.0f;
+    tex[i][3] = 1.0f;
+  }
+
+  glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, idx);
+
+  glDisableVertexAttribArray(posLoc);
+  glDisableVertexAttribArray(texLoc);
+
+  const float identity[16] = {
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f
+  };
+  glUniformMatrix4fv(renderSystem.GUIShaderGetCoord0Matrix(),  1, GL_FALSE, identity);
+
+  renderSystem.DisableGUIShader();
+  VerifyGLState();
+
+  glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
+  VerifyGLState();
+
   return true;
 }
 

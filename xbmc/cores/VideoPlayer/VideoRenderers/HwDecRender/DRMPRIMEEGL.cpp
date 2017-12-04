@@ -49,46 +49,26 @@ bool CDRMPRIMETexture::Map(CVideoBufferDRMPRIME *buffer)
     {
       case DRM_FORMAT_NV12:
       {
-        GLint attribsY[] =
+        GLint attribs[] =
         {
-          EGL_LINUX_DRM_FOURCC_EXT, fourcc_code('R', '8', ' ', ' '),
+          EGL_LINUX_DRM_FOURCC_EXT, fourcc_code('N', 'V', '1', '2'),
           EGL_WIDTH, buffer->GetWidth(),
           EGL_HEIGHT, buffer->GetHeight(),
           EGL_DMA_BUF_PLANE0_FD_EXT, descriptor->objects[layer->planes[0].object_index].fd,
           EGL_DMA_BUF_PLANE0_OFFSET_EXT, layer->planes[0].offset,
           EGL_DMA_BUF_PLANE0_PITCH_EXT, layer->planes[0].pitch,
+          EGL_DMA_BUF_PLANE1_FD_EXT, descriptor->objects[layer->planes[1].object_index].fd,
+          EGL_DMA_BUF_PLANE1_OFFSET_EXT, layer->planes[1].offset,
+          EGL_DMA_BUF_PLANE1_PITCH_EXT, layer->planes[1].pitch,
           EGL_NONE
         };
 
-        eglImageY = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                                EGL_NO_CONTEXT,
-                                                EGL_LINUX_DMA_BUF_EXT,
-                                                (EGLClientBuffer)NULL,
-                                                attribsY);
-        if (!eglImageY)
-        {
-          EGLint err = eglGetError();
-          CLog::Log(LOGERROR, "CRendererDRMPRIMEGLES::%s - failed to import PRIME buffer NV12 into EGL image: %d", __FUNCTION__, err);
-          return false;
-        }
-
-        GLint attribsVU[] =
-        {
-          EGL_LINUX_DRM_FOURCC_EXT, fourcc_code('G', 'R', '8', '8'),
-          EGL_WIDTH, (buffer->GetWidth() + 1) >> 1,
-          EGL_HEIGHT, (buffer->GetHeight() + 1) >> 1,
-          EGL_DMA_BUF_PLANE0_FD_EXT, descriptor->objects[layer->planes[1].object_index].fd,
-          EGL_DMA_BUF_PLANE0_OFFSET_EXT, layer->planes[1].offset,
-          EGL_DMA_BUF_PLANE0_PITCH_EXT, layer->planes[1].pitch,
-          EGL_NONE
-        };
-
-        eglImageVU = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                                 EGL_NO_CONTEXT,
-                                                 EGL_LINUX_DMA_BUF_EXT,
-                                                 (EGLClientBuffer)NULL,
-                                                 attribsVU);
-        if (!eglImageVU)
+        eglImage = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
+                                               EGL_NO_CONTEXT,
+                                               EGL_LINUX_DMA_BUF_EXT,
+                                               (EGLClientBuffer)NULL,
+                                               attribs);
+        if (!eglImage)
         {
           EGLint err = eglGetError();
           CLog::Log(LOGERROR, "CRendererDRMPRIMEGLES::%s - failed to import PRIME buffer NV12 into EGL image: %d", __FUNCTION__, err);
@@ -97,22 +77,13 @@ bool CDRMPRIMETexture::Map(CVideoBufferDRMPRIME *buffer)
 
         GLint format;
 
-        glGenTextures(1, &m_textureY);
-        glBindTexture(m_interop.textureTarget, m_textureY);
+        glGenTextures(1, &m_texture);
+        glBindTexture(m_interop.textureTarget, m_texture);
         glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, (GLeglImageOES)eglImageY);
-        glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
-
-        glGenTextures(1, &m_textureVU);
-        glBindTexture(m_interop.textureTarget, m_textureVU);
-        glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(m_interop.textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(m_interop.textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, (GLeglImageOES)eglImageVU);
+        m_interop.glEGLImageTargetTexture2DOES(m_interop.textureTarget, (GLeglImageOES)eglImage);
         glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &format);
 
         glBindTexture(m_interop.textureTarget, 0);
@@ -136,11 +107,9 @@ void CDRMPRIMETexture::Unmap()
   if (!m_primebuffer)
     return;
 
-  m_interop.eglDestroyImageKHR(m_interop.eglDisplay, eglImageY);
-  m_interop.eglDestroyImageKHR(m_interop.eglDisplay, eglImageVU);
+  m_interop.eglDestroyImageKHR(m_interop.eglDisplay, eglImage);
 
-  glDeleteTextures(1, &m_textureY);
-  glDeleteTextures(1, &m_textureVU);
+  glDeleteTextures(1, &m_texture);
 
   m_primebuffer->Release();
   m_primebuffer = nullptr;

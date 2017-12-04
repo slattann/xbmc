@@ -59,6 +59,8 @@ protected:
 
   EShaderFormat GetShaderFormat() override;
 
+  float m_textureMatrix[16];
+
   CDRMPRIMETexture m_DRMPRIMETextures[NUM_BUFFERS];
   GLsync m_fences[NUM_BUFFERS];
 
