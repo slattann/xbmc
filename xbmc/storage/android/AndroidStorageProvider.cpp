@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <regex>
 
 #include <androidjni/Context.h>
 #include <androidjni/StorageManager.h>
@@ -36,7 +37,6 @@
 
 #include "Util.h"
 #include "utils/log.h"
-#include "utils/RegExp.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 
@@ -213,12 +213,11 @@ void CAndroidStorageProvider::GetRemovableDrives(VECSOURCES &removableDrives)
 std::set<std::string> CAndroidStorageProvider::GetRemovableDrivesLinux()
 {
   std::set<std::string> result;
-  
+
   // mounted usb disks
   char*                               buf     = NULL;
   FILE*                               pipe;
-  CRegExp                             reMount;
-  reMount.RegComp("^(.+?)\\s+(.+?)\\s+(.+?)\\s+(.+?)\\s");
+  std::regex regex("^(.+?)\\s+(.+?)\\s+(.+?)\\s+(.+?)\\s");
 
   /* /proc/mounts is only guaranteed atomic for the current read
    * operation, so we need to read it all at once.
@@ -268,12 +267,12 @@ std::set<std::string> CAndroidStorageProvider::GetRemovableDrivesLinux()
 
     while (line)
     {
-      if (reMount.RegFind(line) != -1)
+      if (std::regex_search(line, regex))
       {
-        std::string deviceStr   = reMount.GetReplaceString("\\1");
-        std::string mountStr = reMount.GetReplaceString("\\2");
-        std::string fsStr    = reMount.GetReplaceString("\\3");
-        std::string optStr    = reMount.GetReplaceString("\\4");
+        std::string deviceStr = std::regex_replace(line, regex, "$1")
+        std::string mountStr = std::regex_replace(line, regex, "$2")
+        std::string fsStr = std::regex_replace(line, regex, "$3")
+        std::string optStr = std::regex_replace(line, regex, "$4")
 
         // Blacklist
         bool bl_ok = true;

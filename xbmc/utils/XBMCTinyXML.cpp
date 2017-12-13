@@ -25,10 +25,11 @@
 #include "utils/CharsetDetection.h"
 #include "utils/Utf8Utils.h"
 #include "LangInfo.h"
-#include "RegExp.h"
+
 #include "utils/log.h"
 
-#define MAX_ENTITY_LENGTH 8 // size of largest entity "&#xNNNN;"
+#include <regex>
+
 #define BUFFER_SIZE 4096
 
 CXBMCTinyXML::CXBMCTinyXML()
@@ -188,7 +189,7 @@ bool CXBMCTinyXML::Parse(const std::string& data, TiXmlEncoding encoding /*= TIX
   if (InternalParse(data, TIXML_ENCODING_UNKNOWN))
   {
     if (!m_SuggestedCharset.empty())
-      CLog::Log(LOGWARNING, "%s: Processed %s as unknown encoding instead of suggested \"%s\"", __FUNCTION__, 
+      CLog::Log(LOGWARNING, "%s: Processed %s as unknown encoding instead of suggested \"%s\"", __FUNCTION__,
                   (value.empty() ? "XML data" : ("file \"" + value + "\"").c_str()), m_SuggestedCharset.c_str());
     else if (!detectedCharset.empty())
       CLog::Log(LOGWARNING, "%s: Processed %s as unknown encoding instead of detected \"%s\"", __FUNCTION__,
@@ -237,15 +238,9 @@ bool CXBMCTinyXML::InternalParse(const std::string& rawdata, TiXmlEncoding encod
     return (TiXmlDocument::Parse(rawdata.c_str(), NULL, encoding) != NULL); // nothing to fix, process data directly
 
   std::string data(rawdata);
-  CRegExp re(false, CRegExp::asciiOnly, "^&(amp|lt|gt|quot|apos|#x[a-fA-F0-9]{1,4}|#[0-9]{1,5});.*");
-  do
-  {
-    if (re.RegFind(data, pos, MAX_ENTITY_LENGTH) < 0)
-      data.insert(pos + 1, "amp;");
-    pos = data.find('&', pos + 1);
-  } while (pos != std::string::npos);
+  std::regex re("&(lt|gt|quot|apos|#x[a-fA-F0-9]{1,4}|#[0-9]{1,5})");
 
-  return (TiXmlDocument::Parse(data.c_str(), NULL, encoding) != NULL);
+  return (TiXmlDocument::Parse(std::regex_replace(data, re, "&amp$1").c_str(), NULL, encoding) != NULL);
 }
 
 bool CXBMCTinyXML::Test()

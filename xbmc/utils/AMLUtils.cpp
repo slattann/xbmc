@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <regex>
 #include <string>
 
 #include "AMLUtils.h"
@@ -31,7 +32,6 @@
 #include "utils/SysfsUtils.h"
 #include "utils/StringUtils.h"
 #include "guilib/gui3d.h"
-#include "utils/RegExp.h"
 #include "filesystem/SpecialProtocol.h"
 #include "rendering/RenderSystem.h"
 
@@ -85,7 +85,7 @@ bool aml_wired_present()
 }
 
 bool aml_permissions()
-{  
+{
   if (!aml_present())
     return false;
 
@@ -197,13 +197,11 @@ bool aml_support_hevc_4k2k()
 
   if (has_hevc_4k2k == -1)
   {
-    CRegExp regexp;
-    regexp.RegComp("hevc:.*4k");
     std::string valstr;
     if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
       has_hevc_4k2k = 0;
     else
-      has_hevc_4k2k = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
+      has_hevc_4k2k = std::regex_search(valstr, std::regex("hevc:.*4k")) ? 1 : 0;
   }
   return (has_hevc_4k2k == 1);
 }
@@ -214,13 +212,11 @@ bool aml_support_hevc_10bit()
 
   if (has_hevc_10bit == -1)
   {
-    CRegExp regexp;
-    regexp.RegComp("hevc:.*10bit");
     std::string valstr;
     if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
       has_hevc_10bit = 0;
     else
-      has_hevc_10bit = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
+      has_hevc_10bit = std::regex_search(valstr, std::regex("hevc:.*10bit")) ? 1 : 0;
   }
   return (has_hevc_10bit == 1);
 }
@@ -250,13 +246,11 @@ bool aml_support_vp9()
 
   if (has_vp9 == -1)
   {
-    CRegExp regexp;
-    regexp.RegComp("vp9:.*compressed");
     std::string valstr;
     if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
       has_vp9 = 0;
     else
-      has_vp9 = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
+      has_vp9 = std::regex_search(valstr, std::regex("vp9:.*compressed")) ? 1 : 0;
   }
   return (has_vp9 == 1);
 }
@@ -710,7 +704,7 @@ void aml_handle_scale(const RESOLUTION_INFO &res)
 void aml_handle_display_stereo_mode(const int stereo_mode)
 {
   static std::string lastHdmiTxConfig = "3doff";
-  
+
   std::string command = "3doff";
   switch (stereo_mode)
   {
@@ -724,7 +718,7 @@ void aml_handle_display_stereo_mode(const int stereo_mode)
       // nothing - command is already initialised to "3doff"
       break;
   }
-  
+
   CLog::Log(LOGDEBUG, "AMLUtils::aml_handle_display_stereo_mode old mode %s new mode %s", lastHdmiTxConfig.c_str(), command.c_str());
   // there is no way to read back current mode from sysfs
   // so we track state internal. Because even

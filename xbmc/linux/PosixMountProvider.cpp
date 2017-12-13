@@ -19,9 +19,9 @@
  */
 
 #include <cstdlib>
+#include <regex>
 
 #include "PosixMountProvider.h"
-#include "utils/RegExp.h"
 #include "utils/URIUtils.h"
 #include "utils/log.h"
 
@@ -42,9 +42,9 @@ void CPosixMountProvider::GetDrives(VECSOURCES &drives)
 
   CRegExp reMount;
 #if defined(TARGET_DARWIN) || defined(TARGET_FREEBSD)
-  reMount.RegComp("on (.+) \\(([^,]+)");
+  std::regex regex("on (.+) \\(([^,]+)");
 #else
-  reMount.RegComp("on (.+) type ([^ ]+)");
+  std::regex regex("on (.+) type ([^ ]+)");
 #endif
   char line[1024];
 
@@ -54,11 +54,11 @@ void CPosixMountProvider::GetDrives(VECSOURCES &drives)
   {
     while (fgets(line, sizeof(line) - 1, pipe))
     {
-      if (reMount.RegFind(line) != -1)
+      if (std::regex_search(line, regex))
       {
         bool accepted = false;
-        std::string mountStr = reMount.GetReplaceString("\\1");
-        std::string fsStr    = reMount.GetReplaceString("\\2");
+        std::string mountStr = std::regex_replace(line, regex, "$1");
+        std::string fsStr = std::regex_replace(line, regex, "$2");
         const char* mount = mountStr.c_str();
         const char* fs    = fsStr.c_str();
 
@@ -104,7 +104,7 @@ std::vector<std::string> CPosixMountProvider::GetDiskUsage()
 #else
   FILE* pipe = popen("df -h", "r");
 #endif
-  
+
   static const char* excludes[] = {"rootfs","devtmpfs","tmpfs","none","/dev/loop", "udev", NULL};
 
   if (pipe)
