@@ -27,10 +27,6 @@
 
 #pragma once
 
-#include "system.h" // for HAS_DVD_DRIVE
-
-#ifdef HAS_DVD_DRIVE
-
 #include <cdio/cdio.h>
 #include "threads/CriticalSection.h"
 #include <memory>
@@ -337,5 +333,3 @@ private:
 };
 
 }
-
-#endif
