@@ -656,6 +656,22 @@ RESOLUTION CDisplaySettings::GetResolutionForScreen()
   return RES_DESKTOP;
 }
 
+void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
+{
+  RESOLUTION res = CDisplaySettings::GetInstance().GetDisplayResolution();
+  RESOLUTION_INFO info = CDisplaySettings::GetInstance().GetResolutionInfo(res);
+
+  for (auto index = (int)RES_CUSTOM; index < CDisplaySettings::GetInstance().ResolutionInfoSize(); ++index)
+  {
+    const auto mode = CDisplaySettings::GetInstance().GetResolutionInfo(index);
+    list.push_back(std::make_pair(
+      StringUtils::Format("%dx%d%s %0.2fHz", mode.iWidth, mode.iHeight,
+                          ModeFlagsToString(mode.dwFlags, false).c_str(),
+                          mode.fRefreshRate),
+                          index));
+  }
+}
+
 void CDisplaySettings::SettingOptionsRefreshChangeDelaysFiller(SettingConstPtr setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
 {
   list.push_back(std::make_pair(g_localizeStrings.Get(13551), 0));

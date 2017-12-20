@@ -289,6 +289,7 @@ public:
   static const std::string SETTING_SMB_MAXPROTOCOL;
   static const std::string SETTING_VIDEOSCREEN_MONITOR;
   static const std::string SETTING_VIDEOSCREEN_SCREEN;
+  static const std::string SETTING_VIDEOSCREEN_WHITELIST;
   static const std::string SETTING_VIDEOSCREEN_RESOLUTION;
   static const std::string SETTING_VIDEOSCREEN_SCREENMODE;
   static const std::string SETTING_VIDEOSCREEN_FAKEFULLSCREEN;

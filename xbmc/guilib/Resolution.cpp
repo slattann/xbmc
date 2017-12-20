@@ -20,10 +20,14 @@
 
 #include "Resolution.h"
 #include "GraphicContext.h"
+#include "utils/Variant.h"
 #include "utils/log.h"
 #include "utils/MathUtils.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
+#include "settings/Settings.h"
+#include "ServiceBroker.h"
+
 #include <cstdlib>
 
 RESOLUTION_INFO::RESOLUTION_INFO(int width, int height, float aspect, const std::string &mode) :
@@ -63,14 +67,54 @@ RESOLUTION CResolutionUtils::ChooseBestResolution(float fps, int width, bool is3
 {
   RESOLUTION res = g_graphicsContext.GetVideoResolution();
   float weight;
+
   if (!FindResolutionFromOverride(fps, width, is3D, res, weight, false)) //find a refreshrate from overrides
   {
-    if (!FindResolutionFromOverride(fps, width, is3D, res, weight, true))//if that fails find it from a fallback
-      FindResolutionFromFpsMatch(fps, width, is3D, res, weight);//if that fails use automatic refreshrate selection
+    FindResolutionFromWhitelist(fps, width, is3D, res); //find a refreshrate from whitelist
   }
+
   CLog::Log(LOGNOTICE, "Display resolution ADJUST : %s (%d) (weight: %.3f)",
             g_graphicsContext.GetResInfo(res).strMode.c_str(), res, weight);
   return res;
+}
+
+void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is3D, RESOLUTION &resolution)
+{
+  RESOLUTION_INFO curr = g_graphicsContext.GetResInfo(resolution);
+
+  std::vector<CVariant> indexList = CServiceBroker::GetSettings().GetList(CSettings::SETTING_VIDEOSCREEN_WHITELIST);
+
+  // Find closest refresh rate
+
+  for (const auto &i : indexList)
+  {
+    const RESOLUTION_INFO info = g_graphicsContext.GetResInfo((RESOLUTION)i.asInteger());
+
+    CLog::Log(LOGDEBUG, "display width: %i vs video width: %i", info.iScreenWidth, width);
+    CLog::Log(LOGDEBUG, "display fps: %f vs video fps: %f", info.fRefreshRate, fps);
+    CLog::Log(LOGDEBUG, "display flags: %i vs video flags: %i", info.dwFlags, curr.dwFlags);
+    CLog::Log(LOGDEBUG, "float equals: %s", MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f) ? "true" : "false");
+
+    //discard resolutions that are not the same width and height and interlaced/3D flags and refreshrate
+    if (info.iScreenWidth > width &&
+        info.iScreen == curr.iScreen &&
+        (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
+        MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f))
+    {
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
+      resolution = (RESOLUTION)i.asInteger();
+    }
+
+    if (info.iScreenWidth == width &&
+        info.iScreen == curr.iScreen &&
+        (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
+        MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f))
+    {
+      CLog::Log(LOGDEBUG, "Matched exact whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
+      resolution = (RESOLUTION)i.asInteger();
+      return;
+    }
+  }
 }
 
 bool CResolutionUtils::FindResolutionFromOverride(float fps, int width, bool is3D, RESOLUTION &resolution, float& weight, bool fallback)
