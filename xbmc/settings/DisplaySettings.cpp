@@ -664,11 +664,14 @@ void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting>
   for (auto index = (int)RES_CUSTOM; index < CDisplaySettings::GetInstance().ResolutionInfoSize(); ++index)
   {
     const auto mode = CDisplaySettings::GetInstance().GetResolutionInfo(index);
-    list.push_back(std::make_pair(
-      StringUtils::Format("%dx%d%s %0.2fHz", mode.iWidth, mode.iHeight,
-                          ModeFlagsToString(mode.dwFlags, false).c_str(),
-                          mode.fRefreshRate),
-                          index));
+    if (mode.dwFlags ^ D3DPRESENTFLAG_INTERLACED)
+    {
+      list.push_back(std::make_pair(
+        StringUtils::Format("%dx%d%s %0.2fHz", mode.iWidth, mode.iHeight,
+                            ModeFlagsToString(mode.dwFlags, false).c_str(),
+                            mode.fRefreshRate),
+                            index));
+    }
   }
 }
 

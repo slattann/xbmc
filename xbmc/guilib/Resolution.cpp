@@ -95,7 +95,20 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
     CLog::Log(LOGDEBUG, "display flags: %i vs video flags: %i", info.dwFlags, curr.dwFlags);
     CLog::Log(LOGDEBUG, "float equals: %s", MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f) ? "true" : "false");
 
-    //discard resolutions that are not the same width and height and interlaced/3D flags and refreshrate
+    // for all the methods below remember that it will only select from the whitelist!
+    // the order goes from fuzziest match towards exact match
+
+    // allow resolutions that are larger than required but have double the refresh rate
+    if (info.iScreenWidth > width &&
+        info.iScreen == curr.iScreen &&
+        (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
+        MathUtils::FloatEquals(info.fRefreshRate, fps * 2, 0.0005f))
+    {
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
+      resolution = (RESOLUTION)i.asInteger();
+    }
+
+    // allow resolutions that are larger than required but have the correct refresh rate
     if (info.iScreenWidth > width &&
         info.iScreen == curr.iScreen &&
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
@@ -105,6 +118,17 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
       resolution = (RESOLUTION)i.asInteger();
     }
 
+    // allow resolutions that are exact and have double the refresh rate
+    if (info.iScreenWidth == width &&
+        info.iScreen == curr.iScreen &&
+        (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
+        MathUtils::FloatEquals(info.fRefreshRate, fps * 2, 0.0005f))
+    {
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
+      resolution = (RESOLUTION)i.asInteger();
+    }
+
+    // allow resolutions that are exact and have the correct refresh rate
     if (info.iScreenWidth == width &&
         info.iScreen == curr.iScreen &&
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
