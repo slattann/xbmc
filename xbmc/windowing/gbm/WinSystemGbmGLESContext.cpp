@@ -26,6 +26,7 @@
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
+#include "cores/VideoPlayer/Process/gbm/ProcessInfoGbm.h"
 
 #include "WinSystemGbmGLESContext.h"
 #include "OptionalsReg.h"
@@ -67,6 +68,7 @@ bool CWinSystemGbmGLESContext::InitWindowSystem()
     GBM::VAAPIRegister(m_vaapiProxy.get(), hevc);
   }
 
+  CProcessInfoGbm::Register();
   CRendererDRMPRIME::Register(this);
   CDVDVideoCodecDRMPRIME::Register();
 

@@ -30,7 +30,22 @@ extern "C" {
 #include "libavutil/hwcontext_drm.h"
 }
 
-class CVideoBufferPoolDRMPRIME;
+class CVideoBufferDRMPRIME;
+
+class CVideoBufferPoolDRMPRIME
+  : public IVideoBufferPool
+{
+public:
+  ~CVideoBufferPoolDRMPRIME() override;
+  void Return(int id) override;
+  CVideoBuffer* Get() override;
+
+protected:
+  CCriticalSection m_critSection;
+  std::vector<CVideoBufferDRMPRIME*> m_all;
+  std::deque<int> m_used;
+  std::deque<int> m_free;
+};
 
 class CVideoBufferDRMPRIME
   : public CVideoBuffer
