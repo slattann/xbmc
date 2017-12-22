@@ -167,7 +167,7 @@ bool CDRMUtils::GetConnector()
     return false;
   }
 
-  m_connector->props_info = new drmModePropertyPtr;
+  m_connector->props_info = new drmModePropertyPtr[m_connector->props->count_props];
   for (uint32_t i = 0; i < m_connector->props->count_props; i++)
   {
     m_connector->props_info[i] = drmModeGetProperty(m_fd, m_connector->props->props[i]);
@@ -229,7 +229,7 @@ bool CDRMUtils::GetCrtc()
     return false;
   }
 
-  m_crtc->props_info = new drmModePropertyPtr;
+  m_crtc->props_info = new drmModePropertyPtr[m_crtc->props->count_props];
   for (uint32_t i = 0; i < m_crtc->props->count_props; i++)
   {
     m_crtc->props_info[i] = drmModeGetProperty(m_fd, m_crtc->props->props[i]);
@@ -343,7 +343,7 @@ bool CDRMUtils::GetPlanes()
     return false;
   }
 
-  m_primary_plane->props_info = new drmModePropertyPtr;
+  m_primary_plane->props_info = new drmModePropertyPtr[m_primary_plane->props->count_props];
   for (uint32_t i = 0; i < m_primary_plane->props->count_props; i++)
   {
     m_primary_plane->props_info[i] = drmModeGetProperty(m_fd, m_primary_plane->props->props[i]);
@@ -581,26 +581,69 @@ void CDRMUtils::DestroyDrm()
 
   m_fd = -1;
 
-  drmModeFreeResources(m_drm_resources);
-  m_drm_resources = nullptr;
+  if (m_connector)
+  {
+    if (m_connector->connector)
+      drmModeFreeConnector(m_connector->connector);
 
-  delete m_connector;
-  m_connector = nullptr;
+    if (m_connector->props)
+      drmModeFreeObjectProperties(m_connector->props);
 
-  delete m_encoder;
-  m_encoder = nullptr;
+    if (m_connector->props_info)
+      delete [] m_connector->props_info;
 
-  delete m_crtc;
-  m_crtc = nullptr;
+    delete m_connector;
+  }
 
-  delete m_primary_plane;
-  m_primary_plane = nullptr;
+  if (m_encoder)
+  {
+    if (m_encoder->encoder)
+      drmModeFreeEncoder(m_encoder->encoder);
 
-  delete m_overlay_plane;
-  m_overlay_plane = nullptr;
+    delete m_encoder;
+  }
 
-  drmModeFreeModeInfo(m_mode);
-  m_mode = nullptr;
+  if (m_crtc)
+  {
+    if (m_crtc->crtc)
+      drmModeFreeCrtc(m_crtc->crtc);
+
+    if (m_crtc->props)
+      drmModeFreeObjectProperties(m_crtc->props);
+
+    if (m_crtc->props_info)
+      delete [] m_crtc->props_info;
+
+    delete m_crtc;
+  }
+
+  if (m_primary_plane)
+  {
+    if (m_primary_plane->plane)
+      drmModeFreePlane(m_primary_plane->plane);
+
+    if (m_primary_plane->props)
+      drmModeFreeObjectProperties(m_primary_plane->props);
+
+    if (m_primary_plane->props_info)
+      delete [] m_primary_plane->props_info;
+
+    delete m_primary_plane;
+  }
+
+  if (m_overlay_plane)
+  {
+    if (m_overlay_plane->plane)
+      drmModeFreePlane(m_overlay_plane->plane);
+
+    if (m_overlay_plane->props)
+      drmModeFreeObjectProperties(m_overlay_plane->props);
+
+    if (m_overlay_plane->props_info)
+      delete [] m_overlay_plane->props_info;
+
+    delete m_overlay_plane;
+  }
 }
 
 bool CDRMUtils::GetModes(std::vector<RESOLUTION_INFO> &resolutions)
