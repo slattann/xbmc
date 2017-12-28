@@ -48,7 +48,7 @@ DEFINE_GUID(DXVADDI_Intel_ModeH264_E, 0x604F8E68,0x4951,0x4c54,0x88,0xFE,0xAB,0x
 DEFINE_GUID(DXVADDI_Intel_ModeVC1_E , 0xBCC5DB6D,0xA2B6,0x4AF0,0xAC,0xE4,0xAD,0xB1,0xF7,0x87,0xBC,0x89);
 
 // redefine DXVA_NoEncrypt with other macro, solves unresolved external symbol linker error
-#ifdef DXVA_NoEncrypt 
+#ifdef DXVA_NoEncrypt
 #undef DXVA_NoEncrypt
 #endif
 DEFINE_GUID(DXVA_NoEncrypt, 0x1b81beD0, 0xa0c7, 0x11d3, 0xb9, 0x84, 0x00, 0xc0, 0x4f, 0x2e, 0x73, 0xc5);
@@ -307,14 +307,22 @@ bool CDXVAContext::CreateContext()
 void CDXVAContext::DestroyContext()
 {
   delete[] m_input_list;
-  SAFE_RELEASE(m_service);
-  SAFE_RELEASE(m_vcontext);
+  if (m_service)
+  {
+    m_service->Release();
+    m_service = nullptr;
+  }
+  if (m_vcontext)
+  {
+    m_vcontext->Release();
+    m_vcontext = nullptr;
+  }
 }
 
 void CDXVAContext::QueryCaps()
 {
   m_input_count = m_service->GetVideoDecoderProfileCount();
-  
+
   m_input_list = new GUID[m_input_count];
   for (unsigned i = 0; i < m_input_count; i++)
   {
@@ -444,9 +452,9 @@ bool CDXVAContext::CreateSurfaces(D3D11_VIDEO_DECODER_DESC format, unsigned int 
   if (DX::Windowing().IsFormatSupport(format.OutputFormat, D3D11_FORMAT_SUPPORT_SHADER_SAMPLE))
     bindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-  CD3D11_TEXTURE2D_DESC texDesc(format.OutputFormat, 
-                                FFALIGN(format.SampleWidth, alignment), 
-                                FFALIGN(format.SampleHeight, alignment), 
+  CD3D11_TEXTURE2D_DESC texDesc(format.OutputFormat,
+                                FFALIGN(format.SampleWidth, alignment),
+                                FFALIGN(format.SampleHeight, alignment),
                                 count, 1, bindFlags);
 
   ID3D11Texture2D *texture = nullptr;
@@ -474,12 +482,22 @@ bool CDXVAContext::CreateSurfaces(D3D11_VIDEO_DECODER_DESC format, unsigned int 
     }
     pD3DDeviceContext->ClearView(surfaces[i], clearColor, nullptr, 0);
   }
-  SAFE_RELEASE(texture);
+  if (texture)
+  {
+    texture->Release();
+    texture = nullptr;
+  }
 
   if (FAILED(hr))
   {
     for (size_t j = 0; j < i; ++j)
-      SAFE_RELEASE(surfaces[j]);
+    {
+      if (surfaces[j])
+      {
+        surfaces[j]->Release();
+        surfaces[j] = nullptr;
+      }
+    }
   }
 
   return SUCCEEDED(hr);
@@ -575,7 +593,11 @@ ID3D11View* CDXVAOutputBuffer::GetSRV(unsigned idx)
   if (FAILED(hr))
     CLog::LogF(LOGERROR, "unable to create SRV for decoder surface (%d)", plane_format);
 
-  SAFE_RELEASE(pResource);
+  if (pResource)
+  {
+    pResource->Release();
+    pResource = nullptr;
+  }
   return planes[idx];
 }
 
@@ -589,8 +611,16 @@ void CDXVAOutputBuffer::SetRef(AVFrame* frame)
 void CDXVAOutputBuffer::Unref()
 {
   view = nullptr;
-  SAFE_RELEASE(planes[0]);
-  SAFE_RELEASE(planes[1]);
+  if (planes[0])
+  {
+    planes[0]->Release();
+    planes[0] = nullptr;
+  }
+  if (planes[1])
+  {
+    planes[1]->Release();
+    planes[1] = nullptr;
+  }
   av_frame_unref(m_pFrame);
 }
 
@@ -686,7 +716,13 @@ void CDXVABufferPool::Reset()
   CSingleLock lock(m_section);
 
   for (auto view : m_views)
-    SAFE_RELEASE(view);
+  {
+    if (view)
+    {
+      view->Release();
+      view = nullptr;
+    }
+  }
   m_freeViews.clear();
 
   for (auto buf : m_out)
@@ -780,9 +816,21 @@ long CDecoder::Release()
 void CDecoder::Close()
 {
   CSingleLock lock(m_section);
-  SAFE_RELEASE(m_decoder);
-  SAFE_RELEASE(m_vcontext);
-  SAFE_RELEASE(m_videoBuffer);
+  if (m_decoder)
+  {
+    m_decoder->Release();
+    m_decoder = nullptr;
+  }
+  if (m_vcontext)
+  {
+    m_vcontext->Release();
+    m_vcontext = nullptr;
+  }
+  if (m_videoBuffer)
+  {
+    m_videoBuffer->Release();
+    m_videoBuffer = nullptr;
+  }
   memset(&m_format, 0, sizeof(m_format));
 
   if (m_dxva_context)
@@ -846,7 +894,7 @@ static bool HasATIMP2Bug(AVCodecContext *avctx)
   // here are params of these videos
   return avctx->height <= 576
       && avctx->colorspace == AVCOL_SPC_BT470BG
-      && avctx->color_primaries == AVCOL_PRI_BT470BG 
+      && avctx->color_primaries == AVCOL_PRI_BT470BG
       && avctx->color_trc == AVCOL_TRC_GAMMA28;
 }
 
@@ -1008,7 +1056,11 @@ CDVDVideoCodec::VCReturn CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
     ID3D11View* view = reinterpret_cast<ID3D11View*>(frame->data[3]);
     if (m_bufferPool->IsValid(view))
     {
-      SAFE_RELEASE(m_videoBuffer);
+      if (m_videoBuffer)
+      {
+        m_videoBuffer->Release();
+        m_videoBuffer = nullptr;
+      }
       m_videoBuffer = reinterpret_cast<CDXVAOutputBuffer*>(m_bufferPool->Get());
       if (!m_videoBuffer)
       {
@@ -1030,7 +1082,11 @@ CDVDVideoCodec::VCReturn CDecoder::Decode(AVCodecContext* avctx, AVFrame* frame)
 
 bool CDecoder::GetPicture(AVCodecContext* avctx, VideoPicture* picture)
 {
-  SAFE_RELEASE(picture->videoBuffer);
+  if (picture->videoBuffer)
+  {
+    picture->videoBuffer->Release();
+    picture->videoBuffer = nullptr;
+  }
 
   static_cast<ICallbackHWAccel*>(avctx->opaque)->GetPictureCommon(picture);
   CSingleLock lock(m_section);
@@ -1054,7 +1110,11 @@ bool CDecoder::GetPicture(AVCodecContext* avctx, VideoPicture* picture)
 
 void CDecoder::Reset()
 {
-  SAFE_RELEASE(m_videoBuffer);
+  if (m_videoBuffer)
+  {
+    m_videoBuffer->Release();
+    m_videoBuffer = nullptr;
+  }
 }
 
 CDVDVideoCodec::VCReturn CDecoder::Check(AVCodecContext* avctx)
@@ -1109,7 +1169,7 @@ CDVDVideoCodec::VCReturn CDecoder::Check(AVCodecContext* avctx)
   && avctx->codec_id != AV_CODEC_ID_VC1
   && avctx->codec_id != AV_CODEC_ID_WMV3)
     return CDVDVideoCodec::VC_NONE;
-  
+
 #ifdef TARGET_WINDOWS_DESKTOP
   D3D11_VIDEO_DECODER_EXTENSION data = {0};
   union {
@@ -1144,8 +1204,16 @@ CDVDVideoCodec::VCReturn CDecoder::Check(AVCodecContext* avctx)
 
 bool CDecoder::OpenDecoder()
 {
-  SAFE_RELEASE(m_decoder);
-  SAFE_RELEASE(m_vcontext);
+  if (m_decoder)
+  {
+    m_decoder->Release();
+    m_decoder = nullptr;
+  }
+  if (m_vcontext)
+  {
+    m_vcontext->Release();
+    m_vcontext = nullptr;
+  }
   m_context->decoder = nullptr;
   m_context->video_context = nullptr;
 
@@ -1247,5 +1315,9 @@ unsigned CDecoder::GetAllowedReferences()
 void CDecoder::CloseDXVADecoder()
 {
   CSingleLock lock(m_section);
-  SAFE_RELEASE(m_decoder);
+  if (m_decoder)
+  {
+    m_decoder->Release();
+    m_decoder = nullptr;
+  }
 }

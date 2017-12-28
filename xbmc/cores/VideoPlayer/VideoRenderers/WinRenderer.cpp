@@ -357,7 +357,11 @@ void CWinRenderer::UnInit()
     delete m_processor;
     m_processor = nullptr;
   }
-  SAFE_RELEASE(m_pCLUTView);
+  if (m_pCLUTView)
+  {
+    m_pCLUTView->Release();
+    m_pCLUTView = nullptr;
+  }
   m_outputShader.reset();
 }
 
@@ -1119,7 +1123,11 @@ CRenderInfo CWinRenderer::GetRenderInfo()
 
 void CWinRenderer::ReleaseBuffer(int idx)
 {
-  SAFE_RELEASE(m_renderBuffers[idx].videoBuffer);
+  if (m_renderBuffers[idx].videoBuffer)
+  {
+    m_renderBuffers[idx].videoBuffer->Release();
+    m_renderBuffers[idx].videoBuffer = nullptr;
+  }
 }
 
 bool CWinRenderer::NeedBuffer(int idx)
@@ -1171,7 +1179,11 @@ bool CWinRenderer::LoadCLUT()
     bool success = m_colorManager->GetVideo3dLut(m_iFlags, &m_cmsToken, CMS_DATA_FMT_RGBA, clutSize, clutData);
     if (success)
     {
-      SAFE_RELEASE(m_pCLUTView);
+      if (m_pCLUTView)
+      {
+        m_pCLUTView->Release();
+        m_pCLUTView = nullptr;
+      }
       success = COutputShader::CreateCLUTView(clutSize, clutData, false, &m_pCLUTView);
     }
     else

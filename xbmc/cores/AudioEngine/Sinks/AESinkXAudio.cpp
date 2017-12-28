@@ -797,7 +797,11 @@ bool CAESinkXAudio::IsUSBDevice()
   StringUtils::ToUpper(str);
   ret = (str == "USB");
   PropVariantClear(&varName);
-  SAFE_RELEASE(pProperty);
+  if (pProperty)
+  {
+    pProperty->Release();
+    pProperty = nullptr;
+  }
 #endif
   return false;
 }

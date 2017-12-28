@@ -66,8 +66,16 @@ CRenderBuffer::~CRenderBuffer()
 void CRenderBuffer::Release()
 {
   loaded = false;
-  SAFE_RELEASE(videoBuffer);
-  SAFE_RELEASE(m_staging);
+  if (videoBuffer)
+  {
+    videoBuffer->Release();
+    videoBuffer = nullptr;
+  }
+  if (m_staging)
+  {
+    m_staging->Release();
+    m_staging = nullptr;
+  }
   for (unsigned i = 0; i < m_activePlanes; i++)
   {
     // unlock before release
@@ -507,7 +515,11 @@ bool CRenderBuffer::CopyToStaging(ID3D11View* view)
     {
       D3D11_TEXTURE2D_DESC tDesc;
       surface->GetDesc(&tDesc);
-      SAFE_RELEASE(surface);
+      if (surface)
+      {
+        surface->Release();
+        surface = nullptr;
+      }
 
       CD3D11_TEXTURE2D_DESC sDesc(tDesc);
       sDesc.ArraySize = 1;
@@ -534,7 +546,11 @@ bool CRenderBuffer::CopyToStaging(ID3D11View* view)
                                     nullptr);
     m_bPending = true;
   }
-  SAFE_RELEASE(resource);
+  if (resource)
+  {
+    resource->Release();
+    resource = nullptr;
+  }
 
   return SUCCEEDED(hr);
 }

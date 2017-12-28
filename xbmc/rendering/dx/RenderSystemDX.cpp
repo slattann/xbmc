@@ -128,7 +128,11 @@ inline void DXWait(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
     while (S_FALSE == pContext->GetData(wait, nullptr, 0, 0))
       Sleep(1);
   }
-  SAFE_RELEASE(wait);
+  if (wait)
+  {
+    wait->Release();
+    wait = nullptr;
+  }
 }
 
 bool CRenderSystemDX::IsFormatSupport(DXGI_FORMAT format, unsigned int usage) const

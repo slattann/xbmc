@@ -89,7 +89,11 @@ void CSlideShowPic::Close()
   m_bIsDirty = true;
   m_alpha = 0;
 #ifdef HAS_DX
-  SAFE_RELEASE(m_vb);
+  if (m_vb)
+  {
+    m_vb->Release();
+    m_vb = nullptr;
+  }
 #endif
 }
 

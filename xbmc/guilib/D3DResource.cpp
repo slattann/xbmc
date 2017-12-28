@@ -289,7 +289,11 @@ ID3D11ShaderResourceView* CD3DTexture::GetShaderResource(DXGI_FORMAT format /* =
     if (FAILED(hr))
     {
       CLog::Log(LOGWARNING, __FUNCTION__ " - cannot create texture view.");
-      SAFE_RELEASE(pView);
+      if (pView)
+      {
+        pView->Release();
+        pView = nullptr;
+      }
     }
     else
     {
@@ -329,10 +333,29 @@ void CD3DTexture::Release()
     DX::Windowing().Unregister(this);
 
   for (auto it : m_views)
-    SAFE_RELEASE(it.second);
-  SAFE_RELEASE(m_renderTargets[0]);
-  SAFE_RELEASE(m_renderTargets[1]);
-  SAFE_RELEASE(m_texture);
+  {
+    if (it.second)
+    {
+      it.second->Release();
+      it.second = nullptr;
+    }
+  }
+
+  if (m_renderTargets[0])
+  {
+    m_renderTargets[0]->Release();
+    m_renderTargets[0] = nullptr;
+  }
+  if (m_renderTargets[1])
+  {
+    m_renderTargets[1]->Release();
+    m_renderTargets[1] = nullptr;
+  }
+  if (m_texture)
+  {
+    m_texture->Release();
+    m_texture = nullptr;
+  }
   m_views.clear();
 }
 
@@ -414,7 +437,13 @@ void CD3DTexture::SaveTexture()
       CLog::Log(LOGERROR, "%s - Failed to store resource.", __FUNCTION__);
 
     if (texture != m_texture)
-      SAFE_RELEASE(texture);
+    {
+      if (texture)
+      {
+        texture->Release();
+        texture = nullptr;
+      }
+    }
   }
 }
 
@@ -423,10 +452,29 @@ void CD3DTexture::OnDestroyDevice(bool fatal)
   if (!fatal)
     SaveTexture();
   for (auto it = m_views.begin(); it != m_views.end(); ++it)
-    SAFE_RELEASE(it->second);
-  SAFE_RELEASE(m_renderTargets[0]);
-  SAFE_RELEASE(m_renderTargets[1]);
-  SAFE_RELEASE(m_texture);
+  {
+    if (it->second)
+    {
+      it->second->Release();
+      it->second = nullptr;
+    }
+  }
+
+  if (m_renderTargets[0])
+  {
+    m_renderTargets[0]->Release();
+    m_renderTargets[0] = nullptr;
+  }
+  if (m_renderTargets[1])
+  {
+    m_renderTargets[1]->Release();
+    m_renderTargets[1] = nullptr;
+  }
+  if (m_texture)
+  {
+    m_texture->Release();
+    m_texture = nullptr;
+  }
   m_views.clear();
 }
 
@@ -592,7 +640,11 @@ void CD3DEffect::Release()
 
 void CD3DEffect::OnDestroyDevice(bool fatal)
 {
-  SAFE_RELEASE(m_effect);
+  if (m_effect)
+  {
+    m_effect->Release();
+    m_effect = nullptr;
+  }
   m_techniquie = nullptr;
   m_currentPass = nullptr;
 }
@@ -849,7 +901,11 @@ bool CD3DBuffer::Create(D3D11_BIND_FLAG type, UINT count, UINT stride, DXGI_FORM
 void CD3DBuffer::Release()
 {
   DX::Windowing().Unregister(this);
-  SAFE_RELEASE(m_buffer);
+  if (m_buffer)
+  {
+    m_buffer->Release();
+    m_buffer = nullptr;
+  }
 }
 
 bool CD3DBuffer::Map(void **data)
@@ -880,7 +936,11 @@ void CD3DBuffer::OnDestroyDevice(bool fatal)
 {
   if (fatal)
   {
-    SAFE_RELEASE(m_buffer);
+    if (m_buffer)
+    {
+      m_buffer->Release();
+      m_buffer = nullptr;
+    }
     return;
   }
 
@@ -918,8 +978,18 @@ void CD3DBuffer::OnDestroyDevice(bool fatal)
     }
   }
   if (buffer != m_buffer)
-    SAFE_RELEASE(buffer);
-  SAFE_RELEASE(m_buffer);
+  {
+    if (buffer)
+    {
+      buffer->Release();
+      buffer = nullptr;
+    }
+  }
+  if (m_buffer)
+  {
+    m_buffer->Release();
+    m_buffer = nullptr;
+  }
 }
 
 void CD3DBuffer::OnCreateDevice()
@@ -963,7 +1033,11 @@ void CD3DVertexShader::Release()
 {
   DX::Windowing().Unregister(this);
   ReleaseShader();
-  SAFE_RELEASE(m_VSBuffer);
+  if (m_VSBuffer)
+  {
+    m_VSBuffer->Release();
+    m_VSBuffer = nullptr;
+  }
   delete [] m_vertexLayout;
   m_vertexLayout = nullptr;
 }
@@ -972,8 +1046,16 @@ void CD3DVertexShader::ReleaseShader()
 {
   UnbindShader();
 
-  SAFE_RELEASE(m_VS);
-  SAFE_RELEASE(m_inputLayout);
+  if (m_VS)
+  {
+    m_VS->Release();
+    m_VS = nullptr;
+  }
+  if (m_inputLayout)
+  {
+    m_inputLayout->Release();
+    m_inputLayout = nullptr;
+  }
   m_inited = false;
 }
 
@@ -1054,7 +1136,11 @@ bool CD3DVertexShader::CreateInternal()
   if (FAILED(pDevice->CreateVertexShader(m_VSBuffer->GetBufferPointer(), m_VSBuffer->GetBufferSize(), nullptr, &m_VS)))
   {
     CLog::Log(LOGERROR, __FUNCTION__ " - Failed to Create the vertex shader.");
-    SAFE_RELEASE(m_VSBuffer);
+    if (m_VSBuffer)
+    {
+      m_VSBuffer->Release();
+      m_VSBuffer = nullptr;
+    }
     return false;
   }
 
@@ -1122,12 +1208,20 @@ void CD3DPixelShader::Release()
 {
   DX::Windowing().Unregister(this);
   ReleaseShader();
-  SAFE_RELEASE(m_PSBuffer);
+  if (m_PSBuffer)
+  {
+    m_PSBuffer->Release();
+    m_PSBuffer = nullptr;
+  }
 }
 
 void CD3DPixelShader::ReleaseShader()
 {
-  SAFE_RELEASE(m_PS);
+  if (m_PS)
+  {
+    m_PS->Release();
+    m_PS = nullptr;
+  }
   m_inited = false;
 }
 
@@ -1188,7 +1282,11 @@ bool CD3DPixelShader::CreateInternal()
   if (FAILED(pDevice->CreatePixelShader(m_PSBuffer->GetBufferPointer(), m_PSBuffer->GetBufferSize(), nullptr, &m_PS)))
   {
     CLog::Log(LOGERROR, __FUNCTION__ " - Failed to Create the pixel shader.");
-    SAFE_RELEASE(m_PSBuffer);
+    if (m_PSBuffer)
+    {
+      m_PSBuffer->Release();
+      m_PSBuffer = nullptr;
+    }
     return false;
   }
 

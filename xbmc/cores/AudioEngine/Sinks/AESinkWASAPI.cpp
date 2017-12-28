@@ -176,10 +176,26 @@ bool CAESinkWASAPI::Initialize(AEAudioFormat &format, std::string &device)
 
 failed:
   CLog::Log(LOGERROR, __FUNCTION__": WASAPI initialization failed.");
-  SAFE_RELEASE(m_pRenderClient);
-  SAFE_RELEASE(m_pAudioClient);
-  SAFE_RELEASE(m_pAudioClock);
-  SAFE_RELEASE(m_pDevice);
+  if (m_pRenderClient)
+  {
+    m_pRenderClient->Release();
+    m_pRenderClient = nullptr;
+  }
+  if (m_pAudioClient)
+  {
+    m_pAudioClient->Release();
+    m_pAudioClient = nullptr;
+  }
+  if (m_pAudioClock)
+  {
+    m_pAudioClock->Release();
+    m_pAudioClock = nullptr;
+  }
+  if (m_pDevice)
+  {
+    m_pDevice->Release();
+    m_pDevice = nullptr;
+  }
   if(m_needDataEvent)
   {
     CloseHandle(m_needDataEvent);
@@ -211,10 +227,26 @@ void CAESinkWASAPI::Deinitialize()
 
   CloseHandle(m_needDataEvent);
 
-  SAFE_RELEASE(m_pRenderClient);
-  SAFE_RELEASE(m_pAudioClient);
-  SAFE_RELEASE(m_pAudioClock);
-  SAFE_RELEASE(m_pDevice);
+  if (m_pRenderClient)
+  {
+    m_pRenderClient->Release();
+    m_pRenderClient = nullptr;
+  }
+  if (m_pAudioClient)
+  {
+    m_pAudioClient->Release();
+    m_pAudioClient = nullptr;
+  }
+  if (m_pAudioClock)
+  {
+    m_pAudioClock->Release();
+    m_pAudioClock = nullptr;
+  }
+  if (m_pDevice)
+  {
+    m_pDevice->Release();
+    m_pDevice = nullptr;
+  }
 
   m_initialized = false;
 
@@ -433,8 +465,16 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool fo
       if (hr == AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED)
       {
         CLog::Log(LOGNOTICE, __FUNCTION__": Exclusive mode is not allowed on device \"%s\", check device settings.", details.strDescription.c_str());
-        SAFE_RELEASE(pClient);
-        SAFE_RELEASE(pDevice);
+        if (pClient)
+        {
+          pClient->Release();
+          pClient = nullptr;
+        }
+        if (pDevice)
+        {
+          pDevice->Release();
+          pDevice = nullptr;
+        }
         continue; 
       }
       if (SUCCEEDED(hr) || details.eDeviceType == AE_DEVTYPE_HDMI)
@@ -588,7 +628,11 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool fo
       deviceInfoList.push_back(deviceInfo);
     }
 
-    SAFE_RELEASE(pDevice);
+    if (pDevice)
+    {
+      pDevice->Release();
+      pDevice = nullptr;
+    }
   }
   return;
 
@@ -807,7 +851,11 @@ initialize:
     audioSinkBufferDurationMsec = (REFERENCE_TIME) ((10000.0 * 1000 / wfxex.Format.nSamplesPerSec * m_uiBufferLen) + 0.5);
 
     /* Release the previous allocations */
-    SAFE_RELEASE(m_pAudioClient);
+    if (m_pAudioClient)
+    {
+      m_pAudioClient->Release();
+      m_pAudioClient = nullptr;
+    }
 
     /* Create a new audio client */
     hr = m_pDevice->Activate(&m_pAudioClient);

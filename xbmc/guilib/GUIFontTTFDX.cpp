@@ -52,8 +52,16 @@ CGUIFontTTFDX::~CGUIFontTTFDX(void)
 
   delete m_speedupTexture;
   m_speedupTexture = nullptr;
-  SAFE_RELEASE(m_vertexBuffer);
-  SAFE_RELEASE(m_staticIndexBuffer);
+  if (m_vertexBuffer)
+  {
+    m_vertexBuffer->Release();
+    m_vertexBuffer = nullptr;
+  }
+  if (m_staticIndexBuffer)
+  {
+    m_staticIndexBuffer->Release();
+    m_staticIndexBuffer = nullptr;
+  }
   if (!m_buffers.empty())
   {
     for (std::list<CD3DBuffer*>::iterator it = m_buffers.begin(); it != m_buffers.end(); ++it)
@@ -300,7 +308,11 @@ bool CGUIFontTTFDX::UpdateDynamicVertexBuffer(const SVertex* pSysMem, unsigned i
   unsigned width = sizeof(SVertex) * vertex_count;
   if (width > m_vertexWidth) // create or re-create
   {
-    SAFE_RELEASE(m_vertexBuffer);
+    if (m_vertexBuffer)
+    {
+      m_vertexBuffer->Release();
+      m_vertexBuffer = nullptr;
+    }
 
     CD3D11_BUFFER_DESC bufferDesc(width, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     D3D11_SUBRESOURCE_DATA initData;
@@ -362,9 +374,17 @@ ID3D11Buffer* CGUIFontTTFDX::m_staticIndexBuffer = nullptr;
 
 void CGUIFontTTFDX::OnDestroyDevice(bool fatal)
 {
-  SAFE_RELEASE(m_staticIndexBuffer);
+  if (m_staticIndexBuffer)
+  {
+    m_staticIndexBuffer->Release();
+    m_staticIndexBuffer = nullptr;
+  }
   m_staticIndexBufferCreated = false;
-  SAFE_RELEASE(m_vertexBuffer);
+  if (m_vertexBuffer)
+  {
+    m_vertexBuffer->Release();
+    m_vertexBuffer = nullptr;
+  }
   m_vertexWidth = 0;
 }
 

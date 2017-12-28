@@ -49,7 +49,11 @@ CGUIWindowTestPatternDX::CGUIWindowTestPatternDX(void) : CGUIWindowTestPattern()
 
 CGUIWindowTestPatternDX::~CGUIWindowTestPatternDX(void)
 {
-  SAFE_RELEASE(m_vb);
+  if (m_vb)
+  {
+    m_vb->Release();
+    m_vb = nullptr;
+  }
   m_bufferWidth = 0;
 }
 
@@ -361,7 +365,11 @@ void CGUIWindowTestPatternDX::UpdateVertexBuffer(Vertex *vertices, unsigned coun
 
   if (!m_vb || width > m_bufferWidth) // create new
   {
-    SAFE_RELEASE(m_vb);
+    if (m_vb)
+    {
+      m_vb->Release();
+      m_vb = nullptr;
+    }
 
     CD3D11_BUFFER_DESC desc(width, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     D3D11_SUBRESOURCE_DATA initData = {};

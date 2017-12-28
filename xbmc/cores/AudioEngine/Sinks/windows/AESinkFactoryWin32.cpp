@@ -59,7 +59,11 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
       wstrDDID = pwszID;
       CoTaskMemFree(pwszID);
     }
-    SAFE_RELEASE(pDefaultDevice);
+    if (pDefaultDevice)
+    {
+      pDefaultDevice->Release();
+      pDefaultDevice = nullptr;
+    }
   }
 
   // enumerate over all audio endpoints
@@ -88,7 +92,11 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint properties failed.");
-      SAFE_RELEASE(pDevice);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
       goto failed;
     }
 
@@ -96,8 +104,16 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint device name failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -108,8 +124,16 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint GUID failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -120,8 +144,16 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint form factor failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
     details.strWinDevType = winEndpoints[(EndpointFormFactor)varName.uiVal].winEndpointType;
@@ -133,8 +165,16 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint speaker layout failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -151,20 +191,44 @@ std::vector<RendererDetail> CAESinkFactoryWin::GetRendererDetails()
 
     list.push_back(details);
 
-    SAFE_RELEASE(pDevice);
-    SAFE_RELEASE(pProperty);
+    if (pDevice)
+    {
+      pDevice->Release();
+      pDevice = nullptr;
+    }
+    if (pProperty)
+    {
+      pProperty->Release();
+      pProperty = nullptr;
+    }
   }
 
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pEnumerator);
+  if (pEnumDevices)
+  {
+    pEnumDevices->Release();
+    pEnumDevices = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
   return list;
 
 failed:
 
   CLog::Log(LOGERROR, __FUNCTION__": Failed to enumerate audio renderer devices.");
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pEnumerator);
+  if (pEnumDevices)
+  {
+    pEnumDevices->Release();
+    pEnumDevices = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
   return list;
 }
@@ -197,7 +261,11 @@ struct AEWASAPIDeviceWin32 : public IAEWASAPIDevice
 
   int AEWASAPIDeviceWin32::Release() override
   {
-    SAFE_RELEASE(m_pDevice);
+    if (m_pDevice)
+    {
+      m_pDevice->Release();
+      m_pDevice = nullptr;
+    }
     delete this;
     return 0;
   };
@@ -218,7 +286,11 @@ struct AEWASAPIDeviceWin32 : public IAEWASAPIDevice
     StringUtils::ToUpper(str);
     ret = (str == "USB");
     PropVariantClear(&varName);
-    SAFE_RELEASE(pProperty);
+    if (pProperty)
+    {
+      pProperty->Release();
+      pProperty = nullptr;
+    }
     return ret;
   }
 
@@ -254,7 +326,11 @@ std::string CAESinkFactoryWin::GetDefaultDeviceId()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint properties failed.");
-      SAFE_RELEASE(pDevice);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
       goto failed;
     }
 
@@ -262,17 +338,37 @@ std::string CAESinkFactoryWin::GetDefaultDeviceId()
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint GUID failed.");
-      SAFE_RELEASE(pProperty);
-      SAFE_RELEASE(pDevice);
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
       goto failed;
     }
     strDeviceId = KODI::PLATFORM::WINDOWS::FromW(varName.pwszVal);
     PropVariantClear(&varName);
 
-    SAFE_RELEASE(pProperty);
-    SAFE_RELEASE(pDevice);
+    if (pProperty)
+    {
+      pProperty->Release();
+      pProperty = nullptr;
+    }
+    if (pDevice)
+    {
+      pDevice->Release();
+      pDevice = nullptr;
+    }
   }
-  SAFE_RELEASE(pEnumerator);
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
 failed:
   return strDeviceId;
@@ -314,7 +410,11 @@ HRESULT CAESinkFactoryWin::ActivateWASAPIDevice(std::string &device, IAEWASAPIDe
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint GUID failed.");
-      SAFE_RELEASE(pProperty);
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -323,14 +423,30 @@ HRESULT CAESinkFactoryWin::ActivateWASAPIDevice(std::string &device, IAEWASAPIDe
     if (device == strDevName)
       i = uiCount;
     else
-      SAFE_RELEASE(pDevice);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
 
     PropVariantClear(&varName);
-    SAFE_RELEASE(pProperty);
+    if (pProperty)
+    {
+      pProperty->Release();
+      pProperty = nullptr;
+    }
   }
 
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pEnumerator);
+  if (pEnumDevices)
+  {
+    pEnumDevices->Release();
+    pEnumDevices = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
   if (pDevice)
   {
@@ -344,9 +460,21 @@ HRESULT CAESinkFactoryWin::ActivateWASAPIDevice(std::string &device, IAEWASAPIDe
 
 failed:
   CLog::Log(LOGERROR, __FUNCTION__": WASAPI initialization failed.");
-  SAFE_RELEASE(pDevice);
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pEnumerator);
+  if (pDevice)
+  {
+    pDevice->Release();
+    pDevice = nullptr;
+  }
+  if (pEnumDevices)
+  {
+    pEnumDevices->Release();
+    pEnumDevices = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
   return hr;
 }

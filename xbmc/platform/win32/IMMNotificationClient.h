@@ -39,7 +39,11 @@ public:
 
   ~CMMNotificationClient()
   {
-    SAFE_RELEASE(_pEnumerator);
+    if (_pEnumerator)
+    {
+      _pEnumerator->Release();
+      _pEnumerator = nullptr;
+    }
   }
 
   // IUnknown methods -- AddRef, Release, and QueryInterface

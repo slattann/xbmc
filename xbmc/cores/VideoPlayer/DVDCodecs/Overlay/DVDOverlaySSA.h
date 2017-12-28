@@ -46,8 +46,11 @@ public:
 
   ~CDVDOverlaySSA() override
   {
-    if(m_libass)
-      SAFE_RELEASE(m_libass);
+    if (m_libass)
+    {
+      m_libass->Release();
+      m_libass = nullptr;
+    }
   }
 
   CDVDOverlaySSA* Clone() override

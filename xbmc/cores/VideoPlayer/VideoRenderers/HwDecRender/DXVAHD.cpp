@@ -65,20 +65,40 @@ void CProcessorHD::UnInit()
 {
   CSingleLock lock(m_section);
   Close();
-  SAFE_RELEASE(m_pVideoDevice);
+  if (m_pVideoDevice)
+  {
+    m_pVideoDevice->Release();
+    m_pVideoDevice = nullptr;
+  }
 }
 
 void CProcessorHD::Close()
 {
   CSingleLock lock(m_section);
-  SAFE_RELEASE(m_pEnumerator);
-  SAFE_RELEASE(m_pVideoProcessor);
-  SAFE_RELEASE(m_pVideoContext);
+  if (m_pEnumerator)
+  {
+    m_pEnumerator->Release();
+    m_pEnumerator = nullptr;
+  }
+  if (m_pVideoProcessor)
+  {
+    m_pVideoProcessor->Release();
+    m_pVideoProcessor = nullptr;
+  }
+  if (m_pVideoContext)
+  {
+    m_pVideoContext->Release();
+    m_pVideoContext = nullptr;
+  }
 }
 
 bool CProcessorHD::PreInit()
 {
-  SAFE_RELEASE(m_pVideoDevice);
+  if (m_pVideoDevice)
+  {
+    m_pVideoDevice->Release();
+    m_pVideoDevice = nullptr;
+  }
 
   ID3D11Device* pD3DDevice = DX::DeviceResources::Get()->GetD3DDevice();
   if (FAILED(pD3DDevice->QueryInterface(__uuidof(ID3D11VideoDevice), reinterpret_cast<void**>(&m_pVideoDevice))))
@@ -103,14 +123,26 @@ bool CProcessorHD::PreInit()
     return false;
   }
 
-  SAFE_RELEASE(m_pEnumerator);
+  if (m_pEnumerator)
+  {
+    m_pEnumerator->Release();
+    m_pEnumerator = nullptr;
+  }
   return true;
 }
 
 bool CProcessorHD::InitProcessor()
 {
-  SAFE_RELEASE(m_pEnumerator);
-  SAFE_RELEASE(m_pVideoContext);
+  if (m_pEnumerator)
+  {
+    m_pEnumerator->Release();
+    m_pEnumerator = nullptr;
+  }
+  if (m_pVideoContext)
+  {
+    m_pVideoContext->Release();
+    m_pVideoContext = nullptr;
+  }
 
   ID3D11DeviceContext1* pD3DDeviceContext = DX::DeviceResources::Get()->GetImmediateContext();
   if (FAILED(pD3DDeviceContext->QueryInterface(__uuidof(ID3D11VideoContext), reinterpret_cast<void**>(&m_pVideoContext))))
@@ -278,7 +310,11 @@ bool CProcessorHD::OpenProcessor()
   if (!m_pEnumerator && !ReInit())
     return false;
 
-  SAFE_RELEASE(m_pVideoProcessor);
+  if (m_pVideoProcessor)
+  {
+    m_pVideoProcessor->Release();
+    m_pVideoProcessor = nullptr;
+  }
   CLog::Log(LOGDEBUG, "%s: Creating processor.", __FUNCTION__);
 
   // create processor
@@ -359,13 +395,25 @@ ID3D11VideoProcessorInputView* CProcessorHD::GetInputView(CRenderBuffer* view) c
 
 static void ReleaseStream(D3D11_VIDEO_PROCESSOR_STREAM &stream_data)
 {
-  SAFE_RELEASE(stream_data.pInputSurface);
+  if (stream_data.pInputSurface)
+  {
+    stream_data.pInputSurface->Release();
+    stream_data.pInputSurface = nullptr;
+  }
 
   for (size_t i = 0; i < stream_data.PastFrames; ++i)
-    SAFE_RELEASE(stream_data.ppPastSurfaces[i]);
+    if (stream_data.ppPastSurfaces[i])
+    {
+      stream_data.ppPastSurfaces[i]->Release();
+      stream_data.ppPastSurfaces[i] = nullptr;
+    }
 
   for (size_t i = 0; i < stream_data.FutureFrames; ++i)
-    SAFE_RELEASE(stream_data.ppFutureSurfaces[i]);
+    if (stream_data.ppFutureSurfaces[i])
+    {
+      stream_data.ppFutureSurfaces[i]->Release();
+      stream_data.ppFutureSurfaces[i] = nullptr;
+    }
 
   delete[] stream_data.ppPastSurfaces;
   delete[] stream_data.ppFutureSurfaces;
@@ -517,7 +565,11 @@ bool CProcessorHD::Render(CRect src, CRect dst, ID3D11Resource* target, CRenderB
     }
   }
 
-  SAFE_RELEASE(pOutputView);
+  if (pOutputView)
+  {
+    pOutputView->Release();
+    pOutputView = nullptr;
+  }
   ReleaseStream(stream_data);
 
   return !FAILED(hr);

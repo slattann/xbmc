@@ -242,7 +242,11 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
   {
     if (dsbdesc.dwFlags & DSBCAPS_LOCHARDWARE)
     {
-      SAFE_RELEASE(m_pBuffer);
+      if (m_pBuffer)
+      {
+        m_pBuffer->Release();
+        m_pBuffer = nullptr;
+      }
       CLog::Log(LOGDEBUG, __FUNCTION__": Couldn't create secondary buffer (%s). Trying without LOCHARDWARE.", dserr2str(res));
       // Try without DSBCAPS_LOCHARDWARE
       dsbdesc.dwFlags &= ~DSBCAPS_LOCHARDWARE;
@@ -250,7 +254,11 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
     }
     if (res != DS_OK)
     {
-      SAFE_RELEASE(m_pBuffer);
+      if (m_pBuffer)
+      {
+        m_pBuffer->Release();
+        m_pBuffer = nullptr;
+      }
       CLog::Log(LOGERROR, __FUNCTION__": cannot create secondary buffer (%s)", dserr2str(res));
       return false;
     }
@@ -304,7 +312,11 @@ void CAESinkDirectSound::Deinitialize()
   if (m_pBuffer)
   {
     m_pBuffer->Stop();
-    SAFE_RELEASE(m_pBuffer);
+    if (m_pBuffer)
+    {
+      m_pBuffer->Release();
+      m_pBuffer = nullptr;
+    }
   }
 
   if (m_pDSound)
@@ -481,7 +493,11 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of DirectSound endpoint properties failed.");
-      SAFE_RELEASE(pDevice);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
       goto failed;
     }
 
@@ -489,8 +505,16 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of DirectSound endpoint device name failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -501,8 +525,16 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of DirectSound endpoint GUID failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
 
@@ -513,8 +545,16 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     if (FAILED(hr))
     {
       CLog::Log(LOGERROR, __FUNCTION__": Retrieval of DirectSound endpoint form factor failed.");
-      SAFE_RELEASE(pDevice);
-      SAFE_RELEASE(pProperty);
+      if (pDevice)
+      {
+        pDevice->Release();
+        pDevice = nullptr;
+      }
+      if (pProperty)
+      {
+        pProperty->Release();
+        pProperty = nullptr;
+      }
       goto failed;
     }
     std::string strWinDevType = winEndpoints[(EndpointFormFactor)varName.uiVal].winEndpointType;
@@ -557,8 +597,16 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
     }
     pClient->Release();
 
-    SAFE_RELEASE(pDevice);
-    SAFE_RELEASE(pProperty);
+    if (pDevice)
+    {
+      pDevice->Release();
+      pDevice = nullptr;
+    }
+    if (pProperty)
+    {
+      pProperty->Release();
+      pProperty = nullptr;
+    }
 
     deviceInfo.m_deviceName       = strDevName;
     deviceInfo.m_displayName      = strWinDevType.append(strFriendlyName);
@@ -586,8 +634,16 @@ failed:
   if (FAILED(hr))
     CLog::Log(LOGERROR, __FUNCTION__": Failed to enumerate WASAPI endpoint devices (%s).", WASAPIErrToStr(hr));
 
-  SAFE_RELEASE(pEnumDevices);
-  SAFE_RELEASE(pEnumerator);
+  if (pEnumDevices)
+  {
+    pEnumDevices->Release();
+    pEnumDevices = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
 }
 
@@ -795,9 +851,21 @@ std::string CAESinkDirectSound::GetDefaultDevice()
 
 failed:
 
-  SAFE_RELEASE(pProperty);
-  SAFE_RELEASE(pDevice);
-  SAFE_RELEASE(pEnumerator);
+  if (pProperty)
+  {
+    pProperty->Release();
+    pProperty = nullptr;
+  }
+  if (pDevice)
+  {
+    pDevice->Release();
+    pDevice = nullptr;
+  }
+  if (pEnumerator)
+  {
+    pEnumerator->Release();
+    pEnumerator = nullptr;
+  }
 
   return strDevName;
 }

@@ -73,8 +73,6 @@
 #include "PlatformInclude.h"
 #endif
 
-#define SAFE_RELEASE(p)      do { if(p) { (p)->Release(); (p)=NULL; } } while (0)
-
 // Useful pixel colour manipulation macros
 #define GET_A(color)            ((color >> 24) & 0xFF)
 #define GET_R(color)            ((color >> 16) & 0xFF)

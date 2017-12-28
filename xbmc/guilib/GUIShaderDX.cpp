@@ -263,10 +263,26 @@ void CGUIShaderDX::SetShaderViews(unsigned int numViews, ID3D11ShaderResourceVie
 
 void CGUIShaderDX::Release()
 {
-  SAFE_RELEASE(m_pVertexBuffer);
-  SAFE_RELEASE(m_pWVPBuffer);
-  SAFE_RELEASE(m_pVPBuffer);
-  SAFE_RELEASE(m_pSampLinear);
+  if (m_pVertexBuffer)
+  {
+    m_pVertexBuffer->Release();
+    m_pVertexBuffer = nullptr;
+  }
+  if (m_pWVPBuffer)
+  {
+    m_pWVPBuffer->Release();
+    m_pWVPBuffer = nullptr;
+  }
+  if (m_pVPBuffer)
+  {
+    m_pVPBuffer->Release();
+    m_pVPBuffer = nullptr;
+  }
+  if (m_pSampLinear)
+  {
+    m_pSampLinear->Release();
+    m_pSampLinear = nullptr;
+  }
   m_bCreated = false;
 }
 

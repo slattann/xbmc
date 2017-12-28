@@ -79,7 +79,11 @@ extern "C" int XBMC_Run(bool renderGUI, const CAppParamParser &params)
   if (SUCCEEDED(hr))
   {
     pEnumerator->RegisterEndpointNotificationCallback(&cMMNC);
-    SAFE_RELEASE(pEnumerator);
+    if (pEnumerator)
+    {
+      pEnumerator->Release();
+      pEnumerator = nullptr;
+    }
   }
 #endif
 
@@ -108,7 +112,11 @@ extern "C" int XBMC_Run(bool renderGUI, const CAppParamParser &params)
   if (SUCCEEDED(hr))
   {
     pEnumerator->UnregisterEndpointNotificationCallback(&cMMNC);
-    SAFE_RELEASE(pEnumerator);
+    if (pEnumerator)
+    {
+      pEnumerator->Release();
+      pEnumerator = nullptr;
+    }
   }
 #endif
 

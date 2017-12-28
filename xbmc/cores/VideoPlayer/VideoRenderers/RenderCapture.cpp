@@ -364,14 +364,22 @@ void CRenderCaptureDX::BeginRender()
         CLog::LogF(LOGERROR, "CreateQuery failed %s",
                             DX::GetErrorDescription(result).c_str());
         m_asyncSupported = false;
-        SAFE_RELEASE(m_query);
+        if (m_query)
+        {
+          m_query->Release();
+          m_query = nullptr;
+        }
       }
     }
   }
   else
   {
     //don't use an occlusion query, clean up any old one
-    SAFE_RELEASE(m_query);
+    if (m_query)
+    {
+      m_query->Release();
+      m_query = nullptr;
+    }
   }
 }
 
@@ -453,7 +461,11 @@ void CRenderCaptureDX::CleanupDX()
 {
   m_renderTex.Release();
   m_copyTex.Release();
-  SAFE_RELEASE(m_query);
+  if (m_query)
+  {
+    m_query->Release();
+    m_query = nullptr;
+  }
   m_surfaceWidth = 0;
   m_surfaceHeight = 0;
 }

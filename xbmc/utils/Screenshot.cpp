@@ -96,12 +96,20 @@ bool CScreenshotSurface::capture()
 
   ID3D11Resource *pRTResource = nullptr;
   pRTView->GetResource(&pRTResource);
-  SAFE_RELEASE(pRTView);
+  if (pRTView)
+  {
+    pRTView->Release();
+    pRTView = nullptr;
+  }
 
   ID3D11Texture2D* pCopyTexture = nullptr;
   ID3D11Texture2D* pRTTexture = nullptr;
   HRESULT hr = pRTResource->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pRTTexture));
-  SAFE_RELEASE(pRTResource);
+  if (pRTResource)
+  {
+    pRTResource->Release();
+    pRTResource = nullptr;
+  }
   if (FAILED(hr))
     return false;
 
@@ -129,9 +137,17 @@ bool CScreenshotSurface::capture()
     else
       CLog::Log(LOGERROR, "%s: MAP_READ failed.", __FUNCTION__);
 
-    SAFE_RELEASE(pCopyTexture);
+    if (pCopyTexture)
+    {
+      pCopyTexture->Release();
+      pCopyTexture = nullptr;
+    }
   }
-  SAFE_RELEASE(pRTTexture);
+  if (pRTTexture)
+  {
+    pRTTexture->Release();
+    pRTTexture = nullptr;
+  }
 
 #elif defined(HAS_GL) || defined(HAS_GLES)
 
