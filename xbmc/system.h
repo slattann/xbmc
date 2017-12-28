@@ -20,18 +20,6 @@
  *
  */
 
-#if !defined(TARGET_WINDOWS)
-#define DECLARE_UNUSED(a,b) a __attribute__((unused)) b;
-#endif
-
-/*****************
- * Win32 Specific
- *****************/
-
-#if defined(TARGET_WINDOWS)
-#define DECLARE_UNUSED(a,b) a b;
-#endif
-
 /*****************
  * FreeBSD Specific
  *****************/

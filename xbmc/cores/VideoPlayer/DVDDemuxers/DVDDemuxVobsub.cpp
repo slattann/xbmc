@@ -84,7 +84,6 @@ bool CDVDDemuxVobsub::Open(const std::string& filename, int source, const std::s
   hints.codec = AV_CODEC_ID_DVD_SUBTITLE;
 
   char line[2048];
-  DECLARE_UNUSED(bool,res)
 
   SState state;
   state.delay = 0;
@@ -95,13 +94,13 @@ bool CDVDDemuxVobsub::Open(const std::string& filename, int source, const std::s
     if (*line == 0 || *line == '\r' || *line == '\n' || *line == '#')
       continue;
     else if (strncmp("langidx:", line, 8) == 0)
-      res = ParseLangIdx(state, line + 8);
+      ParseLangIdx(state, line + 8);
     else if (strncmp("delay:", line, 6) == 0)
-      res = ParseDelay(state, line + 6);
+      ParseDelay(state, line + 6);
     else if (strncmp("id:", line, 3) == 0)
-      res = ParseId(state, line + 3);
+      ParseId(state, line + 3);
     else if (strncmp("timestamp:", line, 10) == 0)
-      res = ParseTimestamp(state, line + 10);
+      ParseTimestamp(state, line + 10);
     else if (strncmp("palette:", line, 8) == 0
          ||  strncmp("size:", line, 5) == 0
          ||  strncmp("org:", line, 4) == 0
@@ -110,7 +109,7 @@ bool CDVDDemuxVobsub::Open(const std::string& filename, int source, const std::s
          ||  strncmp("alpha:", line, 6) == 0
          ||  strncmp("fadein/out:", line, 11) == 0
          ||  strncmp("forced subs:", line, 12) == 0)
-      res = ParseExtra(state, line);
+      ParseExtra(state, line);
     else
       continue;
   }
@@ -180,12 +179,11 @@ DemuxPacket* CDVDDemuxVobsub::Read()
   return packet;
 }
 
-bool CDVDDemuxVobsub::ParseLangIdx(SState& state, char* line)
+void CDVDDemuxVobsub::ParseLangIdx(SState& state, char* line)
 {
-  return true;
 }
 
-bool CDVDDemuxVobsub::ParseDelay(SState& state, char* line)
+void CDVDDemuxVobsub::ParseDelay(SState& state, char* line)
 {
   int h,m,s,ms;
   bool negative = false;
@@ -197,14 +195,13 @@ bool CDVDDemuxVobsub::ParseDelay(SState& state, char* line)
 	  negative = true;
   }
   if(sscanf(line, "%d:%d:%d:%d", &h, &m, &s, &ms) != 4)
-    return false;
+    return;
   state.delay = h*3600.0 + m*60.0 + s + ms*0.001;
   if(negative)
 	  state.delay *= -1;
-  return true;
 }
 
-bool CDVDDemuxVobsub::ParseId(SState& state, char* line)
+void CDVDDemuxVobsub::ParseId(SState& state, char* line)
 {
   std::unique_ptr<CStream> stream(new CStream(this));
 
@@ -229,32 +226,29 @@ bool CDVDDemuxVobsub::ParseId(SState& state, char* line)
 
   state.id = stream->uniqueId;
   m_Streams.push_back(stream.release());
-  return true;
 }
 
-bool CDVDDemuxVobsub::ParseExtra(SState& state, char* line)
+void CDVDDemuxVobsub::ParseExtra(SState& state, char* line)
 {
   state.extra += line;
   state.extra += '\n';
-  return true;
 }
 
-bool CDVDDemuxVobsub::ParseTimestamp(SState& state, char* line)
+void CDVDDemuxVobsub::ParseTimestamp(SState& state, char* line)
 {
   if(state.id < 0)
-    return false;
+    return;
 
   int h,m,s,ms;
   STimestamp timestamp;
 
   while(*line == ' ') line++;
   if(sscanf(line, "%d:%d:%d:%d, filepos:%" PRIx64, &h, &m, &s, &ms, &timestamp.pos) != 5)
-    return false;
+    return;
 
   timestamp.id  = state.id;
   timestamp.pts = DVD_SEC_TO_TIME(state.delay + h*3600.0 + m*60.0 + s + ms*0.001);
   m_Timestamps.push_back(timestamp);
-  return true;
 }
 
 void CDVDDemuxVobsub::EnableStream(int id, bool enable)

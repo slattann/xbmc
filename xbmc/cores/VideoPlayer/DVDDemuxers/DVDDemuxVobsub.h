@@ -91,9 +91,9 @@ private:
     }
   };
 
-  bool ParseLangIdx(SState& state, char* line);
-  bool ParseDelay(SState& state, char* line);
-  bool ParseId(SState& state, char* line);
-  bool ParseExtra(SState& state, char* line);
-  bool ParseTimestamp(SState& state, char* line);
+  void ParseLangIdx(SState& state, char* line);
+  void ParseDelay(SState& state, char* line);
+  void ParseId(SState& state, char* line);
+  void ParseExtra(SState& state, char* line);
+  void ParseTimestamp(SState& state, char* line);
 };

@@ -20,7 +20,6 @@
  *
  */
 
-#include "system.h" // for SAFE_RELEASE
 #include "DVDOverlay.h"
 #include "../../DVDSubtitles/DVDSubtitlesLibass.h"
 
