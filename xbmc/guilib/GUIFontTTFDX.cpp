@@ -50,13 +50,17 @@ CGUIFontTTFDX::~CGUIFontTTFDX(void)
 {
   DX::Windowing().Unregister(this);
 
-  SAFE_DELETE(m_speedupTexture);
+  delete m_speedupTexture;
+  m_speedupTexture = nullptr;
   SAFE_RELEASE(m_vertexBuffer);
   SAFE_RELEASE(m_staticIndexBuffer);
   if (!m_buffers.empty())
   {
     for (std::list<CD3DBuffer*>::iterator it = m_buffers.begin(); it != m_buffers.end(); ++it)
-      SAFE_DELETE((*it));
+    {
+      delete (*it)
+      (*it) = nullptr;
+    }
   }
   m_buffers.clear();
   m_staticIndexBufferCreated = false;
@@ -120,7 +124,7 @@ void CGUIFontTTFDX::LastEnd()
       size_t count = size - character;
       count = std::min<size_t>(count, ELEMENT_ARRAY_MAX_CHAR_INDEX);
 
-      // 6 indices and 4 vertices per character 
+      // 6 indices and 4 vertices per character
       pGUIShader->DrawIndexed(count * 6, 0, character * 4);
     }
   }
@@ -167,7 +171,7 @@ void CGUIFontTTFDX::LastEnd()
         size_t count = m_vertexTrans[i].vertexBuffer->size - character;
         count = std::min<size_t>(count, ELEMENT_ARRAY_MAX_CHAR_INDEX);
 
-        // 6 indices and 4 vertices per character 
+        // 6 indices and 4 vertices per character
         pGUIShader->DrawIndexed(count * 6, 0, character * 4);
       }
     }
@@ -208,7 +212,8 @@ void CGUIFontTTFDX::DestroyVertexBuffer(CVertexBuffer &buffer) const
   {
     CD3DBuffer* vbuffer = reinterpret_cast<CD3DBuffer*>(buffer.bufferHandle);
     ClearReference((CGUIFontTTFDX*)this, vbuffer);
-    SAFE_DELETE(vbuffer);
+    delete vbuffer;
+    vbuffer = nullptr;
     buffer.bufferHandle = 0;
   }
 }
@@ -238,8 +243,10 @@ CBaseTexture* CGUIFontTTFDX::ReallocTexture(unsigned int& newHeight)
   CD3DTexture* newSpeedupTexture = new CD3DTexture();
   if (!newSpeedupTexture->Create(m_textureWidth, newHeight, 1, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8_UNORM))
   {
-    SAFE_DELETE(newSpeedupTexture);
-    SAFE_DELETE(pNewTexture);
+    delete newSpeedupTexture;
+    newSpeedupTexture = nullptr;
+    delete pNewTexture;
+    pNewTexture = nullptr;
     return NULL;
   }
 
@@ -252,8 +259,10 @@ CBaseTexture* CGUIFontTTFDX::ReallocTexture(unsigned int& newHeight)
     pContext->CopySubresourceRegion(newSpeedupTexture->Get(), 0, 0, 0, 0, m_speedupTexture->Get(), 0, &rect);
   }
 
-  SAFE_DELETE(m_texture);
-  SAFE_DELETE(m_speedupTexture);
+  delete m_texture;
+  m_texture = nullptr;
+  delete m_speedupTexture;
+  m_speedupTexture = nullptr;
   m_textureHeight = newHeight;
   m_textureScaleY = 1.0f / m_textureHeight;
   m_speedupTexture = newSpeedupTexture;

@@ -320,7 +320,8 @@ void CWinRenderer::PreInit()
   if (!m_processor->PreInit())
   {
     CLog::Log(LOGNOTICE, "%: - could not init DXVA processor - skipping.", __FUNCTION__);
-    SAFE_DELETE(m_processor);
+    delete m_processor;
+    m_processor = nullptr;
   }
 }
 
@@ -331,8 +332,10 @@ void CWinRenderer::UnInit()
   if (m_IntermediateTarget.Get())
     m_IntermediateTarget.Release();
 
-  SAFE_DELETE(m_colorShader);
-  SAFE_DELETE(m_scalerShader);
+  delete m_colorShader;
+  m_colorShader = nullptr;
+  delete m_scalerShader;
+  m_scalerShader = nullptr;
 
   m_bConfigured = false;
   m_bFilterInitialized = false;
@@ -351,7 +354,8 @@ void CWinRenderer::UnInit()
   if (m_processor)
   {
     m_processor->UnInit();
-    SAFE_DELETE(m_processor);
+    delete m_processor;
+    m_processor = nullptr;
   }
   SAFE_RELEASE(m_pCLUTView);
   m_outputShader.reset();
@@ -568,7 +572,8 @@ void CWinRenderer::SelectPSVideoFilter()
 
 void CWinRenderer::UpdatePSVideoFilter()
 {
-  SAFE_DELETE(m_scalerShader);
+  delete m_scalerShader;
+  m_scalerShader = nullptr;
 
   if (m_bUseHQScaler)
   {
@@ -577,7 +582,8 @@ void CWinRenderer::UpdatePSVideoFilter()
 
     if (!m_scalerShader->Create(m_scalingMethod, m_outputShader.get()))
     {
-      SAFE_DELETE(m_scalerShader);
+      delete m_scalerShader;
+      m_scalerShader = nullptr;
       CLog::Log(LOGNOTICE, "%s: two pass convolution shader init problem, falling back to one pass.", __FUNCTION__);
     }
 
@@ -588,7 +594,8 @@ void CWinRenderer::UpdatePSVideoFilter()
 
       if (!m_scalerShader->Create(m_scalingMethod, m_outputShader.get()))
       {
-        SAFE_DELETE(m_scalerShader);
+        delete m_scalerShader;
+        m_scalerShader = nullptr;
         CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, g_localizeStrings.Get(34400), g_localizeStrings.Get(34401));
         m_bUseHQScaler = false;
       }
@@ -597,11 +604,13 @@ void CWinRenderer::UpdatePSVideoFilter()
 
   if (m_bUseHQScaler && !CreateIntermediateRenderTarget(m_sourceWidth, m_sourceHeight, false))
   {
-    SAFE_DELETE(m_scalerShader);
+    delete m_scalerShader;
+    m_scalerShader = nullptr;
     m_bUseHQScaler = false;
   }
 
-  SAFE_DELETE(m_colorShader);
+  delete m_colorShader;
+  m_colorShader = nullptr;
 
   if (m_renderMethod == RENDER_DXVA)
   {
@@ -618,9 +627,11 @@ void CWinRenderer::UpdatePSVideoFilter()
     if (m_bUseHQScaler)
     {
       m_IntermediateTarget.Release();
-      SAFE_DELETE(m_scalerShader);
+      delete m_scalerShader;
+      m_scalerShader = nullptr;
     }
-    SAFE_DELETE(m_colorShader);
+    delete m_colorShader;
+    m_colorShader = nullptr;
     m_bUseHQScaler = false;
 
     // we're in big trouble - fallback to sw method

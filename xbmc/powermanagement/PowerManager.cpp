@@ -73,7 +73,8 @@ CPowerManager::~CPowerManager()
 
 void CPowerManager::Initialize()
 {
-  SAFE_DELETE(m_instance);
+  delete m_instance;
+  m_instance = nullptr;
 
 #if defined(TARGET_DARWIN)
   m_instance = new CCocoaPowerSyscall();

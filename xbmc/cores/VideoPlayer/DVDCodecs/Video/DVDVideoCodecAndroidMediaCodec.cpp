@@ -482,7 +482,8 @@ bool CDVDVideoCodecAndroidMediaCodec::Open(CDVDStreamInfo &hints, CDVDCodecOptio
         m_bitstream = new CBitstreamConverter;
         if (!m_bitstream->Open(m_hints.codec, (uint8_t*)m_hints.extradata, m_hints.extrasize, true))
         {
-          SAFE_DELETE(m_bitstream);
+          delete m_bitstream;
+          m_bitstream = nullptr;
         }
       }
       break;
@@ -495,7 +496,8 @@ bool CDVDVideoCodecAndroidMediaCodec::Open(CDVDStreamInfo &hints, CDVDCodecOptio
         m_bitstream = new CBitstreamConverter;
         if (!m_bitstream->Open(m_hints.codec, (uint8_t*)m_hints.extradata, m_hints.extrasize, true))
         {
-          SAFE_DELETE(m_bitstream);
+          delete m_bitstream;
+          m_bitstream = nullptr;
         }
       }
       break;
@@ -722,7 +724,8 @@ FAIL:
 
   m_codec = nullptr;
 
-  SAFE_DELETE(m_bitstream);
+  delete m_bitstream;
+  m_bitstream = nullptr;
 
   return false;
 }
@@ -762,7 +765,8 @@ void CDVDVideoCodecAndroidMediaCodec::Dispose()
     m_jnivideoview.reset();
   }
 
-  SAFE_DELETE(m_bitstream);
+  delete m_bitstream;
+  m_bitstream = nullptr;
 
   m_opened = false;
 }
@@ -1286,7 +1290,8 @@ void CDVDVideoCodecAndroidMediaCodec::ReleaseSurfaceTexture(void)
 
   // it is safe to delete here even though these items
   // were created in the main thread instance
-  SAFE_DELETE(m_jnisurface);
+  delete m_jnisurface;
+  m_jnisurface = nullptr;
   m_frameAvailable.reset();
   m_surfaceTexture.reset();
 

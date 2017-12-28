@@ -776,7 +776,10 @@ void CVideoPlayer::OnStartup()
 bool CVideoPlayer::OpenInputStream()
 {
   if(m_pInputStream)
-    SAFE_DELETE(m_pInputStream);
+  {
+    delete m_pInputStream;
+    m_pInputStream = nullptr;
+  }
 
   CLog::Log(LOGNOTICE, "Creating InputStream");
 
@@ -2462,12 +2465,16 @@ void CVideoPlayer::OnExit()
   CJobManager::GetInstance().Submit([=]() {
     cb->OnPlayerCloseFile(fileItem, bookmark);
   }, CJob::PRIORITY_NORMAL);
-    
+
   // destroy objects
-  SAFE_DELETE(m_pDemuxer);
-  SAFE_DELETE(m_pSubtitleDemuxer);
-  SAFE_DELETE(m_pCCDemuxer);
-  SAFE_DELETE(m_pInputStream);
+  delete m_pDemuxer;
+  m_pDemuxer = nullptr;
+  delete m_pSubtitleDemuxer;
+  m_pSubtitleDemuxer = nullptr;
+  delete m_pCCDemuxer;
+  m_pCCDemuxer = nullptr;
+  delete m_pInputStream;
+  m_pInputStream = nullptr;
 
   // clean up all selection streams
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
@@ -2532,10 +2539,14 @@ void CVideoPlayer::HandleMessages()
 
       FlushBuffers(DVD_NOPTS_VALUE, true, true);
       m_renderManager.Flush(false);
-      SAFE_DELETE(m_pDemuxer);
-      SAFE_DELETE(m_pSubtitleDemuxer);
-      SAFE_DELETE(m_pCCDemuxer);
-      SAFE_DELETE(m_pInputStream);
+      delete m_pDemuxer;
+      m_pDemuxer = nullptr;
+      delete m_pSubtitleDemuxer;
+      m_pSubtitleDemuxer = nullptr;
+      delete m_pCCDemuxer;
+      m_pCCDemuxer = nullptr;
+      delete m_pInputStream;
+      m_pInputStream = nullptr;
 
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
 
@@ -3461,7 +3472,8 @@ bool CVideoPlayer::OpenStream(CCurrentStream& current, int64_t demuxerId, int iS
     if(!m_pSubtitleDemuxer || m_pSubtitleDemuxer->GetFileName() != st.filename)
     {
       CLog::Log(LOGNOTICE, "Opening Subtitle file: %s", st.filename.c_str());
-      SAFE_DELETE(m_pSubtitleDemuxer);
+      delete m_pSubtitleDemuxer;
+      m_pSubtitleDemuxer = nullptr;
       std::unique_ptr<CDVDDemuxVobsub> demux(new CDVDDemuxVobsub());
       if(!demux->Open(st.filename, source, st.filename2))
         return false;
@@ -3479,7 +3491,7 @@ bool CVideoPlayer::OpenStream(CCurrentStream& current, int64_t demuxerId, int iS
     stream = m_pSubtitleDemuxer->GetStream(demuxerId, iStream);
     if(!stream || stream->disabled)
       return false;
-    
+
     m_pSubtitleDemuxer->EnableStream(demuxerId, iStream, true);
 
     hint.Assign(*stream, true);
@@ -3666,7 +3678,10 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
      m_CurrentVideo.hint != hint)
   {
     if (hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_H264)
-      SAFE_DELETE(m_pCCDemuxer);
+    {
+      delete m_pCCDemuxer;
+      m_pCCDemuxer = nullptr;
+    }
 
     if (!player->OpenStream(hint))
       return false;
@@ -4696,7 +4711,7 @@ void CVideoPlayer::UpdatePlayState(double timeout)
   state.timestamp = m_clock.GetAbsoluteClock();
 
   m_processInfo->SetPlayTimes(state.startTime, state.time, state.timeMin, state.timeMax);
-  
+
   CSingleLock lock(m_StateSection);
   m_State = state;
 }

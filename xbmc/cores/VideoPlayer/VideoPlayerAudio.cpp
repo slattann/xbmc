@@ -116,7 +116,8 @@ bool CVideoPlayerAudio::OpenStream(CDVDStreamInfo hints)
 
 void CVideoPlayerAudio::OpenStream(CDVDStreamInfo &hints, CDVDAudioCodec* codec)
 {
-  SAFE_DELETE(m_pAudioCodec);
+  delete m_pAudioCodec;
+  m_pAudioCodec = nullptr;
   m_pAudioCodec = codec;
 
   m_processInfo.ResetAudioCodecInfo();

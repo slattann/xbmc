@@ -146,7 +146,8 @@ bool CRenderSystemDX::DestroyRenderSystem()
   if (m_pGUIShader)
   {
     m_pGUIShader->End();
-    SAFE_DELETE(m_pGUIShader);
+    delete m_pGUIShader;
+    m_pGUIShader = nullptr;
   }
   m_rightEyeTex.Release();
   m_BlendEnableState = nullptr;
@@ -669,7 +670,8 @@ void CRenderSystemDX::FlushGPU() const
 
 bool CRenderSystemDX::InitGUIShader()
 {
-  SAFE_DELETE(m_pGUIShader);
+  delete m_pGUIShader;
+  m_pGUIShader = nullptr;
   m_pGUIShader = new CGUIShaderDX();
   if (!m_pGUIShader->Initialize())
   {
