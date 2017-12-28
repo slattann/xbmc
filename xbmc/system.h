@@ -73,7 +73,6 @@
 #include "PlatformInclude.h"
 #endif
 
-#define SAFE_DELETE_ARRAY(p) do { delete[] (p);   (p)=NULL; } while (0)
 #define SAFE_RELEASE(p)      do { if(p) { (p)->Release(); (p)=NULL; } } while (0)
 
 // Useful pixel colour manipulation macros

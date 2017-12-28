@@ -397,7 +397,7 @@ void CD3DTexture::SaveTexture()
       // copy contents to new texture
       pContext->CopyResource(texture, m_texture);
     }
-    else 
+    else
       texture = m_texture;
 
     // read data from texture
@@ -964,7 +964,8 @@ void CD3DVertexShader::Release()
   DX::Windowing().Unregister(this);
   ReleaseShader();
   SAFE_RELEASE(m_VSBuffer);
-  SAFE_DELETE_ARRAY(m_vertexLayout);
+  delete [] m_vertexLayout;
+  m_vertexLayout = nullptr;
 }
 
 void CD3DVertexShader::ReleaseShader()
