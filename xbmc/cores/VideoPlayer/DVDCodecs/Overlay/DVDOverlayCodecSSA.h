@@ -30,9 +30,9 @@ class CDVDOverlayCodecSSA : public CDVDOverlayCodec
 {
 public:
   CDVDOverlayCodecSSA();
-  ~CDVDOverlayCodecSSA() override;
+  ~CDVDOverlayCodecSSA() = default;
   bool Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) override;
-  void Dispose() override;
+  void Dispose() override {};
   int Decode(DemuxPacket *pPacket) override;
   void Reset() override;
   void Flush() override;
@@ -40,7 +40,7 @@ public:
 
 private:
   std::unique_ptr<CDVDSubtitlesLibass> m_libass;
-  CDVDOverlaySSA*      m_pOverlay;
+  std::unique_ptr<CDVDOverlaySSA> m_pOverlay;
   bool                 m_output;
   CDVDStreamInfo       m_hints;
   int                  m_order;

@@ -33,15 +33,6 @@ CDVDOverlayCodecText::CDVDOverlayCodecText() : CDVDOverlayCodec("Text Subtitle D
   m_bIsSSA = false;
 }
 
-CDVDOverlayCodecText::~CDVDOverlayCodecText()
-{
-  if (m_pOverlay)
-  {
-    m_pOverlay->Release();
-    m_pOverlay = nullptr;
-  }
-}
-
 bool CDVDOverlayCodecText::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 {
   m_bIsSSA = (hints.codec == AV_CODEC_ID_SSA);
@@ -52,30 +43,15 @@ bool CDVDOverlayCodecText::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options
   return false;
 }
 
-void CDVDOverlayCodecText::Dispose()
-{
-  if (m_pOverlay)
-  {
-    m_pOverlay->Release();
-    m_pOverlay = nullptr;
-  }
-}
-
 int CDVDOverlayCodecText::Decode(DemuxPacket *pPacket)
 {
-  if (m_pOverlay)
-  {
-    m_pOverlay->Release();
-    m_pOverlay = nullptr;
-  }
-
   if(!pPacket)
     return OC_ERROR;
 
   uint8_t *data = pPacket->pData;
   int      size = pPacket->iSize;
 
-  m_pOverlay = new CDVDOverlayText();
+  m_pOverlay.reset(new CDVDOverlayText());
   CDVDOverlayCodec::GetAbsoluteTimes(m_pOverlay->iPTSStartTime, m_pOverlay->iPTSStopTime, pPacket, m_pOverlay->replace);
 
   char *start, *end, *p;
@@ -107,7 +83,7 @@ int CDVDOverlayCodecText::Decode(DemuxPacket *pPacket)
       if(p>start)
       {
         if(Taginit)
-          TagConv.ConvertLine(m_pOverlay, start, p-start);
+          TagConv.ConvertLine(m_pOverlay.get(), start, p-start);
         else
           m_pOverlay->AddElement(new CDVDOverlayText::CElementText(start, p-start));
       }
@@ -130,8 +106,8 @@ int CDVDOverlayCodecText::Decode(DemuxPacket *pPacket)
   {
     if(Taginit)
     {
-      TagConv.ConvertLine(m_pOverlay, start, p-start);
-      TagConv.CloseTag(m_pOverlay);
+      TagConv.ConvertLine(m_pOverlay.get(), start, p-start);
+      TagConv.CloseTag(m_pOverlay.get());
     }
     else
       m_pOverlay->AddElement(new CDVDOverlayText::CElementText(start, p-start));
@@ -141,27 +117,19 @@ int CDVDOverlayCodecText::Decode(DemuxPacket *pPacket)
 
 void CDVDOverlayCodecText::Reset()
 {
-  if (m_pOverlay)
-  {
-    m_pOverlay->Release();
-    m_pOverlay = nullptr;
-  }
+  m_pOverlay.reset();
 }
 
 void CDVDOverlayCodecText::Flush()
 {
-  if (m_pOverlay)
-  {
-    m_pOverlay->Release();
-    m_pOverlay = nullptr;
-  }
+  Reset();
 }
 
 CDVDOverlay* CDVDOverlayCodecText::GetOverlay()
 {
   if(m_pOverlay)
   {
-    CDVDOverlay* overlay = m_pOverlay;
+    CDVDOverlay* overlay = m_pOverlay.get();
     m_pOverlay = NULL;
     return overlay;
   }

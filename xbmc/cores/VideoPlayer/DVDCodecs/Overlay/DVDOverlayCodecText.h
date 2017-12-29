@@ -28,9 +28,9 @@ class CDVDOverlayCodecText : public CDVDOverlayCodec
 {
 public:
   CDVDOverlayCodecText();
-  ~CDVDOverlayCodecText() override;
+  ~CDVDOverlayCodecText() = default;
   bool Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) override;
-  void Dispose() override;
+  void Dispose() override {};
   int Decode(DemuxPacket *pPacket) override;
   void Reset() override;
   void Flush() override;
@@ -38,5 +38,5 @@ public:
 
 private:
   bool             m_bIsSSA;
-  CDVDOverlayText* m_pOverlay;
+  std::unique_ptr<CDVDOverlayText> m_pOverlay;
 };
