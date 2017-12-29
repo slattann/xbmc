@@ -543,7 +543,7 @@ protected:
   CDVDClock m_clock;                // master clock
   CDVDOverlayContainer m_overlayContainer;
 
-  CDVDInputStream* m_pInputStream;  // input stream for current playing file
+  std::unique_ptr<CDVDInputStream> m_pInputStream;  // input stream for current playing file
   std::unique_ptr<CDVDDemux> m_pDemuxer;            // demuxer for current playing file
   CDVDDemux* m_pSubtitleDemuxer;
   CDVDDemuxCC* m_pCCDemuxer;

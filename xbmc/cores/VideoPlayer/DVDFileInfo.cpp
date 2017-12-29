@@ -61,10 +61,8 @@ extern "C" {
 
 bool CDVDFileInfo::GetFileDuration(const std::string &path, int& duration)
 {
-  std::unique_ptr<CDVDInputStream> input;
-
   CFileItem item(path, false);
-  input.reset(CDVDFactoryInputStream::CreateInputStream(NULL, item));
+  auto input = CDVDFactoryInputStream::CreateInputStream(NULL, item);
   if (!input.get())
     return false;
 
@@ -106,7 +104,7 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
   CFileItem item(strPath, false);
 
   item.SetMimeTypeForInternetFile();
-  CDVDInputStream *pInputStream = CDVDFactoryInputStream::CreateInputStream(NULL, item);
+  auto pInputStream = CDVDFactoryInputStream::CreateInputStream(NULL, item);
   if (!pInputStream)
   {
     CLog::Log(LOGERROR, "InputStream: Error creating stream for %s", redactPath.c_str());
@@ -116,8 +114,6 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
   if (!pInputStream->Open())
   {
     CLog::Log(LOGERROR, "InputStream: Error opening, %s", redactPath.c_str());
-    if (pInputStream)
-      delete pInputStream;
     return false;
   }
 
@@ -125,10 +121,9 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
 
   try
   {
-    pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
+    pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream.get(), true);
     if(!pDemuxer)
     {
-      delete pInputStream;
       CLog::Log(LOGERROR, "%s - Error creating demuxer", __FUNCTION__);
       return false;
     }
@@ -136,13 +131,12 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
   catch(...)
   {
     CLog::Log(LOGERROR, "%s - Exception thrown when opening demuxer", __FUNCTION__);
-    delete pInputStream;
     return false;
   }
 
   if (pStreamDetails)
   {
-    DemuxerToStreamDetails(pInputStream, pDemuxer.get(), *pStreamDetails, strPath);
+    DemuxerToStreamDetails(pInputStream.get(), pDemuxer.get(), *pStreamDetails, strPath);
 
     //extern subtitles
     std::vector<std::string> filenames;
@@ -297,8 +291,6 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     }
   }
 
-  delete pInputStream;
-
   if(!bOk)
   {
     XFILE::CFile file;
@@ -333,32 +325,28 @@ bool CDVDFileInfo::GetFileStreamDetails(CFileItem *pItem)
 
   CFileItem item(playablePath, false);
   item.SetMimeTypeForInternetFile();
-  CDVDInputStream *pInputStream = CDVDFactoryInputStream::CreateInputStream(NULL, item);
+  auto pInputStream = CDVDFactoryInputStream::CreateInputStream(NULL, item);
   if (!pInputStream)
     return false;
 
   if (pInputStream->IsStreamType(DVDSTREAM_TYPE_PVRMANAGER))
   {
-    delete pInputStream;
     return false;
   }
 
   if (pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD) || !pInputStream->Open())
   {
-    delete pInputStream;
     return false;
   }
 
-  auto pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
+  auto pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream.get(), true);
   if (pDemuxer)
   {
-    bool retVal = DemuxerToStreamDetails(pInputStream, pDemuxer.get(), pItem->GetVideoInfoTag()->m_streamDetails, strFileNameAndPath);
-    delete pInputStream;
+    bool retVal = DemuxerToStreamDetails(pInputStream.get(), pDemuxer.get(), pItem->GetVideoInfoTag()->m_streamDetails, strFileNameAndPath);
     return retVal;
   }
   else
   {
-    delete pInputStream;
     return false;
   }
 }
