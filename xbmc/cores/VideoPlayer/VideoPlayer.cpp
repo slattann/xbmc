@@ -1592,7 +1592,7 @@ void CVideoPlayer::Process()
           if (m_pCCDemuxer->GetNrOfStreams() != m_SelectionStreams.CountSource(STREAM_SUBTITLE, STREAM_SOURCE_VIDEOMUX))
           {
             m_SelectionStreams.Clear(STREAM_SUBTITLE, STREAM_SOURCE_VIDEOMUX);
-            m_SelectionStreams.Update(NULL, m_pCCDemuxer, "");
+            m_SelectionStreams.Update(NULL, m_pCCDemuxer.get(), "");
             UpdateContent();
             OpenDefaultStreams(false);
           }
@@ -2461,10 +2461,6 @@ void CVideoPlayer::OnExit()
     cb->OnPlayerCloseFile(fileItem, bookmark);
   }, CJob::PRIORITY_NORMAL);
 
-  // destroy objects
-  delete m_pCCDemuxer;
-  m_pCCDemuxer = nullptr;
-
   // clean up all selection streams
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
 
@@ -2530,8 +2526,7 @@ void CVideoPlayer::HandleMessages()
       m_renderManager.Flush(false);
       m_pDemuxer.reset();
       m_pSubtitleDemuxer.reset();
-      delete m_pCCDemuxer;
-      m_pCCDemuxer = nullptr;
+      m_pCCDemuxer.reset();
       m_pInputStream.reset();
 
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
@@ -3663,10 +3658,7 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
      m_CurrentVideo.hint != hint)
   {
     if (hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_H264)
-    {
-      delete m_pCCDemuxer;
-      m_pCCDemuxer = nullptr;
-    }
+      m_pCCDemuxer.reset();
 
     if (!player->OpenStream(hint))
       return false;
@@ -3696,7 +3688,7 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
   // open CC demuxer if video is mpeg2
   if ((hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_H264) && !m_pCCDemuxer)
   {
-    m_pCCDemuxer = new CDVDDemuxCC(hint.codec);
+    m_pCCDemuxer = std::unique_ptr<CDVDDemuxCC>(new CDVDDemuxCC(hint.codec));
     m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_VIDEOMUX);
   }
 
