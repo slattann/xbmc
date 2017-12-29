@@ -2460,9 +2460,6 @@ void CVideoPlayer::OnExit()
   CJobManager::GetInstance().Submit([=]() {
     cb->OnPlayerCloseFile(fileItem, bookmark);
   }, CJob::PRIORITY_NORMAL);
-    
-  // destroy objects
-  SAFE_DELETE(m_pCCDemuxer);
 
   // clean up all selection streams
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
@@ -2529,7 +2526,7 @@ void CVideoPlayer::HandleMessages()
       m_renderManager.Flush(false);
       m_pDemuxer.reset();
       m_pSubtitleDemuxer.reset();
-      SAFE_DELETE(m_pCCDemuxer);
+      m_pCCDemuxer.reset();
       m_pInputStream.reset();
 
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NONE);
@@ -3661,7 +3658,7 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
      m_CurrentVideo.hint != hint)
   {
     if (hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_H264)
-      SAFE_DELETE(m_pCCDemuxer);
+      m_pCCDemuxer.reset();
 
     if (!player->OpenStream(hint))
       return false;
