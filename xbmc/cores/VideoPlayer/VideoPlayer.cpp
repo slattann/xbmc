@@ -2462,7 +2462,6 @@ void CVideoPlayer::OnExit()
   }, CJob::PRIORITY_NORMAL);
     
   // destroy objects
-  SAFE_DELETE(m_pSubtitleDemuxer);
   SAFE_DELETE(m_pCCDemuxer);
 
   // clean up all selection streams
@@ -2529,7 +2528,7 @@ void CVideoPlayer::HandleMessages()
       FlushBuffers(DVD_NOPTS_VALUE, true, true);
       m_renderManager.Flush(false);
       m_pDemuxer.reset();
-      SAFE_DELETE(m_pSubtitleDemuxer);
+      m_pSubtitleDemuxer.reset();
       SAFE_DELETE(m_pCCDemuxer);
       m_pInputStream.reset();
 
@@ -3457,11 +3456,11 @@ bool CVideoPlayer::OpenStream(CCurrentStream& current, int64_t demuxerId, int iS
     if(!m_pSubtitleDemuxer || m_pSubtitleDemuxer->GetFileName() != st.filename)
     {
       CLog::Log(LOGNOTICE, "Opening Subtitle file: %s", st.filename.c_str());
-      SAFE_DELETE(m_pSubtitleDemuxer);
+      m_pSubtitleDemuxer.reset();
       std::unique_ptr<CDVDDemuxVobsub> demux(new CDVDDemuxVobsub());
       if(!demux->Open(st.filename, source, st.filename2))
         return false;
-      m_pSubtitleDemuxer = demux.release();
+      m_pSubtitleDemuxer = std::move(demux);
     }
 
     double pts = m_VideoPlayerVideo->GetCurrentPts();
