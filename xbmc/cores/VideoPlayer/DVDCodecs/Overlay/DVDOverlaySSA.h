@@ -43,15 +43,6 @@ public:
     m_libass->Acquire();
   }
 
-  ~CDVDOverlaySSA() override
-  {
-    if (m_libass)
-    {
-      m_libass->Release();
-      m_libass = nullptr;
-    }
-  }
-
   CDVDOverlaySSA* Clone() override
   {
     return new CDVDOverlaySSA(*this);
