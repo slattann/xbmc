@@ -1050,7 +1050,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
       if (stream->source == STREAM_SOURCE_NONE)
       {
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX_SUB);
-        m_SelectionStreams.Update(NULL, m_pSubtitleDemuxer);
+        m_SelectionStreams.Update(NULL, m_pSubtitleDemuxer.get());
         UpdateContent();
       }
       return true;
@@ -2462,8 +2462,6 @@ void CVideoPlayer::OnExit()
   }, CJob::PRIORITY_NORMAL);
 
   // destroy objects
-  delete m_pSubtitleDemuxer;
-  m_pSubtitleDemuxer = nullptr;
   delete m_pCCDemuxer;
   m_pCCDemuxer = nullptr;
 
@@ -2531,8 +2529,7 @@ void CVideoPlayer::HandleMessages()
       FlushBuffers(DVD_NOPTS_VALUE, true, true);
       m_renderManager.Flush(false);
       m_pDemuxer.reset();
-      delete m_pSubtitleDemuxer;
-      m_pSubtitleDemuxer = nullptr;
+      m_pSubtitleDemuxer.reset();
       delete m_pCCDemuxer;
       m_pCCDemuxer = nullptr;
       m_pInputStream.reset();
@@ -3461,12 +3458,11 @@ bool CVideoPlayer::OpenStream(CCurrentStream& current, int64_t demuxerId, int iS
     if(!m_pSubtitleDemuxer || m_pSubtitleDemuxer->GetFileName() != st.filename)
     {
       CLog::Log(LOGNOTICE, "Opening Subtitle file: %s", st.filename.c_str());
-      delete m_pSubtitleDemuxer;
-      m_pSubtitleDemuxer = nullptr;
+      m_pSubtitleDemuxer.reset();
       std::unique_ptr<CDVDDemuxVobsub> demux(new CDVDDemuxVobsub());
       if(!demux->Open(st.filename, source, st.filename2))
         return false;
-      m_pSubtitleDemuxer = demux.release();
+      m_pSubtitleDemuxer = std::move(demux);
     }
 
     double pts = m_VideoPlayerVideo->GetCurrentPts();
