@@ -261,8 +261,8 @@ public:
   void Clear(StreamType type, StreamSource source);
   int Source(StreamSource source, std::string filename);
   void Update(SelectionStream& s);
-  void Update(std::shared_ptr<CDVDInputStream> input, CDVDDemux* demuxer);
-  void Update(std::shared_ptr<CDVDInputStream> input, CDVDDemux* demuxer, std::string filename2);
+  void Update(std::shared_ptr<CDVDInputStream> input, std::shared_ptr<CDVDDemux> demuxer);
+  void Update(std::shared_ptr<CDVDInputStream> input, std::shared_ptr<CDVDDemux> demuxer, std::string filename2);
 
   std::vector<SelectionStream> Get(StreamType type);
   template<typename Compare> std::vector<SelectionStream> Get(StreamType type, Compare compare)
@@ -544,7 +544,7 @@ protected:
   CDVDOverlayContainer m_overlayContainer;
 
   std::shared_ptr<CDVDInputStream> m_pInputStream;  // input stream for current playing file
-  CDVDDemux* m_pDemuxer;            // demuxer for current playing file
+  std::shared_ptr<CDVDDemux> m_pDemuxer;            // demuxer for current playing file
   CDVDDemux* m_pSubtitleDemuxer;
   CDVDDemuxCC* m_pCCDemuxer;
 

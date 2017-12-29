@@ -54,7 +54,6 @@
 #include "utils/LangCodeExpander.h"
 
 #include <cstdlib>
-#include <memory>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -62,8 +61,6 @@ extern "C" {
 
 bool CDVDFileInfo::GetFileDuration(const std::string &path, int& duration)
 {
-  std::unique_ptr<CDVDDemux> demux;
-
   CFileItem item(path, false);
   auto input = CDVDFactoryInputStream::CreateInputStream(NULL, item);
   if (!input)
@@ -72,7 +69,7 @@ bool CDVDFileInfo::GetFileDuration(const std::string &path, int& duration)
   if (!input->Open())
     return false;
 
-  demux.reset(CDVDFactoryDemuxer::CreateDemuxer(input, true));
+  auto demux = CDVDFactoryDemuxer::CreateDemuxer(input, true);
   if (!demux.get())
     return false;
 
@@ -120,7 +117,7 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     return false;
   }
 
-  CDVDDemux *pDemuxer = NULL;
+  std::shared_ptr<CDVDDemux> pDemuxer;
 
   try
   {
@@ -134,9 +131,6 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
   catch(...)
   {
     CLog::Log(LOGERROR, "%s - Exception thrown when opening demuxer", __FUNCTION__);
-    if (pDemuxer)
-      delete pDemuxer;
-
     return false;
   }
 
@@ -298,9 +292,6 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     }
   }
 
-  if (pDemuxer)
-    delete pDemuxer;
-
   if(!bOk)
   {
     XFILE::CFile file;
@@ -349,11 +340,10 @@ bool CDVDFileInfo::GetFileStreamDetails(CFileItem *pItem)
     return false;
   }
 
-  CDVDDemux *pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
+  auto pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
   if (pDemuxer)
   {
     bool retVal = DemuxerToStreamDetails(pInputStream, pDemuxer, pItem->GetVideoInfoTag()->m_streamDetails, strFileNameAndPath);
-    delete pDemuxer;
     return retVal;
   }
   else
@@ -362,7 +352,7 @@ bool CDVDFileInfo::GetFileStreamDetails(CFileItem *pItem)
   }
 }
 
-bool CDVDFileInfo::DemuxerToStreamDetails(std::shared_ptr<CDVDInputStream> pInputStream, CDVDDemux *pDemuxer, const std::vector<CStreamDetailSubtitle> &subs, CStreamDetails &details)
+bool CDVDFileInfo::DemuxerToStreamDetails(std::shared_ptr<CDVDInputStream> pInputStream, std::shared_ptr<CDVDDemux> pDemuxer, const std::vector<CStreamDetailSubtitle> &subs, CStreamDetails &details)
 {
   bool result = DemuxerToStreamDetails(pInputStream, pDemuxer, details);
   for (unsigned int i = 0; i < subs.size(); i++)
@@ -376,7 +366,7 @@ bool CDVDFileInfo::DemuxerToStreamDetails(std::shared_ptr<CDVDInputStream> pInpu
 }
 
 /* returns true if details have been added */
-bool CDVDFileInfo::DemuxerToStreamDetails(std::shared_ptr<CDVDInputStream> pInputStream, CDVDDemux *pDemux, CStreamDetails &details, const std::string &path)
+bool CDVDFileInfo::DemuxerToStreamDetails(std::shared_ptr<CDVDInputStream> pInputStream, std::shared_ptr<CDVDDemux> pDemux, CStreamDetails &details, const std::string &path)
 {
   bool retVal = false;
   details.Reset();
