@@ -120,7 +120,7 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
     return false;
   }
 
-  m_pDemuxer = NULL;
+  m_pDemuxer.reset();
 
   try
   {
@@ -136,11 +136,6 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
   catch(...)
   {
     CLog::Log(LOGERROR, "%s: Exception thrown when opening demuxer", __FUNCTION__);
-    if (m_pDemuxer)
-    {
-      delete m_pDemuxer;
-      m_pDemuxer = NULL;
-    }
     delete m_pInputStream;
     m_pInputStream = NULL;
     return false;
@@ -163,8 +158,7 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
   if (m_nAudioStream == -1)
   {
     CLog::Log(LOGERROR, "%s: Could not find audio stream", __FUNCTION__);
-    delete m_pDemuxer;
-    m_pDemuxer = NULL;
+    m_pDemuxer.reset();
     delete m_pInputStream;
     m_pInputStream = NULL;
     return false;
@@ -177,8 +171,7 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
   if (!m_pAudioCodec)
   {
     CLog::Log(LOGERROR, "%s: Could not create audio codec", __FUNCTION__);
-    delete m_pDemuxer;
-    m_pDemuxer = NULL;
+    m_pDemuxer.reset();
     delete m_pInputStream;
     m_pInputStream = NULL;
     return false;
@@ -292,12 +285,6 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
 
 void VideoPlayerCodec::DeInit()
 {
-  if (m_pDemuxer != NULL)
-  {
-    delete m_pDemuxer;
-    m_pDemuxer = NULL;
-  }
-
   if (m_pInputStream != NULL)
   {
     delete m_pInputStream;

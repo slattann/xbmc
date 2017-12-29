@@ -54,7 +54,6 @@
 #include "utils/LangCodeExpander.h"
 
 #include <cstdlib>
-#include <memory>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -63,7 +62,6 @@ extern "C" {
 bool CDVDFileInfo::GetFileDuration(const std::string &path, int& duration)
 {
   std::unique_ptr<CDVDInputStream> input;
-  std::unique_ptr<CDVDDemux> demux;
 
   CFileItem item(path, false);
   input.reset(CDVDFactoryInputStream::CreateInputStream(NULL, item));
@@ -73,7 +71,7 @@ bool CDVDFileInfo::GetFileDuration(const std::string &path, int& duration)
   if (!input->Open())
     return false;
 
-  demux.reset(CDVDFactoryDemuxer::CreateDemuxer(input.get(), true));
+  auto demux = CDVDFactoryDemuxer::CreateDemuxer(input.get(), true);
   if (!demux.get())
     return false;
 
@@ -123,7 +121,7 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     return false;
   }
 
-  CDVDDemux *pDemuxer = NULL;
+  std::unique_ptr<CDVDDemux> pDemuxer;
 
   try
   {
@@ -138,15 +136,13 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
   catch(...)
   {
     CLog::Log(LOGERROR, "%s - Exception thrown when opening demuxer", __FUNCTION__);
-    if (pDemuxer)
-      delete pDemuxer;
     delete pInputStream;
     return false;
   }
 
   if (pStreamDetails)
   {
-    DemuxerToStreamDetails(pInputStream, pDemuxer, *pStreamDetails, strPath);
+    DemuxerToStreamDetails(pInputStream, pDemuxer.get(), *pStreamDetails, strPath);
 
     //extern subtitles
     std::vector<std::string> filenames;
@@ -301,9 +297,6 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     }
   }
 
-  if (pDemuxer)
-    delete pDemuxer;
-
   delete pInputStream;
 
   if(!bOk)
@@ -356,11 +349,10 @@ bool CDVDFileInfo::GetFileStreamDetails(CFileItem *pItem)
     return false;
   }
 
-  CDVDDemux *pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
+  auto pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(pInputStream, true);
   if (pDemuxer)
   {
-    bool retVal = DemuxerToStreamDetails(pInputStream, pDemuxer, pItem->GetVideoInfoTag()->m_streamDetails, strFileNameAndPath);
-    delete pDemuxer;
+    bool retVal = DemuxerToStreamDetails(pInputStream, pDemuxer.get(), pItem->GetVideoInfoTag()->m_streamDetails, strFileNameAndPath);
     delete pInputStream;
     return retVal;
   }

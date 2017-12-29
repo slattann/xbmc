@@ -35,7 +35,7 @@
 
 using namespace PVR;
 
-CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool fileinfo)
+std::unique_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool fileinfo)
 {
   if (!pInputStream)
     return NULL;
@@ -47,7 +47,7 @@ CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool
     // (apples audio only streaming)
     std::unique_ptr<CDVDDemuxBXA> demuxer(new CDVDDemuxBXA());
     if(demuxer->Open(pInputStream))
-      return demuxer.release();
+      return std::move(demuxer);
     else
       return NULL;
   }
@@ -63,7 +63,7 @@ CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool
       std::unique_ptr<CDVDDemuxCDDA> demuxer(new CDVDDemuxCDDA());
       if (demuxer->Open(pInputStream))
       {
-        return demuxer.release();
+        return std::move(demuxer);
       }
     }
   }
@@ -73,7 +73,7 @@ CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool
   {
     std::unique_ptr<CDVDDemuxClient> demuxer(new CDVDDemuxClient());
     if(demuxer->Open(pInputStream))
-      return demuxer.release();
+      return std::move(demuxer);
     else
       return nullptr;
   }
@@ -97,14 +97,14 @@ CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool
   {
     std::unique_ptr<CDemuxMultiSource> demuxer(new CDemuxMultiSource());
     if (demuxer->Open(pInputStream))
-      return demuxer.release();
+      return std::move(demuxer);
     else
       return NULL;
   }
 
   std::unique_ptr<CDVDDemuxFFmpeg> demuxer(new CDVDDemuxFFmpeg());
   if(demuxer->Open(pInputStream, streaminfo, fileinfo))
-    return demuxer.release();
+    return std::move(demuxer);
   else
     return NULL;
 }
