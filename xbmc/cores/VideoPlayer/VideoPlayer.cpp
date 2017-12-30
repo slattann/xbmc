@@ -1592,7 +1592,7 @@ void CVideoPlayer::Process()
           if (m_pCCDemuxer->GetNrOfStreams() != m_SelectionStreams.CountSource(STREAM_SUBTITLE, STREAM_SOURCE_VIDEOMUX))
           {
             m_SelectionStreams.Clear(STREAM_SUBTITLE, STREAM_SOURCE_VIDEOMUX);
-            m_SelectionStreams.Update(NULL, m_pCCDemuxer.get(), "");
+            m_SelectionStreams.Update(NULL, m_pCCDemuxer, "");
             UpdateContent();
             OpenDefaultStreams(false);
           }
