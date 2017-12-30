@@ -28,5 +28,5 @@ class CDVDInputStream;
 class CDVDFactoryDemuxer
 {
 public:
-  static std::shared_ptr<CDVDDemux> CreateDemuxer(CDVDInputStream* pInputStream, bool fileinfo = false);
+  static std::shared_ptr<CDVDDemux> CreateDemuxer(std::shared_ptr<CDVDInputStream> pInputStream, bool fileinfo = false);
 };

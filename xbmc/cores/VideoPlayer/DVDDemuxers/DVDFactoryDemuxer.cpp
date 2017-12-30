@@ -35,7 +35,7 @@
 
 using namespace PVR;
 
-std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool fileinfo)
+std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(std::shared_ptr<CDVDInputStream> pInputStream, bool fileinfo)
 {
   if (!pInputStream)
     return NULL;
@@ -47,7 +47,7 @@ std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pI
     // (apples audio only streaming)
     std::shared_ptr<CDVDDemuxBXA> demuxer(new CDVDDemuxBXA());
     if(demuxer->Open(pInputStream))
-      return std::move(demuxer);
+      return demuxer;
     else
       return NULL;
   }
@@ -63,7 +63,7 @@ std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pI
       std::shared_ptr<CDVDDemuxCDDA> demuxer(new CDVDDemuxCDDA());
       if (demuxer->Open(pInputStream))
       {
-        return std::move(demuxer);
+        return demuxer;
       }
     }
   }
@@ -73,7 +73,7 @@ std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pI
   {
     std::shared_ptr<CDVDDemuxClient> demuxer(new CDVDDemuxClient());
     if(demuxer->Open(pInputStream))
-      return std::move(demuxer);
+      return demuxer;
     else
       return nullptr;
   }
@@ -97,14 +97,14 @@ std::shared_ptr<CDVDDemux> CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pI
   {
     std::shared_ptr<CDemuxMultiSource> demuxer(new CDemuxMultiSource());
     if (demuxer->Open(pInputStream))
-      return std::move(demuxer);
+      return demuxer;
     else
       return NULL;
   }
 
   std::shared_ptr<CDVDDemuxFFmpeg> demuxer(new CDVDDemuxFFmpeg());
   if(demuxer->Open(pInputStream, streaminfo, fileinfo))
-    return std::move(demuxer);
+    return demuxer;
   else
     return NULL;
 }

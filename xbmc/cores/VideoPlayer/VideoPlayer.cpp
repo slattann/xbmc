@@ -423,11 +423,11 @@ void CSelectionStreams::Update(SelectionStream& s)
   }
 }
 
-void CSelectionStreams::Update(CDVDInputStream* input, std::shared_ptr<CDVDDemux> demuxer, std::string filename2)
+void CSelectionStreams::Update(std::shared_ptr<CDVDInputStream> input, std::shared_ptr<CDVDDemux> demuxer, std::string filename2)
 {
   if(input && input->IsStreamType(DVDSTREAM_TYPE_DVD))
   {
-    CDVDInputStreamNavigator* nav = static_cast<CDVDInputStreamNavigator*>(input);
+    std::shared_ptr<CDVDInputStreamNavigator> nav = std::static_pointer_cast<CDVDInputStreamNavigator>(input);
     std::string filename = nav->GetFileName();
     int source = Source(STREAM_SOURCE_NAV, filename);
 
@@ -544,7 +544,7 @@ void CSelectionStreams::Update(CDVDInputStream* input, std::shared_ptr<CDVDDemux
   CServiceBroker::GetDataCacheCore().SignalVideoInfoChange();
 }
 
-void CSelectionStreams::Update(CDVDInputStream* input, std::shared_ptr<CDVDDemux> demuxer)
+void CSelectionStreams::Update(std::shared_ptr<CDVDInputStream> input, std::shared_ptr<CDVDDemux> demuxer)
 {
   Update(input, demuxer, "");
 }
@@ -861,7 +861,7 @@ bool CVideoPlayer::OpenDemuxStream()
   int attempts = 10;
   while (!m_bStop && attempts-- > 0)
   {
-    m_pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(m_pInputStream.get());
+    m_pDemuxer = CDVDFactoryDemuxer::CreateDemuxer(m_pInputStream);
     if(!m_pDemuxer && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_PVRMANAGER))
     {
       continue;
@@ -882,7 +882,7 @@ bool CVideoPlayer::OpenDemuxStream()
 
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NAV);
-  m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
+  m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
   m_pDemuxer->GetPrograms(m_programs);
   UpdateContent();
 
@@ -978,7 +978,7 @@ void CVideoPlayer::OpenDefaultStreams(bool reset)
   if(!valid)
     CloseStream(m_CurrentSubtitle, false);
 
-  if (!dynamic_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()) || m_playerOptions.state.empty())
+  if (!std::dynamic_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream) || m_playerOptions.state.empty())
     SetSubtitleVisibleInternal(visible); // only set subtitle visibility if state not stored by dvd navigator, because navigator will restore it (if visible)
 
   // open teletext stream
@@ -1077,7 +1077,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
     if (packet->iStreamId == DMX_SPECIALID_STREAMCHANGE)
     {
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
+      m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
       m_pDemuxer->GetPrograms(m_programs);
       UpdateContent();
       OpenDefaultStreams(false);
@@ -1107,7 +1107,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
       if(stream->source == STREAM_SOURCE_NONE)
       {
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
+        m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
         UpdateContent();
       }
     }
@@ -1250,15 +1250,15 @@ void CVideoPlayer::Prepare()
     return;
   }
 
-  if (CDVDInputStream::IMenus* ptr = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get()))
+  if (std::shared_ptr<CDVDInputStream::IMenus> ptr = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream))
   {
     CLog::Log(LOGNOTICE, "VideoPlayer: playing a file with menu's");
-    if(dynamic_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()))
+    if(std::dynamic_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream))
       m_playerOptions.starttime = 0;
 
     if (!m_playerOptions.state.empty())
       ptr->SetState(m_playerOptions.state);
-    else if(CDVDInputStreamNavigator* nav = dynamic_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()))
+    else if(std::shared_ptr<CDVDInputStreamNavigator> nav = std::dynamic_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream))
       nav->EnableSubtitleStream(m_processInfo->GetVideoSettings().m_SubtitleOn);
   }
 
@@ -1469,7 +1469,7 @@ void CVideoPlayer::Process()
         continue;
 
       // check for a still frame state
-      if (CDVDInputStream::IMenus* pStream = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get()))
+      if (std::shared_ptr<CDVDInputStream::IMenus> pStream = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream))
       {
         // stills will be skipped
         if(m_dvd.state == DVDSTATE_STILL)
@@ -1607,7 +1607,7 @@ void CVideoPlayer::Process()
 
     if (IsInMenuInternal())
     {
-      if (CDVDInputStream::IMenus* menu = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get()))
+      if (std::shared_ptr<CDVDInputStream::IMenus> menu = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream))
       {
         double correction = menu->GetTimeStampCorrection();
         if (pPacket->dts != DVD_NOPTS_VALUE && pPacket->dts > correction)
@@ -1670,7 +1670,7 @@ void CVideoPlayer::CheckStreamChanges(CCurrentStream& current, CDemuxStream* str
     if (current.hint != CDVDStreamInfo(*stream, true))
     {
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
+      m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
       UpdateContent();
       OpenDefaultStreams(false);
     }
@@ -1749,7 +1749,7 @@ void CVideoPlayer::ProcessSubData(CDemuxStream* pStream, DemuxPacket* pPacket)
   m_VideoPlayerSubtitle->SendMessage(new CDVDMsgDemuxerPacket(pPacket, drop));
 
   if(m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
-    m_VideoPlayerSubtitle->UpdateOverlayInfo(static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()), LIBDVDNAV_BUTTON_NORMAL);
+    m_VideoPlayerSubtitle->UpdateOverlayInfo(std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream), LIBDVDNAV_BUTTON_NORMAL);
 }
 
 void CVideoPlayer::ProcessTeletextData(CDemuxStream* pStream, DemuxPacket* pPacket)
@@ -2671,7 +2671,7 @@ void CVideoPlayer::HandleMessages()
       {
         if(st.source == STREAM_SOURCE_NAV && m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
         {
-          CDVDInputStreamNavigator* pStream = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get());
+          std::shared_ptr<CDVDInputStreamNavigator> pStream = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream);
           if(pStream->SetActiveAudioStream(st.id))
           {
             m_dvd.iSelectedAudioStream = -1;
@@ -2710,7 +2710,7 @@ void CVideoPlayer::HandleMessages()
       {
         if (st.source == STREAM_SOURCE_NAV && m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
         {
-          CDVDInputStreamNavigator* pStream = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get());
+          std::shared_ptr<CDVDInputStreamNavigator> pStream = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream);
           if (pStream->SetAngle(st.id))
           {
             m_dvd.iSelectedVideoStream = st.id;
@@ -2747,7 +2747,7 @@ void CVideoPlayer::HandleMessages()
       {
         if(st.source == STREAM_SOURCE_NAV && m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
         {
-          CDVDInputStreamNavigator* pStream = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get());
+          std::shared_ptr<CDVDInputStreamNavigator> pStream = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream);
           if(pStream->SetActiveSubtitleStream(st.id))
           {
             m_dvd.iSelectedSPUStream = -1;
@@ -2782,7 +2782,7 @@ void CVideoPlayer::HandleMessages()
 
       CDVDMsgPlayerSetState* pMsgPlayerSetState = static_cast<CDVDMsgPlayerSetState*>(pMsg);
 
-      if (CDVDInputStream::IMenus* ptr = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get()))
+      if (std::shared_ptr<CDVDInputStream::IMenus> ptr = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream))
       {
         if(ptr->SetState(pMsgPlayerSetState->GetState()))
         {
@@ -2825,7 +2825,7 @@ void CVideoPlayer::HandleMessages()
 
       if (m_pInputStream->IsStreamType(DVDSTREAM_TYPE_PVRMANAGER) && speed != m_playSpeed)
       {
-        CDVDInputStreamPVRManager* pvrinputstream = static_cast<CDVDInputStreamPVRManager*>(m_pInputStream.get());
+        std::shared_ptr<CDVDInputStreamPVRManager> pvrinputstream = std::static_pointer_cast<CDVDInputStreamPVRManager>(m_pInputStream);
         pvrinputstream->Pause( speed == 0 );
       }
 
@@ -3282,7 +3282,7 @@ bool CVideoPlayer::GetSubtitleVisible()
 {
   if (m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
   {
-    CDVDInputStreamNavigator* pStream = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get());
+    std::shared_ptr<CDVDInputStreamNavigator> pStream = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream);
     return pStream->IsSubtitleStreamEnabled();
   }
 
@@ -3300,7 +3300,7 @@ void CVideoPlayer::SetSubtitleVisibleInternal(bool bVisible)
   m_VideoPlayerVideo->EnableSubtitle(bVisible);
 
   if (m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
-    static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get())->EnableSubtitleStream(bVisible);
+    std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream)->EnableSubtitleStream(bVisible);
 }
 
 TextCacheStruct_t* CVideoPlayer::GetTeletextCache()
@@ -3600,7 +3600,7 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
   if (m_pInputStream && m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
   {
     /* set aspect ratio as requested by navigator for dvd's */
-    float aspect = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get())->GetVideoAspectRatio();
+    float aspect = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream)->GetVideoAspectRatio();
     if (aspect != 0.0)
     {
       hint.aspect = aspect;
@@ -3627,7 +3627,7 @@ bool CVideoPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
     }
   }
 
-  CDVDInputStream::IMenus* pMenus = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get());
+  std::shared_ptr<CDVDInputStream::IMenus> pMenus = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream);
   if(pMenus && pMenus->IsInMenu())
     hint.stills = true;
 
@@ -3961,7 +3961,7 @@ int CVideoPlayer::OnDiscNavResult(void* pData, int iMessage)
 
   if (m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
   {
-    CDVDInputStreamNavigator* pStream = static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get());
+    std::shared_ptr<CDVDInputStreamNavigator> pStream = std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream);
 
     switch (iMessage)
     {
@@ -4042,7 +4042,7 @@ int CVideoPlayer::OnDiscNavResult(void* pData, int iMessage)
         //dvdnav_highlight_event_t* pInfo = (dvdnav_highlight_event_t*)pData;
         int iButton = pStream->GetCurrentButton();
         CLog::Log(LOGDEBUG, "DVDNAV_HIGHLIGHT: Highlight button %d\n", iButton);
-        m_VideoPlayerSubtitle->UpdateOverlayInfo(static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()), LIBDVDNAV_BUTTON_NORMAL);
+        m_VideoPlayerSubtitle->UpdateOverlayInfo(std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream), LIBDVDNAV_BUTTON_NORMAL);
       }
       break;
     case DVDNAV_VTS_CHANGE:
@@ -4059,7 +4059,7 @@ int CVideoPlayer::OnDiscNavResult(void* pData, int iMessage)
           m_VideoPlayerVideo->SendMessage(new CDVDMsgDouble(CDVDMsg::VIDEO_SET_ASPECT, m_CurrentVideo.hint.aspect));
 
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NAV);
-        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
+        m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
         UpdateContent();
 
         return NAVRESULT_HOLD;
@@ -4139,7 +4139,7 @@ bool CVideoPlayer::OnAction(const CAction &action)
     } \
   } while(false)
 
-  CDVDInputStream::IMenus* pMenus = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get());
+  std::shared_ptr<CDVDInputStream::IMenus> pMenus = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream);
   if (pMenus)
   {
     if (m_dvd.state == DVDSTATE_STILL && m_dvd.iDVDStillTime != 0 && pMenus->GetTotalButtons() == 0)
@@ -4289,7 +4289,7 @@ bool CVideoPlayer::OnAction(const CAction &action)
           CLog::Log(LOGDEBUG, " - button select");
           // show button pushed overlay
           if(m_pInputStream->IsStreamType(DVDSTREAM_TYPE_DVD))
-            m_VideoPlayerSubtitle->UpdateOverlayInfo(static_cast<CDVDInputStreamNavigator*>(m_pInputStream.get()), LIBDVDNAV_BUTTON_CLICKED);
+            m_VideoPlayerSubtitle->UpdateOverlayInfo(std::static_pointer_cast<CDVDInputStreamNavigator>(m_pInputStream), LIBDVDNAV_BUTTON_CLICKED);
 
           pMenus->ActivateButton();
         }
@@ -4368,7 +4368,7 @@ bool CVideoPlayer::OnAction(const CAction &action)
 
 bool CVideoPlayer::IsInMenuInternal() const
 {
-  CDVDInputStream::IMenus* pStream = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get());
+  std::shared_ptr<CDVDInputStream::IMenus> pStream = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream);
   if (pStream)
   {
     if (m_dvd.state == DVDSTATE_STILL)
@@ -4488,7 +4488,7 @@ int CVideoPlayer::AddSubtitleFile(const std::string& filename, const std::string
         return -1;
     }
 
-    std::shared_ptr<CDVDDemuxVobsub> v;
+    std::shared_ptr<CDVDDemuxVobsub> v(new CDVDDemuxVobsub());
     if (!v->Open(filename, STREAM_SOURCE_NONE, vobsubfile))
       return -1;
     m_SelectionStreams.Update(NULL, v, vobsubfile);
@@ -4623,7 +4623,7 @@ void CVideoPlayer::UpdatePlayState(double timeout)
       state.time_offset = 0;
     }
 
-    if (CDVDInputStream::IMenus* ptr = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream.get()))
+    if (std::shared_ptr<CDVDInputStream::IMenus> ptr = std::dynamic_pointer_cast<CDVDInputStream::IMenus>(m_pInputStream))
     {
       if (!ptr->GetState(state.player_state))
         state.player_state = "";
