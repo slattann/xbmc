@@ -1050,7 +1050,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
       if (stream->source == STREAM_SOURCE_NONE)
       {
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX_SUB);
-        m_SelectionStreams.Update(NULL, m_pSubtitleDemuxer.get());
+        m_SelectionStreams.Update(NULL, m_pSubtitleDemuxer);
         UpdateContent();
       }
       return true;

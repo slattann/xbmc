@@ -545,7 +545,7 @@ protected:
 
   std::unique_ptr<CDVDInputStream> m_pInputStream;  // input stream for current playing file
   std::shared_ptr<CDVDDemux> m_pDemuxer;            // demuxer for current playing file
-  std::unique_ptr<CDVDDemux> m_pSubtitleDemuxer;
+  std::shared_ptr<CDVDDemux> m_pSubtitleDemuxer;
   std::unique_ptr<CDVDDemuxCC> m_pCCDemuxer;
 
   CRenderManager m_renderManager;
