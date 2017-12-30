@@ -117,7 +117,7 @@ bool CDVDFileInfo::ExtractThumb(const std::string &strPath,
     return false;
   }
 
-  std::unique_ptr<CDVDDemux> pDemuxer;
+  std::shared_ptr<CDVDDemux> pDemuxer;
 
   try
   {

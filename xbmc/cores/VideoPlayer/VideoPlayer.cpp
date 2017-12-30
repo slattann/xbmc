@@ -423,7 +423,7 @@ void CSelectionStreams::Update(SelectionStream& s)
   }
 }
 
-void CSelectionStreams::Update(CDVDInputStream* input, CDVDDemux* demuxer, std::string filename2)
+void CSelectionStreams::Update(CDVDInputStream* input, std::shared_ptr<CDVDDemux> demuxer, std::string filename2)
 {
   if(input && input->IsStreamType(DVDSTREAM_TYPE_DVD))
   {
@@ -544,7 +544,7 @@ void CSelectionStreams::Update(CDVDInputStream* input, CDVDDemux* demuxer, std::
   CServiceBroker::GetDataCacheCore().SignalVideoInfoChange();
 }
 
-void CSelectionStreams::Update(CDVDInputStream* input, CDVDDemux* demuxer)
+void CSelectionStreams::Update(CDVDInputStream* input, std::shared_ptr<CDVDDemux> demuxer)
 {
   Update(input, demuxer, "");
 }
@@ -882,7 +882,7 @@ bool CVideoPlayer::OpenDemuxStream()
 
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
   m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NAV);
-  m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer.get());
+  m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
   m_pDemuxer->GetPrograms(m_programs);
   UpdateContent();
 
@@ -1077,7 +1077,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
     if (packet->iStreamId == DMX_SPECIALID_STREAMCHANGE)
     {
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer.get());
+      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
       m_pDemuxer->GetPrograms(m_programs);
       UpdateContent();
       OpenDefaultStreams(false);
@@ -1107,7 +1107,7 @@ bool CVideoPlayer::ReadPacket(DemuxPacket*& packet, CDemuxStream*& stream)
       if(stream->source == STREAM_SOURCE_NONE)
       {
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer.get());
+        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
         UpdateContent();
       }
     }
@@ -1670,7 +1670,7 @@ void CVideoPlayer::CheckStreamChanges(CCurrentStream& current, CDemuxStream* str
     if (current.hint != CDVDStreamInfo(*stream, true))
     {
       m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_DEMUX);
-      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer.get());
+      m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
       UpdateContent();
       OpenDefaultStreams(false);
     }
@@ -4059,7 +4059,7 @@ int CVideoPlayer::OnDiscNavResult(void* pData, int iMessage)
           m_VideoPlayerVideo->SendMessage(new CDVDMsgDouble(CDVDMsg::VIDEO_SET_ASPECT, m_CurrentVideo.hint.aspect));
 
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NAV);
-        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer.get());
+        m_SelectionStreams.Update(m_pInputStream.get(), m_pDemuxer);
         UpdateContent();
 
         return NAVRESULT_HOLD;
