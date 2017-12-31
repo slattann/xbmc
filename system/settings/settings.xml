@@ -2197,7 +2197,7 @@
             <options>modes</options>
             <default></default>
             <delimiter>,</delimiter>
-            <minimumitems>1</minimumitems>
+            <minimumitems>0</minimumitems>
           </constraints>
           <control type="list" format="string">
             <multiselect>true</multiselect>

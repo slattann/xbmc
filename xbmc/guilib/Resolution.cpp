@@ -70,7 +70,11 @@ RESOLUTION CResolutionUtils::ChooseBestResolution(float fps, int width, bool is3
 
   if (!FindResolutionFromOverride(fps, width, is3D, res, weight, false)) //find a refreshrate from overrides
   {
-    FindResolutionFromWhitelist(fps, width, is3D, res); //find a refreshrate from whitelist
+    if (!FindResolutionFromOverride(fps, width, is3D, res, weight, true))//if that fails find it from a fallback
+    {
+      if (!FindResolutionFromWhitelist(fps, width, is3D, res)) //find a refreshrate from whitelist
+        FindResolutionFromFpsMatch(fps, width, is3D, res, weight);//if that fails use automatic refreshrate selection
+    }
   }
 
   CLog::Log(LOGNOTICE, "Display resolution ADJUST : %s (%d) (weight: %.3f)",
@@ -78,7 +82,7 @@ RESOLUTION CResolutionUtils::ChooseBestResolution(float fps, int width, bool is3
   return res;
 }
 
-void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is3D, RESOLUTION &resolution)
+bool CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is3D, RESOLUTION &resolution)
 {
   RESOLUTION_INFO curr = g_graphicsContext.GetResInfo(resolution);
 
@@ -137,9 +141,11 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
     {
       CLog::Log(LOGDEBUG, "Matched exact whitelisted Resolution %s (%d)", info.strMode.c_str(), i);
       resolution = i;
-      return;
+      return true;
     }
   }
+
+  return false;
 }
 
 bool CResolutionUtils::FindResolutionFromOverride(float fps, int width, bool is3D, RESOLUTION &resolution, float& weight, bool fallback)
