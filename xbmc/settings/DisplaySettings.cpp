@@ -656,7 +656,7 @@ RESOLUTION CDisplaySettings::GetResolutionForScreen()
   return RES_DESKTOP;
 }
 
-void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
+void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   RESOLUTION res = CDisplaySettings::GetInstance().GetDisplayResolution();
   RESOLUTION_INFO info = CDisplaySettings::GetInstance().GetResolutionInfo(res);
@@ -666,11 +666,13 @@ void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting>
     const auto mode = CDisplaySettings::GetInstance().GetResolutionInfo(index);
     if (mode.dwFlags ^ D3DPRESENTFLAG_INTERLACED)
     {
+      auto setting = GetStringFromResolution((RESOLUTION)index, mode.fRefreshRate);
+
       list.push_back(std::make_pair(
-        StringUtils::Format("%dx%d%s %0.2fHz", mode.iWidth, mode.iHeight,
+        StringUtils::Format("%dx%d%s %0.2fHz", mode.iScreenWidth, mode.iScreenHeight,
                             ModeFlagsToString(mode.dwFlags, false).c_str(),
                             mode.fRefreshRate),
-                            index));
+                            setting));
     }
   }
 }
@@ -678,7 +680,7 @@ void CDisplaySettings::SettingOptionsModesFiller(std::shared_ptr<const CSetting>
 void CDisplaySettings::SettingOptionsRefreshChangeDelaysFiller(SettingConstPtr setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
 {
   list.push_back(std::make_pair(g_localizeStrings.Get(13551), 0));
-          
+
   for (int i = 1; i <= MAX_REFRESH_CHANGE_DELAY; i++)
     list.push_back(std::make_pair(StringUtils::Format(g_localizeStrings.Get(13553).c_str(), (double)i / 10.0), i));
 }

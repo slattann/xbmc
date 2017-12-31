@@ -2191,7 +2191,7 @@
           </dependencies>
           <control type="spinner" format="string" delayed="true" />
         </setting>
-        <setting id="videoscreen.whitelist" type="list[integer]" parent="videoscreen.screen" label="14085" help="37042">
+        <setting id="videoscreen.whitelist" type="list[string]" parent="videoscreen.screen" label="14085" help="36356">
           <level>1</level>
           <constraints>
             <options>modes</options>

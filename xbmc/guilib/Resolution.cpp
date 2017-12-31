@@ -86,9 +86,10 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
 
   // Find closest refresh rate
 
-  for (const auto &i : indexList)
+  for (const auto &mode : indexList)
   {
-    const RESOLUTION_INFO info = g_graphicsContext.GetResInfo((RESOLUTION)i.asInteger());
+    auto i = CDisplaySettings::GetInstance().GetResFromString(mode.asString());
+    const RESOLUTION_INFO info = g_graphicsContext.GetResInfo(i);
 
     CLog::Log(LOGDEBUG, "display width: %i vs video width: %i", info.iScreenWidth, width);
     CLog::Log(LOGDEBUG, "display fps: %f vs video fps: %f", info.fRefreshRate, fps);
@@ -104,8 +105,8 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
         MathUtils::FloatEquals(info.fRefreshRate, fps * 2, 0.0005f))
     {
-      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
-      resolution = (RESOLUTION)i.asInteger();
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), i);
+      resolution = i;
     }
 
     // allow resolutions that are larger than required but have the correct refresh rate
@@ -114,8 +115,8 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
         MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f))
     {
-      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
-      resolution = (RESOLUTION)i.asInteger();
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), i);
+      resolution = i;
     }
 
     // allow resolutions that are exact and have double the refresh rate
@@ -124,8 +125,8 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
         MathUtils::FloatEquals(info.fRefreshRate, fps * 2, 0.0005f))
     {
-      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
-      resolution = (RESOLUTION)i.asInteger();
+      CLog::Log(LOGDEBUG, "Matched fuzzy whitelisted Resolution %s (%d)", info.strMode.c_str(), i);
+      resolution = i;
     }
 
     // allow resolutions that are exact and have the correct refresh rate
@@ -134,8 +135,8 @@ void CResolutionUtils::FindResolutionFromWhitelist(float fps, int width, bool is
         (info.dwFlags & D3DPRESENTFLAG_MODEMASK) == (curr.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
         MathUtils::FloatEquals(info.fRefreshRate, fps, 0.0005f))
     {
-      CLog::Log(LOGDEBUG, "Matched exact whitelisted Resolution %s (%d)", info.strMode.c_str(), (RESOLUTION)i.asInteger());
-      resolution = (RESOLUTION)i.asInteger();
+      CLog::Log(LOGDEBUG, "Matched exact whitelisted Resolution %s (%d)", info.strMode.c_str(), i);
+      resolution = i;
       return;
     }
   }
