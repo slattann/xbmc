@@ -20,6 +20,8 @@
  *
  */
 
+#include <memory>
+
 #include "DVDOverlayCodec.h"
 #include "DVDSubtitles/DVDSubtitlesLibass.h"
 #include "DVDStreamInfo.h"
@@ -39,7 +41,7 @@ public:
   CDVDOverlay* GetOverlay() override;
 
 private:
-  CDVDSubtitlesLibass* m_libass;
+  std::shared_ptr<CDVDSubtitlesLibass> m_libass;
   CDVDOverlaySSA*      m_pOverlay;
   bool                 m_output;
   CDVDStreamInfo       m_hints;

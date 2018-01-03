@@ -26,7 +26,7 @@
 CDVDSubtitleParserSSA::CDVDSubtitleParserSSA(std::unique_ptr<CDVDSubtitleStream> && pStream, const std::string& strFile)
     : CDVDSubtitleParserText(std::move(pStream), strFile)
 {
-  m_libass = new CDVDSubtitlesLibass();
+  m_libass.reset(new CDVDSubtitlesLibass());
 }
 
 CDVDSubtitleParserSSA::~CDVDSubtitleParserSSA()
@@ -36,7 +36,6 @@ CDVDSubtitleParserSSA::~CDVDSubtitleParserSSA()
 
 bool CDVDSubtitleParserSSA::Open(CDVDStreamInfo &hints)
 {
-
   if (!CDVDSubtitleParserText::Open())
     return false;
 
@@ -68,10 +67,5 @@ bool CDVDSubtitleParserSSA::Open(CDVDStreamInfo &hints)
 
 void CDVDSubtitleParserSSA::Dispose()
 {
-  if(m_libass)
-  {
-    SAFE_RELEASE(m_libass);
-    CLog::Log(LOGINFO, "SSA Parser: Releasing reference to ASS Library");
-  }
   CDVDSubtitleParserCollection::Dispose();
 }

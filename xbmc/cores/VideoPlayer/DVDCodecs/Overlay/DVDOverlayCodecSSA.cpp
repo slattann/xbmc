@@ -52,15 +52,12 @@ bool CDVDOverlayCodecSSA::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   Dispose();
 
   m_hints  = hints;
-  m_libass = new CDVDSubtitlesLibass();
+  m_libass.reset(new CDVDSubtitlesLibass());
   return m_libass->DecodeHeader((char *)hints.extradata, hints.extrasize);
 }
 
 void CDVDOverlayCodecSSA::Dispose()
 {
-  if(m_libass)
-    SAFE_RELEASE(m_libass);
-
   if(m_pOverlay)
     SAFE_RELEASE(m_pOverlay);
 }
@@ -148,7 +145,7 @@ void CDVDOverlayCodecSSA::Reset()
   Dispose();
   m_order  = 0;
   m_output = false;
-  m_libass = new CDVDSubtitlesLibass();
+  m_libass.reset(new CDVDSubtitlesLibass());
   m_libass->DecodeHeader((char *)m_hints.extradata, m_hints.extrasize);
 }
 

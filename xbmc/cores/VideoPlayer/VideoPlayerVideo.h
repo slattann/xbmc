@@ -31,6 +31,7 @@
 #include "cores/VideoPlayer/VideoRenderers/RenderManager.h"
 #include "utils/BitstreamStats.h"
 #include <atomic>
+#include <memory>
 
 #define DROP_DROPPED 1
 #define DROP_VERYLATE 2
@@ -69,7 +70,7 @@ public:
   bool AcceptsData() const override;
   bool HasData() const override;
   bool IsInited() const override;
-  void SendMessage(CDVDMsg* pMsg, int priority = 0) override;
+  void SendMessage(std::shared_ptr<CDVDMsg> pMsg, int priority = 0);
   void FlushMessages() override;
 
   void EnableSubtitle(bool bEnable) override { m_bRenderSubs = bEnable; }
@@ -103,8 +104,8 @@ protected:
   void Process() override;
 
   bool ProcessDecoderOutput(double &frametime, double &pts);
-  void SendMessageBack(CDVDMsg* pMsg, int priority = 0);
-  MsgQueueReturnCode GetMessage(CDVDMsg** pMsg, unsigned int iTimeoutInMilliSeconds, int &priority);
+  void SendMessageBack(std::shared_ptr<CDVDMsg> pMsg, int priority = 0);
+  MsgQueueReturnCode GetMessage(std::shared_ptr<CDVDMsg> pMsg, unsigned int iTimeoutInMilliSeconds, int &priority);
 
   EOutputState OutputPicture(const VideoPicture* src);
   void ProcessOverlays(const VideoPicture* pSource, double pts);

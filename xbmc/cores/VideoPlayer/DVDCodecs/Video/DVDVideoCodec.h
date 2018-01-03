@@ -24,15 +24,15 @@
 #include "cores/VideoPlayer/Process/ProcessInfo.h"
 #include "cores/VideoPlayer/Process/VideoBuffer.h"
 #include "cores/VideoPlayer/Interface/Addon/DemuxPacket.h"
-#include "DVDResource.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
 }
 
-#include <vector>
-#include <string>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 class CSetting;
 
@@ -254,11 +254,11 @@ protected:
 };
 
 // callback interface for ffmpeg hw accelerators
-class IHardwareDecoder : public IDVDResourceCounted<IHardwareDecoder>
+class IHardwareDecoder
 {
 public:
   IHardwareDecoder() = default;
-  ~IHardwareDecoder() override = default;
+  ~IHardwareDecoder() = default;
   virtual bool Open(AVCodecContext* avctx, AVCodecContext* mainctx, const enum AVPixelFormat) = 0;
   virtual CDVDVideoCodec::VCReturn Decode(AVCodecContext* avctx, AVFrame* frame) = 0;
   virtual bool GetPicture(AVCodecContext* avctx, VideoPicture* picture) = 0;
@@ -274,6 +274,6 @@ class ICallbackHWAccel
 {
 public:
   virtual ~ICallbackHWAccel() = default;
-  virtual IHardwareDecoder* GetHWAccel() = 0;
+  virtual std::shared_ptr<IHardwareDecoder> GetHWAccel() = 0;
   virtual bool GetPictureCommon(VideoPicture* pVideoPicture) = 0;
 };

@@ -20,6 +20,8 @@
  *
  */
 
+#include <memory>
+
 #include "DVDOverlayContainer.h"
 #include "DVDSubtitles/DVDFactorySubtitle.h"
 #include "DVDStreamInfo.h"
@@ -47,7 +49,7 @@ public:
   void UpdateOverlayInfo(std::shared_ptr<CDVDInputStreamNavigator> pStream, int iAction) { m_pOverlayContainer->UpdateOverlayInfo(pStream, &m_dvdspus, iAction); }
 
   bool AcceptsData() const override;
-  void SendMessage(CDVDMsg* pMsg, int priority = 0) override;
+  void SendMessage(std::shared_ptr<CDVDMsg> pMsg, int priority = 0);
   void FlushMessages() override {}
   bool OpenStream(CDVDStreamInfo hints) override { return OpenStream(hints, hints.filename); }
   bool OpenStream(CDVDStreamInfo &hints, std::string& filename);

@@ -92,17 +92,6 @@ void CDVDMsgGeneralSynchronize::Wait(std::atomic<bool>& abort, unsigned int sour
   while(!Wait(100, source) && !abort);
 }
 
-long CDVDMsgGeneralSynchronize::Release()
-{
-  CSingleLock lock(m_p->section);
-  long count = --m_refs;
-  m_p->condition.notifyAll();
-  lock.Leave();
-  if (count == 0)
-    delete this;
-  return count;
-}
-
 /**
  * CDVDMsgDemuxerPacket --- DEMUXER_PACKET
  */

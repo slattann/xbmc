@@ -23,7 +23,6 @@ set(HEADERS AudioSinkAE.h
             DVDMessage.h
             DVDMessageQueue.h
             DVDOverlayContainer.h
-            DVDResource.h
             DVDStreamInfo.h
             Edl.h
             IVideoPlayer.h

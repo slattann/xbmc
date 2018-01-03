@@ -23,7 +23,6 @@
 #include "cores/VideoPlayer/DVDCodecs/DVDCodecs.h"
 #include "cores/VideoPlayer/DVDStreamInfo.h"
 #include "DVDVideoCodec.h"
-#include "DVDResource.h"
 #include "DVDVideoPPFFmpeg.h"
 #include <string>
 #include <vector>
@@ -55,7 +54,7 @@ public:
   bool GetCodecStats(double &pts, int &droppedFrames, int &skippedPics) override;
   void SetCodecControl(int flags) override;
 
-  IHardwareDecoder* GetHWAccel() override;
+  std::shared_ptr<IHardwareDecoder> GetHWAccel() override;
   bool GetPictureCommon(VideoPicture* pVideoPicture) override;
 
 protected:
@@ -70,7 +69,7 @@ protected:
   bool SetPictureParams(VideoPicture* pVideoPicture);
 
   bool HasHardware() { return m_pHardware != nullptr; };
-  void SetHardware(IHardwareDecoder *hardware);
+  void SetHardware(std::shared_ptr<IHardwareDecoder> hardware);
 
   AVFrame* m_pFrame;
   AVFrame* m_pDecodedFrame;
@@ -97,7 +96,7 @@ protected:
 
   std::string m_name;
   int m_decoderState;
-  IHardwareDecoder *m_pHardware;
+  std::shared_ptr<IHardwareDecoder> m_pHardware;
   int m_iLastKeyframe;
   double m_dts;
   bool m_started = false;

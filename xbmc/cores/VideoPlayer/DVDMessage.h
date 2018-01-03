@@ -21,16 +21,16 @@
 
 #pragma once
 
-#include "DVDResource.h"
 #include "FileItem.h"
 #include "cores/IPlayer.h"
 #include <atomic>
+#include <memory>
 #include <string>
 #include <string.h>
 
 struct DemuxPacket;
 
-class CDVDMsg : public IDVDResourceCounted<CDVDMsg>
+class CDVDMsg
 {
 public:
   enum Message
@@ -83,7 +83,7 @@ public:
     m_message = msg;
   }
 
-  ~CDVDMsg() override = default;
+  ~CDVDMsg() = default;
 
   /**
    * checks for message type
@@ -96,11 +96,6 @@ public:
   inline Message GetMessageType()
   {
     return m_message;
-  }
-
-  long GetNrOfReferences()
-  {
-    return m_refs;
   }
 
 private:
@@ -123,8 +118,7 @@ class CDVDMsgGeneralSynchronize : public CDVDMsg
 {
 public:
   CDVDMsgGeneralSynchronize(unsigned int timeout, unsigned int sources);
- ~CDVDMsgGeneralSynchronize() override;
-  long Release() override;
+ ~CDVDMsgGeneralSynchronize();
 
   // waits until all threads waiting, released the object
   // if abort is set somehow
@@ -292,7 +286,7 @@ class CDVDMsgDemuxerPacket : public CDVDMsg
 {
 public:
   CDVDMsgDemuxerPacket(DemuxPacket* packet, bool drop = false);
-  ~CDVDMsgDemuxerPacket() override;
+  ~CDVDMsgDemuxerPacket();
   DemuxPacket* GetPacket() { return m_packet; }
   unsigned int GetPacketSize();
   bool GetPacketDrop() { return m_drop; }

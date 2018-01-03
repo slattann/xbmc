@@ -21,6 +21,7 @@
  */
 
 #include <deque>
+#include <memory>
 
 #include "IVideoPlayer.h"
 #include "DVDMessageQueue.h"
@@ -54,7 +55,7 @@ public:
   // waits until all available data has been rendered
   void WaitForBuffers() { m_messageQueue.WaitUntilEmpty(); }
   bool AcceptsData() const override { return !m_messageQueue.IsFull(); }
-  void SendMessage(CDVDMsg* pMsg, int priority = 0) override { if(m_messageQueue.IsInited()) m_messageQueue.Put(pMsg, priority); }
+  void SendMessage(std::shared_ptr<CDVDMsg> pMsg, int priority = 0) { if(m_messageQueue.IsInited()) m_messageQueue.Put(pMsg, priority); }
   void FlushMessages() override { m_messageQueue.Flush(); }
   bool IsInited() const override { return true; }
   bool IsStalled() const override { return true; }
