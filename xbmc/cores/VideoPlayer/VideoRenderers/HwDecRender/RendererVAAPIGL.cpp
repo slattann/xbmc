@@ -77,7 +77,9 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
 
   for (auto &tex : m_vaapiTextures)
   {
-    tex.Init(interop);
+    // FIXME How do we know which texture type to create without running the interop test every time?
+    tex.reset(VAAPI::CVaapiTexture::CreateTexture(CRendererVAAPI::m_pWinSystem->GetVADisplay(), CRendererVAAPI::m_pWinSystem->GetEGLDisplay()));
+    tex->Init(interop);
   }
   for (auto &fence : m_fences)
   {
@@ -182,13 +184,14 @@ bool CRendererVAAPI::UploadTexture(int index)
     return false;
   }
 
-  m_vaapiTextures[index].Map(pic);
+  m_vaapiTextures[index]->Map(pic);
 
   YuvImage &im = buf.image;
   YUVPLANE (&planes)[3] = buf.fields[0];
 
-  planes[0].texwidth  = m_vaapiTextures[index].m_texWidth;
-  planes[0].texheight = m_vaapiTextures[index].m_texHeight;
+  auto size = m_vaapiTextures[index]->GetTextureSize();
+  planes[0].texwidth  = size.Width();
+  planes[0].texheight = size.Height();
 
   planes[1].texwidth  = planes[0].texwidth  >> im.cshift_x;
   planes[1].texheight = planes[0].texheight >> im.cshift_y;
@@ -202,9 +205,9 @@ bool CRendererVAAPI::UploadTexture(int index)
   }
 
   // set textures
-  planes[0].id = m_vaapiTextures[index].m_textureY;
-  planes[1].id = m_vaapiTextures[index].m_textureVU;
-  planes[2].id = m_vaapiTextures[index].m_textureVU;
+  planes[0].id = m_vaapiTextures[index]->GetTextureY();
+  planes[1].id = m_vaapiTextures[index]->GetTextureVU();
+  planes[2].id = m_vaapiTextures[index]->GetTextureVU();
 
   for (int p=0; p<2; p++)
   {
@@ -260,6 +263,6 @@ void CRendererVAAPI::ReleaseBuffer(int idx)
     glDeleteSync(m_fences[idx]);
     m_fences[idx] = GL_NONE;
   }
-  m_vaapiTextures[idx].Unmap();
+  m_vaapiTextures[idx]->Unmap();
   CLinuxRendererGL::ReleaseBuffer(idx);
 }

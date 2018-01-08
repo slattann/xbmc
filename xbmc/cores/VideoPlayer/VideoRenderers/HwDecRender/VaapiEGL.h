@@ -35,6 +35,7 @@
 #include <va/va.h>
 #include <va/va_drmcommon.h>
 
+#include "guilib/Geometry.h"
 #include "utils/posix/FileHandle.h"
 
 namespace VAAPI
@@ -54,23 +55,45 @@ struct InteropInfo
 class CVaapiTexture
 {
 public:
-  CVaapiTexture();
-  bool Map(CVaapiRenderPicture *pic);
-  void Unmap();
-  void Init(InteropInfo &interop);
+  CVaapiTexture() = default;
+  virtual ~CVaapiTexture() = default;
+
+  virtual void Init(InteropInfo &interop) = 0;
+  virtual bool Map(CVaapiRenderPicture *pic) = 0;
+  virtual void Unmap() = 0;
+
+  virtual GLuint GetTextureY() = 0;
+  virtual GLuint GetTextureVU() = 0;
+  virtual CSizeInt GetTextureSize() = 0;
+
   static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
 
+  static CVaapiTexture* CreateTexture(VADisplay vaDpy, EGLDisplay eglDisplay);
+};
+
+class CVaapi1Texture : public CVaapiTexture
+{
+public:
+  CVaapi1Texture();
+
+  bool Map(CVaapiRenderPicture *pic) override;
+  void Unmap() override;
+  void Init(InteropInfo &interop) override;
+
+  GLuint GetTextureY() override;
+  GLuint GetTextureVU() override;
+  CSizeInt GetTextureSize() override;
+
+  static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
+
+  GLuint m_texture = 0;
   GLuint m_textureY = 0;
   GLuint m_textureVU = 0;
   int m_texWidth = 0;
   int m_texHeight = 0;
 
-private:
-  bool MapImage(CVaapiRenderPicture *pic);
-  bool MapEsh(CVaapiRenderPicture *pic);
-  GLuint ImportImageToTexture(EGLImageKHR image);
+protected:
   static bool TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay);
-  static bool TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, VASurfaceID surface, int width, int height);
 
   InteropInfo m_interop;
   CVaapiRenderPicture *m_vaapiPic = nullptr;
@@ -78,12 +101,45 @@ private:
   {
     VAImage vaImage;
     VABufferInfo vBufInfo;
-    VADRMPRIMESurfaceDescriptor vaDrmPrimeSurface;
-    EGLImageKHR eglImageY{EGL_NO_IMAGE_KHR}, eglImageVU{EGL_NO_IMAGE_KHR};
+    EGLImageKHR eglImage;
+    EGLImageKHR eglImageY, eglImageVU;
   } m_glSurface;
-  bool m_exportSurfaceUnimplemented{false};
+};
+
+#if VA_CHECK_VERSION(1, 1, 0)
+class CVaapi2Texture : public CVaapiTexture
+{
+public:
+  bool Map(CVaapiRenderPicture *pic) override;
+  void Unmap() override;
+  void Init(InteropInfo &interop) override;
+
+  GLuint GetTextureY() override;
+  GLuint GetTextureVU() override;
+  CSizeInt GetTextureSize() override;
+
+  static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
+
+private:
+  static bool TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, std::uint32_t rtFormat, std::int32_t pixelFormat);
+
+  struct MappedTexture
+  {
+    EGLImageKHR eglImage{EGL_NO_IMAGE_KHR};
+    GLuint glTexture{0};
+  };
+
+  GLuint ImportImageToTexture(EGLImageKHR image);
+  void Unmap(MappedTexture& texture);
+
+  InteropInfo m_interop;
+  CVaapiRenderPicture* m_vaapiPic{};
   bool m_hasPlaneModifiers{false};
   std::array<KODI::UTILS::POSIX::CFileHandle, 4> m_drmFDs;
+  MappedTexture m_y, m_vu;
+  CSizeInt m_textureSize;
 };
+#endif
+
 }
 
