@@ -198,125 +198,62 @@ bool CVaapiTexture::MapImage(CVaapiRenderPicture *pic)
 
   m_texWidth = m_glSurface.vaImage.width;
   m_texHeight = m_glSurface.vaImage.height;
-
-  GLint attribs[23], *attrib;
+  
+  struct {
+    EGLint drmFormat;
+    EGLImageKHR* eglImage;
+    GLuint* glTexture;
+    EGLint width, heigth;
+  } surfaceTargets[2] ={
+    {DRM_FORMAT_R8, &m_glSurface.eglImageY, &m_textureY, m_texWidth, m_texHeight},
+    {DRM_FORMAT_GR88, &m_glSurface.eglImageVU, &m_textureVU, (m_texWidth + 1) >> 1, (m_texHeight + 1) >> 1}
+  };
 
   switch (m_glSurface.vaImage.format.fourcc)
   {
-    case VA_FOURCC('N','V','1','2'):
-    {
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('R', '8', ' ', ' ');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = m_glSurface.vaImage.width;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = m_glSurface.vaImage.height;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)m_glSurface.vBufInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = m_glSurface.vaImage.offsets[0];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = m_glSurface.vaImage.pitches[0];
-      *attrib++ = EGL_NONE;
-      m_glSurface.eglImageY = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                          EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                          attribs);
-      if (!m_glSurface.eglImageY)
-      {
-        EGLint err = eglGetError();
-        CLog::Log(LOGERROR, "failed to import VA buffer NV12 into EGL image: %d", err);
-        return false;
-      }
-
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('G', 'R', '8', '8');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = (m_glSurface.vaImage.width + 1) >> 1;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = (m_glSurface.vaImage.height + 1) >> 1;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)m_glSurface.vBufInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = m_glSurface.vaImage.offsets[1];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = m_glSurface.vaImage.pitches[1];
-      *attrib++ = EGL_NONE;
-      m_glSurface.eglImageVU = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                          EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                          attribs);
-      if (!m_glSurface.eglImageVU)
-      {
-        EGLint err = eglGetError();
-        CLog::Log(LOGERROR, "failed to import VA buffer NV12 into EGL image: %d", err);
-        return false;
-      }
-
-      m_textureY = ImportImageToTexture(m_glSurface.eglImageY);
-      m_textureVU = ImportImageToTexture(m_glSurface.eglImageVU);
-
+    case VA_FOURCC_NV12:
+      // defaults are fine
       break;
-    }
-    case VA_FOURCC('P','0','1','0'):
-    {
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('R', '1', '6', ' ');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = m_glSurface.vaImage.width;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = m_glSurface.vaImage.height;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)m_glSurface.vBufInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = m_glSurface.vaImage.offsets[0];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = m_glSurface.vaImage.pitches[0];
-      *attrib++ = EGL_NONE;
-      m_glSurface.eglImageY = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                          EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                          attribs);
-      if (!m_glSurface.eglImageY)
-      {
-        EGLint err = eglGetError();
-        CLog::Log(LOGERROR, "failed to import VA buffer P010 into EGL image: %d", err);
-        return false;
-      }
-
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('G', 'R', '3', '2');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = (m_glSurface.vaImage.width + 1) >> 1;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = (m_glSurface.vaImage.height + 1) >> 1;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)m_glSurface.vBufInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = m_glSurface.vaImage.offsets[1];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = m_glSurface.vaImage.pitches[1];
-      *attrib++ = EGL_NONE;
-      m_glSurface.eglImageVU = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
-                                          EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                          attribs);
-      if (!m_glSurface.eglImageVU)
-      {
-        EGLint err = eglGetError();
-        CLog::Log(LOGERROR, "failed to import VA buffer P010 into EGL image: %d", err);
-        return false;
-      }
-
-      m_textureY = ImportImageToTexture(m_glSurface.eglImageY);
-      m_textureVU = ImportImageToTexture(m_glSurface.eglImageVU);
-
+    case VA_FOURCC_P010:
+    case VA_FOURCC_P016:
+      surfaceTargets[0].drmFormat = DRM_FORMAT_R16;
+      surfaceTargets[1].drmFormat = DRM_FORMAT_GR1616;
       break;
-    }
     default:
+      CLog::Log(LOGERROR, "CVaapiTexture::%s - Unknown VAImage format %x", __FUNCTION__, m_glSurface.vaImage.format.fourcc);
       return false;
   }
-  
+
+  if (m_glSurface.vaImage.num_planes != 2)
+  {
+    CLog::Log(LOGERROR, "CVaapiTexture::%s - VAImage has %d planes instead of expected 2", m_glSurface.vaImage.num_planes);
+    return false;
+  }
+
+  for (int planeNo = 0; planeNo < m_glSurface.vaImage.num_planes; planeNo++)
+  {
+    auto const& targetAttribs = surfaceTargets[planeNo];
+    EGLint attribs[] = {
+      EGL_LINUX_DRM_FOURCC_EXT, targetAttribs.drmFormat,
+      EGL_WIDTH, targetAttribs.width,
+      EGL_HEIGHT, targetAttribs.heigth,
+      EGL_DMA_BUF_PLANE0_FD_EXT, static_cast<EGLint> (m_glSurface.vBufInfo.handle),
+      EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (m_glSurface.vaImage.offsets[planeNo]),
+      EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (m_glSurface.vaImage.pitches[planeNo]),
+      EGL_NONE
+    };
+    *targetAttribs.eglImage = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
+                                                          EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
+                                                          attribs);
+    if (!*targetAttribs.eglImage)
+    {
+      CEGLUtils::LogError("Failed to import VA DRM surface into EGL image");
+      return false;
+    }
+
+    *targetAttribs.glTexture = ImportImageToTexture(*targetAttribs.eglImage);
+  }
+
   return true;
 }
 
