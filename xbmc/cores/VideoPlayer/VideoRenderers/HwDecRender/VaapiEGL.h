@@ -61,6 +61,7 @@ public:
 
 private:
   static bool TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay);
+  static bool TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, VASurfaceID surface, int width, int height);
 
   InteropInfo m_interop;
   CVaapiRenderPicture *m_vaapiPic = nullptr;

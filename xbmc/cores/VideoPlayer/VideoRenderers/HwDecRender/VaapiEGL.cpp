@@ -229,6 +229,54 @@ void CVaapiTexture::Unmap()
   m_vaapiPic = nullptr;
 }
 
+bool CVaapiTexture::TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, VASurfaceID surface, int width, int height)
+{
+#if VA_CHECK_VERSION(1, 1, 0)
+  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
+  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
+
+  VADRMPRIMESurfaceDescriptor drmPrimeSurface;
+  VAStatus status = vaExportSurfaceHandle(vaDpy, surface,
+                                 VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                                 VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS,
+                                 &drmPrimeSurface);
+
+  bool result = false;
+
+  if (status == VA_STATUS_SUCCESS)
+  {
+    auto const& layer = drmPrimeSurface.layers[0];
+    auto const& object = drmPrimeSurface.objects[layer.object_index[0]];
+    EGLint attribs[] = {
+      EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint> (drmPrimeSurface.layers[0].drm_format),
+      EGL_WIDTH, width,
+      EGL_HEIGHT, height,
+      EGL_DMA_BUF_PLANE0_FD_EXT, static_cast<EGLint> (object.fd),
+      EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (layer.offset[0]),
+      EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (layer.pitch[0]),
+      EGL_NONE
+    };
+
+    EGLImageKHR eglImage = eglCreateImageKHR(eglDisplay,
+                                             EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
+                                             attribs);
+    if (eglImage)
+    {
+      eglDestroyImageKHR(eglDisplay, eglImage);
+      result = true;
+    }
+
+    for (int object = 0; object < drmPrimeSurface.num_objects; object++)
+    {
+      close(drmPrimeSurface.objects[object].fd);
+    }
+  }
+  return result;
+#else
+  return false;
+#endif
+}
+
 void CVaapiTexture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc)
 {
   general = false;
@@ -267,42 +315,40 @@ void CVaapiTexture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &ge
     return;
   }
 
-  status = vaDeriveImage(vaDpy, surface, &image);
-  if (status == VA_STATUS_SUCCESS)
+  general = TestEsh(vaDpy, eglDisplay, surface, width, height);
+
+  if (!general)
   {
-    memset(&bufferInfo, 0, sizeof(bufferInfo));
-    bufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
-    status = vaAcquireBufferHandle(vaDpy, image.buf, &bufferInfo);
+    status = vaDeriveImage(vaDpy, surface, &image);
     if (status == VA_STATUS_SUCCESS)
     {
-      EGLImageKHR eglImage;
-      GLint attribs[23], *attrib;
-
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('R', '8', ' ', ' ');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = image.width;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = image.height;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)bufferInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = image.offsets[0];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = image.pitches[0];
-      *attrib++ = EGL_NONE;
-      eglImage = eglCreateImageKHR(eglDisplay,
-                                   EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                   attribs);
-      if (eglImage)
+      memset(&bufferInfo, 0, sizeof(bufferInfo));
+      bufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+      status = vaAcquireBufferHandle(vaDpy, image.buf, &bufferInfo);
+      if (status == VA_STATUS_SUCCESS)
       {
-        eglDestroyImageKHR(eglDisplay, eglImage);
-        general = true;
-      }
+        EGLImageKHR eglImage;
+        EGLint attribs[] = {
+          EGL_LINUX_DRM_FOURCC_EXT, DRM_FORMAT_R8,
+          EGL_WIDTH, image.width,
+          EGL_HEIGHT, image.height,
+          EGL_DMA_BUF_PLANE0_FD_EXT, static_cast<EGLint> (bufferInfo.handle),
+          EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (image.offsets[0]),
+          EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (image.pitches[0]),
+          EGL_NONE
+        };
 
+        eglImage = eglCreateImageKHR(eglDisplay,
+                                     EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
+                                     attribs);
+        if (eglImage)
+        {
+          eglDestroyImageKHR(eglDisplay, eglImage);
+          general = true;
+        }
+      }
+      vaDestroyImage(vaDpy, image.image_id);
     }
-    vaDestroyImage(vaDpy, image.image_id);
   }
   vaDestroySurfaces(vaDpy, &surface, 1);
 
@@ -337,7 +383,7 @@ bool CVaapiTexture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
                        width, height,
                        &surface, 1, &attribs, 1) != VA_STATUS_SUCCESS)
   {
-    return ret;
+    return false;
   }
 
   PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
@@ -348,43 +394,43 @@ bool CVaapiTexture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   }
 
   // check interop
-  status = vaDeriveImage(vaDpy, surface, &image);
-  if (status == VA_STATUS_SUCCESS)
+  ret = TestEsh(vaDpy, eglDisplay, surface, width, height);
+
+  if (!ret)
   {
-    memset(&bufferInfo, 0, sizeof(bufferInfo));
-    bufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
-    status = vaAcquireBufferHandle(vaDpy, image.buf, &bufferInfo);
+    status = vaDeriveImage(vaDpy, surface, &image);
     if (status == VA_STATUS_SUCCESS)
     {
-      EGLImageKHR eglImage;
-      GLint attribs[23], *attrib;
-
-      attrib = attribs;
-      *attrib++ = EGL_LINUX_DRM_FOURCC_EXT;
-      *attrib++ = fourcc_code('G', 'R', '3', '2');
-      *attrib++ = EGL_WIDTH;
-      *attrib++ = (image.width +1) >> 1;
-      *attrib++ = EGL_HEIGHT;
-      *attrib++ = (image.height +1) >> 1;
-      *attrib++ = EGL_DMA_BUF_PLANE0_FD_EXT;
-      *attrib++ = (intptr_t)bufferInfo.handle;
-      *attrib++ = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-      *attrib++ = image.offsets[1];
-      *attrib++ = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-      *attrib++ = image.pitches[1];
-      *attrib++ = EGL_NONE;
-      eglImage = eglCreateImageKHR(eglDisplay,
-                                   EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
-                                   attribs);
-      if (eglImage)
+      memset(&bufferInfo, 0, sizeof(bufferInfo));
+      bufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+      status = vaAcquireBufferHandle(vaDpy, image.buf, &bufferInfo);
+      if (status == VA_STATUS_SUCCESS)
       {
-        eglDestroyImageKHR(eglDisplay, eglImage);
-        ret = true;
-      }
+        EGLImageKHR eglImage;
+        EGLint attribs[] = {
+          EGL_LINUX_DRM_FOURCC_EXT, DRM_FORMAT_GR1616,
+          EGL_WIDTH, (image.width + 1) >> 1,
+          EGL_HEIGHT, (image.height + 1) >> 1,
+          EGL_DMA_BUF_PLANE0_FD_EXT, static_cast<EGLint> (bufferInfo.handle),
+          EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (image.offsets[1]),
+          EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (image.pitches[1]),
+          EGL_NONE
+        };
 
+        eglImage = eglCreateImageKHR(eglDisplay,
+                                     EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer)NULL,
+                                     attribs);
+        if (eglImage)
+        {
+          eglDestroyImageKHR(eglDisplay, eglImage);
+          ret = true;
+        }
+
+      }
+      vaDestroyImage(vaDpy, image.image_id);
     }
-    vaDestroyImage(vaDpy, image.image_id);
   }
+  
   vaDestroySurfaces(vaDpy, &surface, 1);
 
   return ret;
