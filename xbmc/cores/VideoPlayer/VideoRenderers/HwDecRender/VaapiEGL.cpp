@@ -506,6 +506,12 @@ GLuint CVaapi2Texture::ImportImageToTexture(EGLImageKHR image)
 
 bool CVaapi2Texture::Map(CVaapiRenderPicture *pic)
 {
+  if (m_vaapiPic)
+    return true;
+
+  m_vaapiPic = pic;
+  m_vaapiPic->Acquire();
+
   VAStatus status;
 
   VADRMPRIMESurfaceDescriptor surface;
@@ -611,7 +617,8 @@ bool CVaapi2Texture::Map(CVaapiRenderPicture *pic)
     }
 
     texture->glTexture = ImportImageToTexture(texture->eglImage);
-   }
+  }
+
   return true;
 }
 
