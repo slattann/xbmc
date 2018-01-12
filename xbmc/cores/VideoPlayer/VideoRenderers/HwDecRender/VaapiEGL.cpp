@@ -26,21 +26,9 @@
 #include "utils/log.h"
 #include "utils/EGLUtils.h"
 
-using namespace VAAPI;
+#define HAVE_VAEXPORTSURFACHEHANDLE VA_CHECK_VERSION(1,1,0)
 
-void CVaapiTexture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool& general, bool& hevc)
-{
-  general = hevc = false;
-#if KODI_HAVE_VAAPI2TEXTURE
-  CVaapi2Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
-  CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general %s, hevc %s", general ? "yes" : "no", hevc ? "yes" : "no");
-#endif
-  if (!general)
-  {
-    CVaapi1Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
-    CLog::Log(LOGDEBUG, "Vaapi1 EGL interop test results: general %s, hevc %s", general ? "yes" : "no", hevc ? "yes" : "no");
-  }
-}
+using namespace VAAPI;
 
 CVaapi1Texture::CVaapi1Texture()
 {
@@ -474,7 +462,6 @@ bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   return ret;
 }
 
-#if KODI_HAVE_VAAPI2TEXTURE
 void CVaapi2Texture::Init(InteropInfo& interop)
 {
   m_interop = interop;
@@ -493,6 +480,7 @@ GLuint CVaapi2Texture::ImportImageToTexture(EGLImageKHR image)
 
 bool CVaapi2Texture::Map(CVaapiRenderPicture *pic)
 {
+#if HAVE_VAEXPORTSURFACHEHANDLE
   if (m_vaapiPic)
     return true;
 
@@ -573,30 +561,27 @@ bool CVaapi2Texture::Map(CVaapiRenderPicture *pic)
         return false;
     }
 
-    EGLint attribs[13 + 4 /* modifiers */] = {
-      EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint> (layer.drm_format),
-      EGL_WIDTH, static_cast<EGLint> (width),
-      EGL_HEIGHT, static_cast<EGLint> (height),
-      EGL_DMA_BUF_PLANE0_FD_EXT, object.fd,
-      EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (layer.offset[plane]),
-      EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (layer.pitch[plane]),
-      // When adding parameters, be sure to update the &attribs reference for the
-      // plane modifiers below
-      EGL_NONE
-    };
+    CEGLAttributes<8> attribs; // 6 static + 2 modifiers
+    attribs.Add({
+      {EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint> (layer.drm_format)},
+      {EGL_WIDTH, static_cast<EGLint> (width)},
+      {EGL_HEIGHT, static_cast<EGLint> (height)},
+      {EGL_DMA_BUF_PLANE0_FD_EXT, object.fd},
+      {EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint> (layer.offset[plane])},
+      {EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint> (layer.pitch[plane])}
+    });
+
     if (m_hasPlaneModifiers)
     {
-      EGLint* attrib = &attribs[12];
-      *attrib++ = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
-      *attrib++ = static_cast<EGLint> (object.drm_format_modifier);
-      *attrib++ = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
-      *attrib++ = static_cast<EGLint> (object.drm_format_modifier >> 32);
-      *attrib++ = EGL_NONE;
+      attribs.Add({
+        {EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, static_cast<EGLint> (object.drm_format_modifier)},
+        {EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, static_cast<EGLint> (object.drm_format_modifier >> 32)}
+      });
     }
 
     texture->eglImage = m_interop.eglCreateImageKHR(m_interop.eglDisplay,
                                                    EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
-                                                   attribs);
+                                                   attribs.Get());
     if (!texture->eglImage)
     {
       CEGLUtils::LogError("Failed to import VA DRM surface into EGL image");
@@ -607,6 +592,9 @@ bool CVaapi2Texture::Map(CVaapiRenderPicture *pic)
   }
 
   return true;
+#else
+  return false;
+#endif
 }
 
 void CVaapi2Texture::Unmap(MappedTexture& texture)
@@ -652,6 +640,7 @@ CSizeInt CVaapi2Texture::GetTextureSize()
 
 bool CVaapi2Texture::TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, std::uint32_t rtFormat, std::int32_t pixelFormat)
 {
+#if HAVE_VAEXPORTSURFACHEHANDLE
   int width = 1920;
   int height = 1080;
 
@@ -720,6 +709,9 @@ bool CVaapi2Texture::TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, std::uint32
   vaDestroySurfaces(vaDpy, &surface, 1);
 
   return result;
+#else
+  return false;
+#endif
 }
 
 
@@ -743,4 +735,3 @@ void CVaapi2Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
 
   vaTerminate(vaDpy);
 }
-#endif
