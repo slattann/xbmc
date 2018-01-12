@@ -18,6 +18,7 @@
  *
  */
 
+#include "RetroPlayerRendering.h"
 #include "RetroPlayerVideo.h"
 #include "cores/RetroPlayer/process/RPProcessInfo.h"
 #include "cores/RetroPlayer/rendering/RPRenderManager.h"
@@ -62,4 +63,12 @@ void CRetroPlayerVideo::AddData(const uint8_t* data, unsigned int size)
 void CRetroPlayerVideo::CloseStream()
 {
   m_renderManager.Flush();
+}
+
+GAME::IGameRenderingCallback* CRetroPlayerVideo::HardwareRendering()
+{
+  if (!m_hardwareRendering)
+    m_hardwareRendering.reset(new CRetroPlayerRendering(m_renderManager, m_processInfo));
+
+  return m_hardwareRendering.get();
 }

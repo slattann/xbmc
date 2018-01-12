@@ -18,6 +18,8 @@
  *
  */
 
+#include "cores/RetroPlayer/process/RenderBufferHardware.h"
+
 #include "RPRendererOpenGLES.h"
 #include "cores/RetroPlayer/rendering/RenderContext.h"
 #include "cores/RetroPlayer/rendering/RenderVideoSettings.h"
@@ -163,7 +165,8 @@ bool CRenderBufferPoolOpenGLES::IsCompatible(const CRenderVideoSettings &renderS
 
 IRenderBuffer *CRenderBufferPoolOpenGLES::CreateRenderBuffer(void *header /* = nullptr */)
 {
-  return new CRenderBufferOpenGLES(m_format, m_targetFormat, m_width, m_height);
+  return new CRenderBufferHardware(m_format, m_targetFormat, m_width, m_height);
+  //return new CRenderBufferOpenGLES(m_format, m_targetFormat, m_width, m_height);
 }
 
 bool CRenderBufferPoolOpenGLES::SetTargetFormat(AVPixelFormat targetFormat)

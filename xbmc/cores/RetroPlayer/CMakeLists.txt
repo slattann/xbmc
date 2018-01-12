@@ -2,6 +2,7 @@ set(SOURCES RetroPlayer.cpp
             RetroPlayerAudio.cpp
             RetroPlayerAutoSave.cpp
             RetroPlayerInput.cpp
+            RetroPlayerRendering.cpp
             RetroPlayerUtils.cpp
             RetroPlayerVideo.cpp
 )
@@ -10,6 +11,7 @@ set(HEADERS RetroPlayer.h
             RetroPlayerAudio.h
             RetroPlayerAutoSave.h
             RetroPlayerInput.h
+            RetroPlayerRendering.h
             RetroPlayerTypes.h
             RetroPlayerUtils.h
             RetroPlayerVideo.h

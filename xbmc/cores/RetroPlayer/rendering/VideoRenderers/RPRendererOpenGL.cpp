@@ -18,6 +18,8 @@
  *
  */
 
+#include "cores/RetroPlayer/process/RenderBufferHardware.h"
+
 #include "RPRendererOpenGL.h"
 #include "cores/RetroPlayer/rendering/RenderContext.h"
 #include "utils/log.h"
@@ -109,7 +111,8 @@ bool CRenderBufferOpenGL::UploadTexture()
 
 IRenderBuffer *CRenderBufferPoolOpenGL::CreateRenderBuffer(void *header /* = nullptr */)
 {
-  return new CRenderBufferOpenGL(m_format, m_targetFormat, m_width, m_height);
+  return new CRenderBufferHardware(m_format, m_targetFormat, m_width, m_height);
+  //return new CRenderBufferOpenGL(m_format, m_targetFormat, m_width, m_height);
 }
 
 // --- CRPRendererOpenGL -------------------------------------------------------
