@@ -38,6 +38,8 @@
 #include "guilib/Geometry.h"
 #include "utils/posix/FileHandle.h"
 
+#define KODI_HAVE_VAAPI2TEXTURE VA_CHECK_VERSION(1,1,0)
+
 namespace VAAPI
 {
 
@@ -67,8 +69,6 @@ public:
   virtual CSizeInt GetTextureSize() = 0;
 
   static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
-
-  static CVaapiTexture* CreateTexture(VADisplay vaDpy, EGLDisplay eglDisplay);
 };
 
 class CVaapi1Texture : public CVaapiTexture
@@ -106,7 +106,7 @@ protected:
   } m_glSurface;
 };
 
-#if VA_CHECK_VERSION(1, 1, 0)
+#if KODI_HAVE_VAAPI2TEXTURE
 class CVaapi2Texture : public CVaapiTexture
 {
 public:

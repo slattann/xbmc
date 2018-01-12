@@ -75,10 +75,30 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
   interop.glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
   interop.eglDisplay = CRendererVAAPI::m_pWinSystem->GetEGLDisplay();
 
+  bool useVaapi2{};
+  bool general{}, hevc{};
+#if KODI_HAVE_VAAPI2TEXTURE
+  VAAPI::CVaapi2Texture::TestInterop(CRendererVAAPI::m_pWinSystem->GetVADisplay(), CRendererVAAPI::m_pWinSystem->GetEGLDisplay(), general, hevc);
+  if (general)
+  {
+    useVaapi2 = true;
+  }
+#endif
+
   for (auto &tex : m_vaapiTextures)
   {
-    // FIXME How do we know which texture type to create without running the interop test every time?
-    tex.reset(VAAPI::CVaapiTexture::CreateTexture(CRendererVAAPI::m_pWinSystem->GetVADisplay(), CRendererVAAPI::m_pWinSystem->GetEGLDisplay()));
+#if KODI_HAVE_VAAPI2TEXTURE
+    if (useVaapi2)
+    {
+      tex.reset(new VAAPI::CVaapi2Texture);
+    }
+    else
+    {
+      tex.reset(new VAAPI::CVaapi1Texture);
+    }
+#else
+    tex.reset(new VAAPI::CVaapi1Texture);
+#endif
     tex->Init(interop);
   }
   for (auto &fence : m_fences)

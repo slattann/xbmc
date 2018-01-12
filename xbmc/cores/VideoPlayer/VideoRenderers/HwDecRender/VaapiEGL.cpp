@@ -31,7 +31,7 @@ using namespace VAAPI;
 void CVaapiTexture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool& general, bool& hevc)
 {
   general = hevc = false;
-#if VA_CHECK_VERSION(1, 1, 0)
+#if KODI_HAVE_VAAPI2TEXTURE
   CVaapi2Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
   CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general %s, hevc %s", general ? "yes" : "no", hevc ? "yes" : "no");
 #endif
@@ -40,19 +40,6 @@ void CVaapiTexture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool& ge
     CVaapi1Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
     CLog::Log(LOGDEBUG, "Vaapi1 EGL interop test results: general %s, hevc %s", general ? "yes" : "no", hevc ? "yes" : "no");
   }
-}
-
-CVaapiTexture* CVaapiTexture::CreateTexture(VADisplay vaDpy, EGLDisplay eglDisplay)
-{
-#if VA_CHECK_VERSION(1, 1, 0)
-  bool general{}, hevc{};
-  CVaapi2Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
-  if (general)
-  {
-    return new CVaapi2Texture;
-  }
-#endif
-  return new CVaapi1Texture;
 }
 
 CVaapi1Texture::CVaapi1Texture()
@@ -487,7 +474,7 @@ bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   return ret;
 }
 
-#if VA_CHECK_VERSION(1, 1, 0)
+#if KODI_HAVE_VAAPI2TEXTURE
 void CVaapi2Texture::Init(InteropInfo& interop)
 {
   m_interop = interop;
