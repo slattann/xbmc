@@ -32,7 +32,6 @@ using namespace VAAPI;
 
 CVaapi1Texture::CVaapi1Texture()
 {
-  m_glSurface.vaImage.image_id = VA_INVALID_ID;
 }
 
 void CVaapi1Texture::Init(InteropInfo &interop)
@@ -317,18 +316,10 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   general = false;
   hevc = false;
 
-  int major_version, minor_version;
-  if (vaInitialize(vaDpy, &major_version, &minor_version) != VA_STATUS_SUCCESS)
-  {
-    vaTerminate(vaDpy);
-    return;
-  }
-
   PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
   PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
   if (!eglCreateImageKHR || !eglDestroyImageKHR)
   {
-    vaTerminate(vaDpy);
     return;
   }
 
@@ -345,7 +336,6 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
                        width, height,
                        &surface, 1, NULL, 0) != VA_STATUS_SUCCESS)
   {
-    vaTerminate(vaDpy);
     return;
   }
 
@@ -387,13 +377,18 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   {
     hevc = TestInteropHevc(vaDpy, eglDisplay);
   }
-
-  vaTerminate(vaDpy);
 }
 
 bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
 {
   bool ret = false;
+
+  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
+  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
+  if (!eglCreateImageKHR || !eglDestroyImageKHR)
+  {
+    return false;
+  }
 
   int width = 1920;
   int height = 1080;
@@ -413,13 +408,6 @@ bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   if (vaCreateSurfaces(vaDpy,  VA_RT_FORMAT_YUV420_10BPP,
                        width, height,
                        &surface, 1, &attribs, 1) != VA_STATUS_SUCCESS)
-  {
-    return false;
-  }
-
-  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
-  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
-  if (!eglCreateImageKHR || !eglDestroyImageKHR)
   {
     return false;
   }
@@ -720,18 +708,9 @@ void CVaapi2Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   general = false;
   hevc = false;
 
-  int major_version, minor_version;
-  if (vaInitialize(vaDpy, &major_version, &minor_version) != VA_STATUS_SUCCESS)
-  {
-    vaTerminate(vaDpy);
-    return;
-  }
-
   general = TestEsh(vaDpy, eglDisplay, VA_RT_FORMAT_YUV420, VA_FOURCC_NV12);
   if (general)
   {
     hevc = TestEsh(vaDpy, eglDisplay, VA_RT_FORMAT_YUV420_10BPP, VA_FOURCC_P010);
   }
-
-  vaTerminate(vaDpy);
 }

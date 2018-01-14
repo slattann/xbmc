@@ -95,7 +95,7 @@ protected:
   CVaapiRenderPicture *m_vaapiPic = nullptr;
   struct GLSurface
   {
-    VAImage vaImage;
+    VAImage vaImage{VA_INVALID_ID};
     VABufferInfo vBufInfo;
     EGLImageKHR eglImage;
     EGLImageKHR eglImageY, eglImageVU;
