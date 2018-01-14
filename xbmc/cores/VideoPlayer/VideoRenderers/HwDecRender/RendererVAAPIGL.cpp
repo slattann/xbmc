@@ -43,7 +43,6 @@ CBaseRenderer* CRendererVAAPI::Create(CVideoBuffer *buffer)
 void CRendererVAAPI::Register(IVaapiWinSystem *winSystem, VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc)
 {
   general = hevc = false;
-
   CVaapi2Texture::TestInterop(vaDpy, eglDisplay, general, hevc);
   CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general %s, hevc %s", general ? "yes" : "no", hevc ? "yes" : "no");
   if (!general)
@@ -85,7 +84,7 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
   interop.eglDisplay = CRendererVAAPI::m_pWinSystem->GetEGLDisplay();
 
   bool useVaapi2{}, hevc{};
-  VAAPI::CVaapi2Texture::TestInterop(pic->vadsp, CRendererVAAPI::m_pWinSystem->GetEGLDisplay(), useVaapi2, hevc);
+  VAAPI::CVaapi2Texture::TestInterop(CRendererVAAPI::m_pWinSystem->GetVADisplay(), CRendererVAAPI::m_pWinSystem->GetEGLDisplay(), useVaapi2, hevc);
 
   for (auto &tex : m_vaapiTextures)
   {

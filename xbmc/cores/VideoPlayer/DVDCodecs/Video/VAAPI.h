@@ -359,7 +359,6 @@ private:
 class IVaapiWinSystem
 {
 public:
-  /// Get a (potentially shared) initialized VADisplay. The caller may not call vaTerminate on it.
   virtual VADisplay GetVADisplay() = 0;
   virtual void *GetEGLDisplay() { return nullptr; };
 };

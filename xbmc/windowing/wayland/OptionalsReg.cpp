@@ -27,47 +27,18 @@
 #include <va/va_wayland.h>
 #include "cores/VideoPlayer/DVDCodecs/Video/VAAPI.h"
 #include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererVAAPIGL.h"
-#include "utils/log.h"
 
 class CVaapiProxy : public VAAPI::IVaapiWinSystem
 {
 public:
   CVaapiProxy() = default;
-  virtual ~CVaapiProxy();
-  VADisplay GetVADisplay() override;
+  virtual ~CVaapiProxy() = default;
+  VADisplay GetVADisplay() override { return vaGetDisplayWl(dpy); };
   void *GetEGLDisplay() override { return eglDisplay; };
 
   wl_display *dpy;
   void *eglDisplay;
-  VADisplay vaDisplay{};
-  bool haveVaDisplay{};
 };
-
-CVaapiProxy::~CVaapiProxy()
-{
-  if (vaDisplay)
-  {
-    vaTerminate(vaDisplay);
-  }
-}
-
-VADisplay CVaapiProxy::GetVADisplay()
-{
-  if (!haveVaDisplay)
-  {
-    vaDisplay = vaGetDisplayWl(dpy);
-    int major_version, minor_version;
-    if (vaInitialize(vaDisplay, &major_version, &minor_version) != VA_STATUS_SUCCESS)
-    {
-      CLog::Log(LOGDEBUG, "VAAPI - Could not initialize for Wayland display");
-      vaTerminate(vaDisplay);
-      vaDisplay = nullptr;
-    }
-    CLog::Log(LOGDEBUG, "VAAPI - initialize version %d.%d", major_version, minor_version);
-    haveVaDisplay = true;
-  }
-  return vaDisplay;
-}
 
 CVaapiProxy* WAYLAND::VaapiProxyCreate()
 {
@@ -92,7 +63,9 @@ void WAYLAND::VAAPIRegister(CVaapiProxy *winSystem, bool hevc)
 
 void WAYLAND::VAAPIRegisterRender(CVaapiProxy *winSystem, bool &general, bool &hevc)
 {
-  CRendererVAAPI::Register(winSystem, winSystem->GetVADisplay(), winSystem->eglDisplay, general, hevc);
+  EGLDisplay eglDpy = winSystem->eglDisplay;
+  VADisplay vaDpy = vaGetDisplayWl(winSystem->dpy);
+  CRendererVAAPI::Register(winSystem, vaDpy, eglDpy, general, hevc);
 }
 
 #else

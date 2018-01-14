@@ -152,18 +152,9 @@ void CVAAPIContext::SetValidDRMVaDisplayFromRenderNode()
 
     if (display != nullptr)
     {
-      int major_version, minor_version;
-      if (CheckSuccess(vaInitialize(display, &major_version, &minor_version)))
-      {
-        m_renderNodeFD = fd;
-        m_display = display;
-
-        return;
-      }
-      else
-      {
-        vaTerminate(display);
-      }
+      m_renderNodeFD = fd;
+      m_display = display;
+      return;
     }
     close(fd);
   }
@@ -193,6 +184,15 @@ bool CVAAPIContext::CreateContext()
     return false;
   }
 
+  int major_version, minor_version;
+  if (!CheckSuccess(vaInitialize(m_display, &major_version, &minor_version)))
+  {
+    vaTerminate(m_display);
+    m_display = NULL;
+    return false;
+  }
+
+  CLog::Log(LOGDEBUG, LOGVIDEO, "VAAPI - initialize version %d.%d", major_version, minor_version);
   CLog::Log(LOGDEBUG, LOGVIDEO, "VAAPI - driver in use: %s", vaQueryVendorString(m_display));
 
   QueryCaps();
@@ -205,6 +205,8 @@ bool CVAAPIContext::CreateContext()
 void CVAAPIContext::DestroyContext()
 {
   delete[] m_profiles;
+  if (m_display)
+    CheckSuccess(vaTerminate(m_display));
 }
 
 void CVAAPIContext::QueryCaps()
