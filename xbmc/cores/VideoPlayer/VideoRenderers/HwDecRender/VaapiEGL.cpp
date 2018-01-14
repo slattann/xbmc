@@ -317,18 +317,10 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   general = false;
   hevc = false;
 
-  int major_version, minor_version;
-  if (vaInitialize(vaDpy, &major_version, &minor_version) != VA_STATUS_SUCCESS)
-  {
-    vaTerminate(vaDpy);
-    return;
-  }
-
   PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
   PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
   if (!eglCreateImageKHR || !eglDestroyImageKHR)
   {
-    vaTerminate(vaDpy);
     return;
   }
 
@@ -345,7 +337,6 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
                        width, height,
                        &surface, 1, NULL, 0) != VA_STATUS_SUCCESS)
   {
-    vaTerminate(vaDpy);
     return;
   }
 
@@ -387,8 +378,6 @@ void CVaapi1Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   {
     hevc = TestInteropHevc(vaDpy, eglDisplay);
   }
-
-  vaTerminate(vaDpy);
 }
 
 bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
@@ -410,16 +399,16 @@ bool CVaapi1Texture::TestInteropHevc(VADisplay vaDpy, EGLDisplay eglDisplay)
   attribs.value.type = VAGenericValueTypeInteger;
   attribs.value.value.i = VA_FOURCC_P010;
 
-  if (vaCreateSurfaces(vaDpy,  VA_RT_FORMAT_YUV420_10BPP,
-                       width, height,
-                       &surface, 1, &attribs, 1) != VA_STATUS_SUCCESS)
+  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
+  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
+  if (!eglCreateImageKHR || !eglDestroyImageKHR)
   {
     return false;
   }
 
-  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)eglGetProcAddress("eglCreateImageKHR");
-  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)eglGetProcAddress("eglDestroyImageKHR");
-  if (!eglCreateImageKHR || !eglDestroyImageKHR)
+  if (vaCreateSurfaces(vaDpy,  VA_RT_FORMAT_YUV420_10BPP,
+                       width, height,
+                       &surface, 1, &attribs, 1) != VA_STATUS_SUCCESS)
   {
     return false;
   }
@@ -720,18 +709,9 @@ void CVaapi2Texture::TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &g
   general = false;
   hevc = false;
 
-  int major_version, minor_version;
-  if (vaInitialize(vaDpy, &major_version, &minor_version) != VA_STATUS_SUCCESS)
-  {
-    vaTerminate(vaDpy);
-    return;
-  }
-
   general = TestEsh(vaDpy, eglDisplay, VA_RT_FORMAT_YUV420, VA_FOURCC_NV12);
   if (general)
   {
     hevc = TestEsh(vaDpy, eglDisplay, VA_RT_FORMAT_YUV420_10BPP, VA_FOURCC_P010);
   }
-
-  vaTerminate(vaDpy);
 }
