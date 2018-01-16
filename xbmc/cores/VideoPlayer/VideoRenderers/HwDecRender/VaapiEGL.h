@@ -114,6 +114,7 @@ public:
   CSizeInt GetTextureSize() override;
 
   static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &hevc);
+  static bool TestInteropGeneral(VADisplay vaDpy, EGLDisplay eglDisplay);
 
 private:
   static bool TestEsh(VADisplay vaDpy, EGLDisplay eglDisplay, std::uint32_t rtFormat, std::int32_t pixelFormat);

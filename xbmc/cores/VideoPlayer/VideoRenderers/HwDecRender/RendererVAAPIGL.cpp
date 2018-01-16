@@ -92,8 +92,7 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
   interop.glEGLImageTargetTexture2DOES = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
   interop.eglDisplay = CRendererVAAPI::m_pWinSystem->GetEGLDisplay();
 
-  bool useVaapi2{}, hevc{};
-  VAAPI::CVaapi2Texture::TestInterop(pic->vadsp, CRendererVAAPI::m_pWinSystem->GetEGLDisplay(), useVaapi2, hevc);
+  bool useVaapi2 = VAAPI::CVaapi2Texture::TestInteropGeneral(pic->vadsp, CRendererVAAPI::m_pWinSystem->GetEGLDisplay());
 
   for (auto &tex : m_vaapiTextures)
   {
