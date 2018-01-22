@@ -1104,17 +1104,17 @@ bool CLinuxRendererGLES::UploadYV12Texture(int source)
   glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
   //Load Y plane
-  LoadPlane(buf.fields[FIELD_FULL][0], GL_LUMINANCE,
+  LoadPlane(buf.fields[FIELD_FULL][0], GL_RED,
             im->width, im->height,
             im->stride[0], im->bpp, im->plane[0]);
 
   //load U plane
-  LoadPlane(buf.fields[FIELD_FULL][1], GL_LUMINANCE,
+  LoadPlane(buf.fields[FIELD_FULL][1], GL_RED,
             im->width >> im->cshift_x, im->height >> im->cshift_y,
             im->stride[1], im->bpp, im->plane[1]);
 
   //load V plane
-  LoadPlane(buf.fields[FIELD_FULL][2], GL_ALPHA,
+  LoadPlane(buf.fields[FIELD_FULL][2], GL_RED,
             im->width >> im->cshift_x, im->height >> im->cshift_y,
             im->stride[2], im->bpp, im->plane[2]);
 
@@ -1156,13 +1156,12 @@ static GLint GetInternalFormat(GLint format, int bpp)
   {
     switch (format)
     {
-#ifdef GL_ALPHA16
-      case GL_ALPHA:     return GL_ALPHA16;
+#ifdef GL_R16
+      case GL_RED:
+        return GL_R16;
 #endif
-#ifdef GL_LUMINANCE16
-      case GL_LUMINANCE: return GL_LUMINANCE16;
-#endif
-      default:           return format;
+      default:
+        return format;
     }
   }
   else
@@ -1239,20 +1238,15 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
 
       glBindTexture(m_textureTarget, plane.id);
 
-      GLenum format;
       GLint internalformat;
-      if (p == 2) //V plane needs an alpha texture
-        format = GL_ALPHA;
-      else
-        format = GL_LUMINANCE;
-      internalformat = GetInternalFormat(format, im.bpp);
+      internalformat = GetInternalFormat(GL_RED, im.bpp);
 
       if(m_renderMethod & RENDER_POT)
         CLog::Log(LOGDEBUG, "GL: Creating YUV POT texture of size %d x %d",  plane.texwidth, plane.texheight);
       else
         CLog::Log(LOGDEBUG,  "GL: Creating YUV NPOT texture of size %d x %d", plane.texwidth, plane.texheight);
 
-      glTexImage2D(m_textureTarget, 0, internalformat, plane.texwidth, plane.texheight, 0, format, GL_UNSIGNED_BYTE, NULL);
+      glTexImage2D(m_textureTarget, 0, internalformat, plane.texwidth, plane.texheight, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 
       glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1285,22 +1279,22 @@ bool CLinuxRendererGLES::UploadNV12Texture(int source)
   if (deinterlacing)
   {
     // Load Odd Y field
-    LoadPlane(buf.fields[FIELD_TOP][0] , GL_LUMINANCE,
+    LoadPlane(buf.fields[FIELD_TOP][0] , GL_RED,
               im->width, im->height >> 1,
               im->stride[0]*2, im->bpp, im->plane[0]);
 
     // Load Even Y field
-    LoadPlane(buf.fields[FIELD_BOT][0], GL_LUMINANCE,
+    LoadPlane(buf.fields[FIELD_BOT][0], GL_RED,
               im->width, im->height >> 1,
               im->stride[0]*2, im->bpp, im->plane[0] + im->stride[0]) ;
 
     // Load Odd UV Fields
-    LoadPlane(buf.fields[FIELD_TOP][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_TOP][1], GL_RG,
               im->width >> im->cshift_x, im->height >> (im->cshift_y + 1),
               im->stride[1]*2, im->bpp, im->plane[1]);
 
     // Load Even UV Fields
-    LoadPlane(buf.fields[FIELD_BOT][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_BOT][1], GL_RG,
               im->width >> im->cshift_x, im->height >> (im->cshift_y + 1),
               im->stride[1]*2, im->bpp, im->plane[1] + im->stride[1]);
 
@@ -1308,12 +1302,12 @@ bool CLinuxRendererGLES::UploadNV12Texture(int source)
   else
   {
     // Load Y plane
-    LoadPlane(buf. fields[FIELD_FULL][0], GL_LUMINANCE,
+    LoadPlane(buf. fields[FIELD_FULL][0], GL_RED,
               im->width, im->height,
               im->stride[0], im->bpp, im->plane[0]);
 
     // Load UV plane
-    LoadPlane(buf.fields[FIELD_FULL][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_FULL][1], GL_RG,
               im->width >> im->cshift_x, im->height >> im->cshift_y,
               im->stride[1], im->bpp, im->plane[1]);
   }
@@ -1400,9 +1394,9 @@ bool CLinuxRendererGLES::CreateNV12Texture(int index)
       glBindTexture(m_textureTarget, plane.id);
 
       if (p == 1)
-        glTexImage2D(m_textureTarget, 0, GL_LUMINANCE_ALPHA, plane.texwidth, plane.texheight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(m_textureTarget, 0, GL_RG, plane.texwidth, plane.texheight, 0, GL_RG, GL_UNSIGNED_BYTE, NULL);
       else
-        glTexImage2D(m_textureTarget, 0, GL_LUMINANCE, plane.texwidth, plane.texheight, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(m_textureTarget, 0, GL_RED, plane.texwidth, plane.texheight, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 
       glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
