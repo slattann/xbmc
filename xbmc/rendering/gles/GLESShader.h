@@ -25,8 +25,7 @@
 class CGLESShader : public Shaders::CGLSLShaderProgram
 {
 public:
-  CGLESShader( const char *shader = 0 );
-  CGLESShader(const char *vshader, const char *fshader);
+  CGLESShader(std::string vshader, std::string fshader);
   void OnCompiledAndLinked();
   bool OnEnabled();
   void Free();
