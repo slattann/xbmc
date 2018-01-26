@@ -17,24 +17,23 @@ out vec4 fragColor;
 void main()
 {
   vec4 rgb;
-#if defined(XBMC_YV12) || defined(XBMC_NV12)
+#if defined(XBMC_YV12)
 
   vec4 yuv;
   yuv.rgba = vec4( texture(m_sampY, m_cordY).r
-                 , texture(m_sampU, m_cordU).g
-                 , texture(m_sampV, m_cordV).a
+                 , texture(m_sampU, m_cordU).r
+                 , texture(m_sampV, m_cordV).r
                  , 1.0 );
 
   rgb   = m_yuvmat * yuv;
 
   rgb.a = m_alpha;
 
-#elif defined(XBMC_NV12_RRG)
+#elif defined(XBMC_NV12)
 
   vec4 yuv;
   yuv.rgba = vec4( texture(m_sampY, m_cordY).r
-                 , texture(m_sampU, m_cordU).r
-                 , texture(m_sampV, m_cordV).g
+                 , texture(m_sampU, m_cordU).rg
                  , 1.0 );
 
   rgb   = m_yuvmat * yuv;

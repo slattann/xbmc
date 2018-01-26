@@ -47,18 +47,6 @@ void main()
 
   rgb.a = m_alpha;
 
-#elif defined(XBMC_NV12_RRG)
-
-  vec4 yuv;
-  yuv.rgba = vec4( texture2D(m_sampY, m_cordY).r
-                 , texture2D(m_sampU, m_cordU).r
-                 , texture2D(m_sampV, m_cordV).g
-                 , 1.0 );
-
-  rgb   = m_yuvmat * yuv;
-
-  rgb.a = m_alpha;
-
 #elif defined(XBMC_YUY2) || defined(XBMC_UYVY)
 
   vec2 stepxy = m_step;

@@ -135,14 +135,7 @@ bool CRendererVAAPI::Supports(ESCALINGMETHOD method)
 
 EShaderFormat CRendererVAAPI::GetShaderFormat()
 {
-  EShaderFormat ret = SHADER_NONE;
-
-  if (m_isVAAPIBuffer)
-    ret = SHADER_NV12_RRG;
-  else
-    ret = SHADER_NV12;
-
-  return ret;
+  return SHADER_NV12;
 }
 
 bool CRendererVAAPI::LoadShadersHook()
