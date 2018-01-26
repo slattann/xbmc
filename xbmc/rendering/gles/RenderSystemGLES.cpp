@@ -21,6 +21,7 @@
 
 #include "system.h"
 
+#include "filesystem/File.h"
 #include "guilib/GraphicContext.h"
 #include "settings/AdvancedSettings.h"
 #include "RenderSystemGLES.h"
@@ -723,6 +724,13 @@ std::string CRenderSystemGLES::GetShaderPath(const std::string &filename)
 {
   std::string path = "GLES/2.0/";
 
+  if (m_glslMajor >= 3 && m_glslMinor >= 1)
+  {
+    std::string file = "special://xbmc/system/shaders/GLES/3.1/" + filename;
+    const CURL pathToUrl(file);
+    if (XFILE::CFile::Exists(pathToUrl))
+      return "GLES/3.1/";
+  }
   if (m_glslMajor >= 3 && m_glslMinor >= 0)
     path = "GLES/3.0/";
 
