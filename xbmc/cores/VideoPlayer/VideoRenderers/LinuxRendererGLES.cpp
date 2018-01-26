@@ -101,6 +101,23 @@ CLinuxRendererGLES::CLinuxRendererGLES()
 
   m_renderSystem = dynamic_cast<CRenderSystemGLES*>(&CServiceBroker::GetRenderSystem());
 
+#if HAS_GLES == 3
+  unsigned int major, minor;
+  m_renderSystem->GetRenderVersion(major, minor);
+  if (major >= 3)
+  {
+    m_format8 = GL_RED;
+    m_format8alpha = GL_RED;
+    m_format16 = GL_RG;
+  }
+  else
+#endif
+  {
+    m_format8 = GL_LUMINANCE;
+    m_format8alpha = GL_ALPHA;
+    m_format16 = GL_LUMINANCE_ALPHA;
+  }
+
 #if defined(EGL_KHR_reusable_sync) && !defined(EGL_EGLEXT_PROTOTYPES)
   if (!eglCreateSyncKHR) {
     eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC) eglGetProcAddress("eglCreateSyncKHR");
@@ -1133,17 +1150,17 @@ bool CLinuxRendererGLES::UploadYV12Texture(int source)
   glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
   //Load Y plane
-  LoadPlane(buf.fields[FIELD_FULL][0], GL_LUMINANCE,
+  LoadPlane(buf.fields[FIELD_FULL][0], m_format8,
             im->width, im->height,
             im->stride[0], im->bpp, im->plane[0]);
 
   //load U plane
-  LoadPlane(buf.fields[FIELD_FULL][1], GL_LUMINANCE,
+  LoadPlane(buf.fields[FIELD_FULL][1], m_format8,
             im->width >> im->cshift_x, im->height >> im->cshift_y,
             im->stride[1], im->bpp, im->plane[1]);
 
   //load V plane
-  LoadPlane(buf.fields[FIELD_FULL][2], GL_ALPHA,
+  LoadPlane(buf.fields[FIELD_FULL][2], m_format8alpha,
             im->width >> im->cshift_x, im->height >> im->cshift_y,
             im->stride[2], im->bpp, im->plane[2]);
 
@@ -1186,12 +1203,19 @@ static GLint GetInternalFormat(GLint format, int bpp)
     switch (format)
     {
 #ifdef GL_ALPHA16
-      case GL_ALPHA:     return GL_ALPHA16;
+      case GL_ALPHA:
+        return GL_ALPHA16;
 #endif
 #ifdef GL_LUMINANCE16
-      case GL_LUMINANCE: return GL_LUMINANCE16;
+      case GL_LUMINANCE:
+        return GL_LUMINANCE16;
 #endif
-      default:           return format;
+#ifdef GL_R16
+      case GL_RED:
+        return GL_R16;
+#endif
+      default:
+        return format;
     }
   }
   else
@@ -1271,9 +1295,9 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
       GLenum format;
       GLint internalformat;
       if (p == 2) //V plane needs an alpha texture
-        format = GL_ALPHA;
+        format = m_format8alpha;
       else
-        format = GL_LUMINANCE;
+        format = m_format8;
       internalformat = GetInternalFormat(format, im.bpp);
 
       if(m_renderMethod & RENDER_POT)
@@ -1314,22 +1338,22 @@ bool CLinuxRendererGLES::UploadNV12Texture(int source)
   if (deinterlacing)
   {
     // Load Odd Y field
-    LoadPlane(buf.fields[FIELD_TOP][0] , GL_LUMINANCE,
+    LoadPlane(buf.fields[FIELD_TOP][0] , m_format8,
               im->width, im->height >> 1,
               im->stride[0]*2, im->bpp, im->plane[0]);
 
     // Load Even Y field
-    LoadPlane(buf.fields[FIELD_BOT][0], GL_LUMINANCE,
+    LoadPlane(buf.fields[FIELD_BOT][0], m_format8,
               im->width, im->height >> 1,
               im->stride[0]*2, im->bpp, im->plane[0] + im->stride[0]) ;
 
     // Load Odd UV Fields
-    LoadPlane(buf.fields[FIELD_TOP][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_TOP][1], m_format16,
               im->width >> im->cshift_x, im->height >> (im->cshift_y + 1),
               im->stride[1]*2, im->bpp, im->plane[1]);
 
     // Load Even UV Fields
-    LoadPlane(buf.fields[FIELD_BOT][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_BOT][1], m_format16,
               im->width >> im->cshift_x, im->height >> (im->cshift_y + 1),
               im->stride[1]*2, im->bpp, im->plane[1] + im->stride[1]);
 
@@ -1337,12 +1361,12 @@ bool CLinuxRendererGLES::UploadNV12Texture(int source)
   else
   {
     // Load Y plane
-    LoadPlane(buf. fields[FIELD_FULL][0], GL_LUMINANCE,
+    LoadPlane(buf. fields[FIELD_FULL][0], m_format8,
               im->width, im->height,
               im->stride[0], im->bpp, im->plane[0]);
 
     // Load UV plane
-    LoadPlane(buf.fields[FIELD_FULL][1], GL_LUMINANCE_ALPHA,
+    LoadPlane(buf.fields[FIELD_FULL][1], m_format16,
               im->width >> im->cshift_x, im->height >> im->cshift_y,
               im->stride[1], im->bpp, im->plane[1]);
   }
@@ -1429,9 +1453,9 @@ bool CLinuxRendererGLES::CreateNV12Texture(int index)
       glBindTexture(m_textureTarget, plane.id);
 
       if (p == 1)
-        glTexImage2D(m_textureTarget, 0, GL_LUMINANCE_ALPHA, plane.texwidth, plane.texheight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(m_textureTarget, 0, m_format16, plane.texwidth, plane.texheight, 0, m_format16, GL_UNSIGNED_BYTE, NULL);
       else
-        glTexImage2D(m_textureTarget, 0, GL_LUMINANCE, plane.texwidth, plane.texheight, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(m_textureTarget, 0, m_format8, plane.texwidth, plane.texheight, 0, m_format8, GL_UNSIGNED_BYTE, NULL);
 
       glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

@@ -232,5 +232,10 @@ protected:
 
   // clear colour for "black" bars
   float m_clearColour;
+
+private:
+  GLenum m_format8 = 0;
+  GLenum m_format8alpha = 0;
+  GLenum m_format16 = 0;
 };
 

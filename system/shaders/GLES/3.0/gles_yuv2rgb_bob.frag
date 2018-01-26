@@ -45,11 +45,11 @@ void main()
 
   vec4 yuvBelow, rgbBelow;
 
-  yuv.rgba = vec4(texture(m_sampY, offsetY).r, texture(m_sampU, offsetU).g, texture(m_sampV, offsetV).a, 1.0);
+  yuv.rgba = vec4(texture(m_sampY, offsetY).r, texture(m_sampU, offsetU).r, texture(m_sampV, offsetV).r, 1.0);
   rgb   = m_yuvmat * yuv;
   rgb.a = m_alpha;
 
-  yuvBelow.rgba = vec4(texture(m_sampY, belowY).r, texture(m_sampU, belowU).g, texture(m_sampV, belowV).a, 1.0);
+  yuvBelow.rgba = vec4(texture(m_sampY, belowY).r, texture(m_sampU, belowU).r, texture(m_sampV, belowV).r, 1.0);
   rgbBelow   = m_yuvmat * yuvBelow;
   rgbBelow.a = m_alpha;
 
