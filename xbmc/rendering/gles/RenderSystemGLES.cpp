@@ -18,6 +18,7 @@
  *
  */
 
+#include "filesystem/File.h"
 #include "guilib/GraphicContext.h"
 #include "settings/AdvancedSettings.h"
 #include "RenderSystemGLES.h"
@@ -84,6 +85,17 @@ bool CRenderSystemGLES::InitRenderSystem()
   }
 
   m_RenderExtensions += " ";
+
+  ver = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+  if (ver)
+  {
+    sscanf(ver, "OpenGL ES GLSL ES %d.%d", &m_glslMajor, &m_glslMinor);
+  }
+  else
+  {
+    m_glslMajor = 1;
+    m_glslMinor = 0;
+  }
 
   LogGraphicsInfo();
 
@@ -454,7 +466,11 @@ void CRenderSystemGLES::ResetScissors()
 
 void CRenderSystemGLES::InitialiseShader()
 {
-  m_pShader[SM_DEFAULT] = new CGLESShader("gles_shader.vert", "gles_shader_default.frag");
+  std::string vertShader("gles_shader2.0.vert");
+  if (m_glslMajor >= 3 && m_glslMinor >= 0)
+    vertShader = "gles_shader3.0.vert";
+
+  m_pShader[SM_DEFAULT] = new CGLESShader(vertShader, "gles_shader_default.frag");
   if (!m_pShader[SM_DEFAULT]->CompileAndLink())
   {
     m_pShader[SM_DEFAULT]->Free();
@@ -463,7 +479,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_default.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE] = new CGLESShader("gles_shader_texture.frag");
+  m_pShader[SM_TEXTURE] = new CGLESShader(vertShader, "gles_shader_texture.frag");
   if (!m_pShader[SM_TEXTURE]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE]->Free();
@@ -472,7 +488,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_texture.frag - compile and link failed");
   }
 
-  m_pShader[SM_MULTI] = new CGLESShader("gles_shader_multi.frag");
+  m_pShader[SM_MULTI] = new CGLESShader(vertShader, "gles_shader_multi.frag");
   if (!m_pShader[SM_MULTI]->CompileAndLink())
   {
     m_pShader[SM_MULTI]->Free();
@@ -481,7 +497,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_multi.frag - compile and link failed");
   }
 
-  m_pShader[SM_FONTS] = new CGLESShader("gles_shader_fonts.frag");
+  m_pShader[SM_FONTS] = new CGLESShader(vertShader, "gles_shader_fonts.frag");
   if (!m_pShader[SM_FONTS]->CompileAndLink())
   {
     m_pShader[SM_FONTS]->Free();
@@ -490,7 +506,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_fonts.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE_NOBLEND] = new CGLESShader("gles_shader_texture_noblend.frag");
+  m_pShader[SM_TEXTURE_NOBLEND] = new CGLESShader(vertShader, "gles_shader_texture_noblend.frag");
   if (!m_pShader[SM_TEXTURE_NOBLEND]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE_NOBLEND]->Free();
@@ -499,7 +515,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_texture_noblend.frag - compile and link failed");
   }
 
-  m_pShader[SM_MULTI_BLENDCOLOR] = new CGLESShader("gles_shader_multi_blendcolor.frag");
+  m_pShader[SM_MULTI_BLENDCOLOR] = new CGLESShader(vertShader, "gles_shader_multi_blendcolor.frag");
   if (!m_pShader[SM_MULTI_BLENDCOLOR]->CompileAndLink())
   {
     m_pShader[SM_MULTI_BLENDCOLOR]->Free();
@@ -508,7 +524,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_multi_blendcolor.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE_RGBA] = new CGLESShader("gles_shader_rgba.frag");
+  m_pShader[SM_TEXTURE_RGBA] = new CGLESShader(vertShader, "gles_shader_rgba.frag");
   if (!m_pShader[SM_TEXTURE_RGBA]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE_RGBA]->Free();
@@ -517,7 +533,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_rgba.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE_RGBA_BLENDCOLOR] = new CGLESShader("gles_shader_rgba_blendcolor.frag");
+  m_pShader[SM_TEXTURE_RGBA_BLENDCOLOR] = new CGLESShader(vertShader, "gles_shader_rgba_blendcolor.frag");
   if (!m_pShader[SM_TEXTURE_RGBA_BLENDCOLOR]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE_RGBA_BLENDCOLOR]->Free();
@@ -526,7 +542,7 @@ void CRenderSystemGLES::InitialiseShader()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_rgba_blendcolor.frag - compile and link failed");
   }
 
-  m_pShader[SM_TEXTURE_RGBA_BOB] = new CGLESShader("gles_shader_rgba_bob.frag");
+  m_pShader[SM_TEXTURE_RGBA_BOB] = new CGLESShader(vertShader, "gles_shader_rgba_bob.frag");
   if (!m_pShader[SM_TEXTURE_RGBA_BOB]->CompileAndLink())
   {
     m_pShader[SM_TEXTURE_RGBA_BOB]->Free();
@@ -537,7 +553,7 @@ void CRenderSystemGLES::InitialiseShader()
 
   if (IsExtSupported("GL_OES_EGL_image_external"))
   {
-    m_pShader[SM_TEXTURE_RGBA_OES] = new CGLESShader("gles_shader_rgba_oes.frag");
+    m_pShader[SM_TEXTURE_RGBA_OES] = new CGLESShader("gles_shader2.0.vert", "gles_shader_rgba_oes.frag");
     if (!m_pShader[SM_TEXTURE_RGBA_OES]->CompileAndLink())
     {
       m_pShader[SM_TEXTURE_RGBA_OES]->Free();
@@ -547,7 +563,7 @@ void CRenderSystemGLES::InitialiseShader()
     }
 
 
-    m_pShader[SM_TEXTURE_RGBA_BOB_OES] = new CGLESShader("gles_shader_rgba_bob_oes.frag");
+    m_pShader[SM_TEXTURE_RGBA_BOB_OES] = new CGLESShader("gles_shader2.0.vert", "gles_shader_rgba_bob_oes.frag");
     if (!m_pShader[SM_TEXTURE_RGBA_BOB_OES]->CompileAndLink())
     {
       m_pShader[SM_TEXTURE_RGBA_BOB_OES]->Free();
@@ -676,4 +692,19 @@ GLint CRenderSystemGLES::GUIShaderGetModel()
     return m_pShader[m_method]->GetModelLoc();
 
   return -1;
+}
+
+std::string CRenderSystemGLES::GetShaderPath(const std::string &filename)
+{
+  std::string path = "GLES/2.0/";
+
+  if (m_glslMajor >= 3 && m_glslMinor >= 0)
+  {
+    std::string file = "special://xbmc/system/shaders/GLES/3.0/" + filename;
+    const CURL pathToUrl(file);
+    if (XFILE::CFile::Exists(pathToUrl))
+      path = "GLES/3.0/";
+  }
+
+  return path;
 }

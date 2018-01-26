@@ -27,14 +27,7 @@
 
 using namespace Shaders;
 
-CGLESShader::CGLESShader( const char *shader ) : CGLSLShaderProgram("gles_shader.vert", shader)
-{
-  m_proj = nullptr;
-  m_model = nullptr;
-  m_clipPossible = false;
-}
-
-CGLESShader::CGLESShader(const char *vshader, const char *fshader) : CGLSLShaderProgram(vshader, fshader)
+CGLESShader::CGLESShader(std::string vshader, std::string fshader) : CGLSLShaderProgram(vshader, fshader)
 {
   m_proj = nullptr;
   m_model  = nullptr;

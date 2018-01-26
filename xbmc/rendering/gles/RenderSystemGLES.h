@@ -80,7 +80,7 @@ public:
 
   void Project(float &x, float &y, float &z) override;
 
-  std::string GetShaderPath(const std::string &filename) override { return "GLES/2.0/"; }
+  std::string GetShaderPath(const std::string &filename) override;
 
   void InitialiseShader();
   void EnableGUIShader(ESHADERMETHOD method);
@@ -110,6 +110,9 @@ protected:
   int        m_height;
 
   std::string m_RenderExtensions;
+
+  int m_glslMajor = 0;
+  int m_glslMinor = 0;
 
   std::unique_ptr<CGLESShader*[]> m_pShader;
   ESHADERMETHOD m_method = SM_DEFAULT;
