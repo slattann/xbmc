@@ -191,6 +191,7 @@ protected:
   struct YUVPLANE
   {
     GLuint id;
+    GLuint pbo;
     CRect  rect;
 
     float  width;
@@ -211,6 +212,7 @@ protected:
 
     YUVPLANE fields[MAX_FIELDS][YuvImage::MAX_PLANES];
     YuvImage image;
+    GLuint pbo[3]; // one pbo for 3 planes
 
     CVideoBuffer *videoBuffer;
     bool loaded;
@@ -232,6 +234,11 @@ protected:
 
   // clear colour for "black" bars
   float m_clearColour;
+
+  void BindPbo(YUVBUFFER& buff);
+  void UnBindPbo(YUVBUFFER& buff);
+  bool m_pboSupported;
+  bool m_pboUsed;
 
 private:
   GLenum m_format8 = 0;

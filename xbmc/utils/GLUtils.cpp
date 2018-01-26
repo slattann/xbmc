@@ -173,6 +173,14 @@ int glFormatElementByteCount(GLenum format)
   case GL_LUMINANCE:
   case GL_ALPHA:
     return 1;
+#if HAS_GLES == 3
+  case GL_RED:
+    return 1;
+  case GL_GREEN:
+    return 1;
+  case GL_RG:
+    return 2;
+#endif
   default:
     CLog::Log(LOGERROR, "glFormatElementByteCount - Unknown format %u", format);
     return 1;

@@ -55,12 +55,15 @@ static PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR;
 static PFNEGLCLIENTWAITSYNCKHRPROC eglClientWaitSyncKHR;
 #endif
 
+#define PBO_OFFSET 16
+
 using namespace Shaders;
 
 CLinuxRendererGLES::YUVBUFFER::YUVBUFFER()
 {
   memset(&fields, 0, sizeof(fields));
   memset(&image , 0, sizeof(image));
+  memset(&pbo   , 0, sizeof(pbo));
   videoBuffer = nullptr;
   loaded = false;
 }
@@ -98,6 +101,8 @@ CLinuxRendererGLES::CLinuxRendererGLES()
 
   m_fbo.width = 0.0;
   m_fbo.height = 0.0;
+  m_pboSupported = false;
+  m_pboUsed = false;
 
   m_renderSystem = dynamic_cast<CRenderSystemGLES*>(&CServiceBroker::GetRenderSystem());
 
@@ -197,6 +202,10 @@ bool CLinuxRendererGLES::Configure(const VideoPicture &picture, float fps, unsig
   // Ensure that textures are recreated and rendering starts only after the 1st
   // frame is loaded after every call to Configure().
   m_bValidated = false;
+
+#if HAS_GLES == 3
+  m_pboSupported = true;
+#endif
 
   return true;
 }
@@ -308,6 +317,9 @@ void CLinuxRendererGLES::LoadPlane(YUVPLANE& plane, int type,
                                  unsigned width, unsigned height,
                                  int stride, int bpp, void* data)
 {
+  if (plane.pbo)
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, plane.pbo);
+
   const GLvoid *pixelData = data;
 
   int bps = bpp * glFormatElementByteCount(type);
@@ -344,6 +356,8 @@ void CLinuxRendererGLES::LoadPlane(YUVPLANE& plane, int type,
                    , (unsigned char*)pixelData + bps * (width-1));
 
   glBindTexture(m_textureTarget, 0);
+  if (plane.pbo)
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 void CLinuxRendererGLES::Flush()
@@ -621,6 +635,14 @@ void CLinuxRendererGLES::LoadShaders(int field)
     ReorderDrawPoints();
     m_oldRenderMethod = m_renderMethod;
   }
+
+  if (m_pboSupported)
+  {
+    CLog::Log(LOGNOTICE, "GL: Using GL_pixel_buffer_object");
+    m_pboUsed = true;
+  }
+  else
+    m_pboUsed = false;
 }
 
 void CLinuxRendererGLES::ReleaseShaders()
@@ -688,16 +710,22 @@ bool CLinuxRendererGLES::UploadTexture(int index)
   bool ret = false;
 
   YuvImage &dst = m_buffers[index].image;
-  m_buffers[index].videoBuffer->GetPlanes(dst.plane);
-  m_buffers[index].videoBuffer->GetStrides(dst.stride);
+  YuvImage src;
+  m_buffers[index].videoBuffer->GetPlanes(src.plane);
+  m_buffers[index].videoBuffer->GetStrides(src.stride);
+
+  UnBindPbo(m_buffers[index]);
 
   if (m_format == AV_PIX_FMT_NV12)
   {
+    CVideoBuffer::CopyNV12Picture(&dst, &src);
+    BindPbo(m_buffers[index]);
     ret = UploadNV12Texture(index);
   }
   else
   {
-    // default to YV12 texture handlers
+    CVideoBuffer::CopyPicture(&dst, &src);
+    BindPbo(m_buffers[index]);
     ret = UploadYV12Texture(index);
   }
 
@@ -1174,6 +1202,7 @@ bool CLinuxRendererGLES::UploadYV12Texture(int source)
 void CLinuxRendererGLES::DeleteYV12Texture(int index)
 {
   YuvImage &im = m_buffers[index].image;
+  GLuint *pbo = m_buffers[index].pbo;
 
   if (m_buffers[index].fields[FIELD_FULL][0].id == 0)
     return;
@@ -1193,7 +1222,28 @@ void CLinuxRendererGLES::DeleteYV12Texture(int index)
   }
 
   for(int p = 0;p<YuvImage::MAX_PLANES;p++)
-    im.plane[p] = NULL;
+  {
+    if (pbo[p])
+    {
+      if (im.plane[p])
+      {
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[p]);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        im.plane[p] = NULL;
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+      }
+      glDeleteBuffers(1, pbo + p);
+      pbo[p] = 0;
+    }
+    else
+    {
+      if (im.plane[p])
+      {
+        delete[] im.plane[p];
+        im.plane[p] = NULL;
+      }
+    }
+  }
 }
 
 static GLint GetInternalFormat(GLint format, int bpp)
@@ -1227,6 +1277,7 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
   /* since we also want the field textures, pitch must be texture aligned */
   unsigned p;
   YuvImage &im = m_buffers[index].image;
+  GLuint *pbo = m_buffers[index].pbo;
 
   DeleteYV12Texture(index);
 
@@ -1249,8 +1300,51 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
   im.planesize[1] = im.stride[1] * ( im.height >> im.cshift_y );
   im.planesize[2] = im.stride[2] * ( im.height >> im.cshift_y );
 
-  for (int i = 0; i < 3; i++)
-    im.plane[i] = new BYTE[im.planesize[i]];
+  bool pboSetup = false;
+  if (m_pboUsed)
+  {
+    pboSetup = true;
+    glGenBuffers(3, pbo);
+
+    for (int i = 0; i < 3; i++)
+    {
+      glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[i]);
+      glBufferData(GL_PIXEL_UNPACK_BUFFER, im.planesize[i] + PBO_OFFSET, 0, GL_STREAM_DRAW);
+      //void* pboPtr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+      void* pboPtr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0,  im.planesize[i] + PBO_OFFSET, GL_MAP_WRITE_BIT);
+
+      if (pboPtr)
+      {
+        im.plane[i] = (uint8_t*) pboPtr + PBO_OFFSET;
+        memset(im.plane[i], 0, im.planesize[i]);
+      }
+      else
+      {
+        CLog::Log(LOGWARNING,"GL: failed to set up pixel buffer object");
+        pboSetup = false;
+        break;
+      }
+    }
+
+    if (!pboSetup)
+    {
+      for (int i = 0; i < 3; i++)
+      {
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[i]);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+      }
+      glDeleteBuffers(3, pbo);
+      memset(m_buffers[index].pbo, 0, sizeof(m_buffers[index].pbo));
+    }
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  }
+
+  if (!pboSetup)
+  {
+    for (int i = 0; i < 3; i++)
+      im.plane[i] = new BYTE[im.planesize[i]];
+  }
 
   for(int f = 0;f<MAX_FIELDS;f++)
   {
@@ -1261,6 +1355,7 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
         glGenTextures(1, &m_buffers[index].fields[f][p].id);
         VerifyGLState();
       }
+      m_buffers[index].fields[f][p].pbo = pbo[p];
     }
   }
 
@@ -1383,6 +1478,7 @@ bool CLinuxRendererGLES::CreateNV12Texture(int index)
   // since we also want the field textures, pitch must be texture aligned
   YUVBUFFER& buf = m_buffers[index];
   YuvImage &im = buf.image;
+  GLuint *pbo = buf.pbo;
 
   // Delete any old texture
   DeleteNV12Texture(index);
@@ -1408,8 +1504,50 @@ bool CLinuxRendererGLES::CreateNV12Texture(int index)
   // third plane is not used
   im.planesize[2] = 0;
 
-  for (int i = 0; i < 2; i++)
-    im.plane[i] = new BYTE[im.planesize[i]];
+  bool pboSetup = false;
+  if (m_pboUsed)
+  {
+    pboSetup = true;
+    glGenBuffers(2, pbo);
+
+    for (int i = 0; i < 2; i++)
+    {
+      glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[i]);
+      glBufferData(GL_PIXEL_UNPACK_BUFFER, im.planesize[i] + PBO_OFFSET, 0, GL_STREAM_DRAW);
+      //void* pboPtr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
+      void* pboPtr = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0,  im.planesize[i] + PBO_OFFSET, GL_MAP_WRITE_BIT);
+      if (pboPtr)
+      {
+        im.plane[i] = (uint8_t*)pboPtr + PBO_OFFSET;
+        memset(im.plane[i], 0, im.planesize[i]);
+      }
+      else
+      {
+        CLog::Log(LOGWARNING,"GL: failed to set up pixel buffer object");
+        pboSetup = false;
+        break;
+      }
+    }
+
+    if (!pboSetup)
+    {
+      for (int i = 0; i < 2; i++)
+      {
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[i]);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+      }
+      glDeleteBuffers(2, pbo);
+      memset(m_buffers[index].pbo, 0, sizeof(m_buffers[index].pbo));
+    }
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  }
+
+  if (!pboSetup)
+  {
+    for (int i = 0; i < 2; i++)
+      im.plane[i] = new BYTE[im.planesize[i]];
+  }
 
   for(int f = 0;f<MAX_FIELDS;f++)
   {
@@ -1471,6 +1609,7 @@ void CLinuxRendererGLES::DeleteNV12Texture(int index)
 {
   YUVBUFFER& buf = m_buffers[index];
   YuvImage &im = buf.image;
+  GLuint *pbo = buf.pbo;
 
   if (buf.fields[FIELD_FULL][0].id == 0)
     return;
@@ -1493,7 +1632,28 @@ void CLinuxRendererGLES::DeleteNV12Texture(int index)
   }
 
   for(int p = 0;p<2;p++)
-    im.plane[p] = NULL;
+  {
+    if (pbo[p])
+    {
+      if (im.plane[p])
+      {
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo[p]);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+        im.plane[p] = NULL;
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+      }
+      glDeleteBuffers(1, pbo + p);
+      pbo[p] = 0;
+    }
+    else
+    {
+      if (im.plane[p])
+      {
+        delete[] im.plane[p];
+        im.plane[p] = NULL;
+      }
+    }
+  }
 }
 
 //********************************************************************************************************
@@ -1590,6 +1750,41 @@ bool CLinuxRendererGLES::Supports(ESCALINGMETHOD method)
   }
 
   return false;
+}
+
+void CLinuxRendererGLES::BindPbo(YUVBUFFER& buff)
+{
+  bool pbo = false;
+  for(int plane = 0; plane < YuvImage::MAX_PLANES; plane++)
+  {
+    if(!buff.pbo[plane] || buff.image.plane[plane] == (uint8_t*)PBO_OFFSET)
+      continue;
+    pbo = true;
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff.pbo[plane]);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    buff.image.plane[plane] = (uint8_t*)PBO_OFFSET;
+  }
+  if (pbo)
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+void CLinuxRendererGLES::UnBindPbo(YUVBUFFER& buff)
+{
+  bool pbo = false;
+  for(int plane = 0; plane < YuvImage::MAX_PLANES; plane++)
+  {
+    if(!buff.pbo[plane] || buff.image.plane[plane] != (uint8_t*)PBO_OFFSET)
+      continue;
+    pbo = true;
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buff.pbo[plane]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, buff.image.planesize[plane] + PBO_OFFSET, NULL, GL_STREAM_DRAW);
+    buff.image.plane[plane] = (uint8_t*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, buff.image.planesize[plane] + PBO_OFFSET, GL_MAP_WRITE_BIT) + PBO_OFFSET;
+    //buff.image.plane[plane] = (uint8_t*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY) + PBO_OFFSET;
+  }
+  if (pbo)
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 CRenderInfo CLinuxRendererGLES::GetRenderInfo()
