@@ -454,9 +454,24 @@ void CLinuxRendererGLES::UpdateVideoFilter()
     m_renderQuality = RQ_SINGLEPASS;
     return;
 
-  case VS_SCALINGMETHOD_LANCZOS2:
   case VS_SCALINGMETHOD_SPLINE36_FAST:
   case VS_SCALINGMETHOD_LANCZOS3_FAST:
+    {
+      EShaderFormat fmt = GetShaderFormat();
+      if (fmt == SHADER_NV12 || fmt == SHADER_YV12)
+      {
+        unsigned int major, minor;
+        m_renderSystem->GetRenderVersion(major, minor);
+        if (major >= 3 && minor >= 1)
+        {
+          SetTextureFilter(GL_LINEAR);
+          m_renderQuality = RQ_SINGLEPASS;
+          return;
+        }
+      }
+    }
+
+  case VS_SCALINGMETHOD_LANCZOS2:
   case VS_SCALINGMETHOD_SPLINE36:
   case VS_SCALINGMETHOD_LANCZOS3:
   case VS_SCALINGMETHOD_CUBIC:
@@ -531,21 +546,47 @@ void CLinuxRendererGLES::LoadShaders(int field)
           CLog::Log(LOGNOTICE, "GL: Selecting Single Pass YUV 2 RGB shader");
 
           EShaderFormat shaderFormat = GetShaderFormat();
-          m_pYUVProgShader = new YUV2RGBProgressiveShader(m_iFlags, shaderFormat);
-          m_pYUVBobShader = new YUV2RGBBobShader(m_iFlags, shaderFormat);
-          if ((m_pYUVProgShader && m_pYUVProgShader->CompileAndLink())
-              && (m_pYUVBobShader && m_pYUVBobShader->CompileAndLink()))
+
+          if (m_renderQuality == RQ_SINGLEPASS)
           {
-            m_renderMethod = RENDER_GLSL;
-            UpdateVideoFilter();
-            break;
+            if (m_scalingMethod == VS_SCALINGMETHOD_LANCZOS3_FAST || m_scalingMethod == VS_SCALINGMETHOD_SPLINE36_FAST)
+            {
+              m_pYUVProgShader = new YUV2RGBFilterShader4(m_iFlags, shaderFormat, m_scalingMethod);
+
+              CLog::Log(LOGNOTICE, "GL: Selecting YUV 2 RGB shader with filter");
+
+              if (m_pYUVProgShader && m_pYUVProgShader->CompileAndLink())
+              {
+                m_renderMethod = RENDER_GLSL;
+                UpdateVideoFilter();
+              }
+              else
+              {
+                CLog::Log(LOGERROR, "GL: Error enabling YUV2RGB GLSL shader");
+                delete m_pYUVProgShader;
+                m_pYUVProgShader = nullptr;
+              }
+            }
           }
-          else
+
+          if (!m_pYUVProgShader)
           {
-            ReleaseShaders();
-            CLog::Log(LOGERROR, "GL: Error enabling YUV2RGB GLSL shader");
-            m_renderMethod = -1;
-            break;
+            m_pYUVProgShader = new YUV2RGBProgressiveShader(m_iFlags, shaderFormat);
+            m_pYUVBobShader = new YUV2RGBBobShader(m_iFlags, shaderFormat);
+            if ((m_pYUVProgShader && m_pYUVProgShader->CompileAndLink())
+                && (m_pYUVBobShader && m_pYUVBobShader->CompileAndLink()))
+            {
+              m_renderMethod = RENDER_GLSL;
+              UpdateVideoFilter();
+              break;
+            }
+            else
+            {
+              ReleaseShaders();
+              CLog::Log(LOGERROR, "GL: Error enabling YUV2RGB GLSL shader");
+              m_renderMethod = -1;
+              break;
+            }
           }
         }
         break;

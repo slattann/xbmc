@@ -21,6 +21,7 @@
 
 #include "guilib/TransformMatrix.h"
 #include "ShaderFormats.h"
+#include "cores/VideoSettings.h"
 
 void CalculateYUVMatrixGLES(TransformMatrix &matrix
                           , unsigned int  flags
@@ -131,5 +132,23 @@ namespace Shaders {
     GLint m_hStepY;
     GLint m_hField;
   };
+
+  class YUV2RGBFilterShader4 : public BaseYUV2RGBGLSLShader
+  {
+  public:
+    YUV2RGBFilterShader4(unsigned flags,
+                         EShaderFormat format,
+                         ESCALINGMETHOD method);
+    ~YUV2RGBFilterShader4() override;
+
+  protected:
+    void OnCompiledAndLinked() override;
+    bool OnEnabled() override;
+
+    GLuint m_kernelTex = 0;
+    GLint m_hKernTex = -1;
+    ESCALINGMETHOD m_scaling = VS_SCALINGMETHOD_LANCZOS3_FAST;
+  };
+
 
 } // end namespace

@@ -698,6 +698,14 @@ std::string CRenderSystemGLES::GetShaderPath(const std::string &filename)
 {
   std::string path = "GLES/2.0/";
 
+  if (m_glslMajor >= 3 && m_glslMinor >= 1)
+  {
+    std::string file = "special://xbmc/system/shaders/GLES/3.1/" + filename;
+    const CURL pathToUrl(file);
+    if (XFILE::CFile::Exists(pathToUrl))
+      return "GLES/3.1/";
+  }
+
   if (m_glslMajor >= 3 && m_glslMinor >= 0)
   {
     std::string file = "special://xbmc/system/shaders/GLES/3.0/" + filename;
