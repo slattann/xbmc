@@ -90,6 +90,17 @@ bool CRenderSystemGLES::InitRenderSystem()
 
   m_RenderExtensions += " ";
 
+  ver = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+  if (ver)
+  {
+    sscanf(ver, "OpenGL ES GLSL ES %d.%d", &m_glslMajor, &m_glslMinor);
+  }
+  else
+  {
+    m_glslMajor = 1;
+    m_glslMinor = 0;
+  }
+
   LogGraphicsInfo();
 
   m_renderCaps |= RENDER_CAPS_NPOT;
@@ -706,4 +717,14 @@ GLint CRenderSystemGLES::GUIShaderGetModel()
     return m_pShader[m_method]->GetModelLoc();
 
   return -1;
+}
+
+std::string CRenderSystemGLES::GetShaderPath(const std::string &filename)
+{
+  std::string path = "GLES/2.0/";
+
+  if (m_glslMajor >= 3 && m_glslMinor >= 0)
+    path = "GLES/3.0/";
+
+  return path;
 }
