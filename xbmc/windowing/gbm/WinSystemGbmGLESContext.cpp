@@ -24,7 +24,12 @@
 #include "cores/RetroPlayer/process/gbm/RPProcessInfoGbm.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererGuiTexture.h"
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
+
+#if HAS_GLES == 3
+#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES3.h"
+#endif
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
+
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 
 #include "WinSystemGbmGLESContext.h"
@@ -42,6 +47,10 @@ std::unique_ptr<CWinSystemBase> CWinSystemBase::CreateWinSystem()
 bool CWinSystemGbmGLESContext::InitWindowSystem()
 {
   CLinuxRendererGLES::Register();
+#if HAS_GLES == 3
+  CLinuxRendererGLES3::Register();
+#endif
+
   RETRO::CRPProcessInfoGbm::Register();
   RETRO::CRPProcessInfoGbm::RegisterRendererFactory(new RETRO::CRendererFactoryGuiTexture);
 

@@ -52,6 +52,11 @@ if(OPENGLES_FOUND AND (CORE_PLATFORM_NAME_LC STREQUAL android OR
                       FrameBufferObject.cpp)
   list(APPEND HEADERS LinuxRendererGLES.h
                       FrameBufferObject.cpp)
+
+  if(OPENGLES3_FOUND)
+    list(APPEND SOURCES LinuxRendererGLES3.cpp)
+    list(APPEND HEADERS LinuxRendererGLES3.h)
+  endif()
 endif()
 
 if(ARCH MATCHES arm)

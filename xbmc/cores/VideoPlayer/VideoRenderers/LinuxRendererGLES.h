@@ -145,6 +145,8 @@ protected:
   virtual void DeleteTexture(int index);
   virtual bool CreateTexture(int index);
 
+  GLint GetInternalFormat(GLint format, int bpp);
+
   bool UploadYV12Texture(int index);
   void DeleteYV12Texture(int index);
   bool CreateYV12Texture(int index);
@@ -232,5 +234,9 @@ protected:
 
   // clear colour for "black" bars
   float m_clearColour;
+
+  GLint m_format8 = GL_LUMINANCE;
+  GLint m_format16 = GL_LUMINANCE_ALPHA;
+  GLint m_format8alpha = GL_ALPHA;
 };
 
