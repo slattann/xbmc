@@ -682,6 +682,7 @@ void CGraphicContext::GetGUIScaling(const RESOLUTION_INFO &res, float &scaleX, f
 
     float fZoom = (100 + CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_LOOKANDFEEL_SKINZOOM)) * 0.01f;
 
+    CLog::Log(LOGINFO, "%s:%d:: SAMEER: Zoom factor: [%f] \n",__func__, __LINE__,fZoom);
     fZoom -= 1.0f;
     fToPosX -= fToWidth * fZoom * 0.5f;
     fToWidth *= fZoom + 1.0f;
@@ -694,6 +695,8 @@ void CGraphicContext::GetGUIScaling(const RESOLUTION_INFO &res, float &scaleX, f
 
     scaleX = fFromWidth / fToWidth;
     scaleY = fFromHeight / fToHeight;
+    CLog::Log(LOGINFO, "%s:%d:: SAMEER: Scale[%f x %f]\n",__func__, __LINE__,  scaleX,scaleY);
+    CLog::Log(LOGINFO, "%s:%d:: SAMEER: fromWxfromH[%fx%f]&& toWxtoH[%fx%f]\n",__func__, __LINE__, fFromWidth ,fFromHeight, fToWidth,fToHeight);
     if (matrix)
     {
       TransformMatrix guiScaler = TransformMatrix::CreateScaler(fToWidth / fFromWidth, fToHeight / fFromHeight, fToHeight / fFromHeight);
@@ -713,14 +716,17 @@ void CGraphicContext::SetScalingResolution(const RESOLUTION_INFO &res, bool need
 {
   CSingleLock lock(*this);
 
+  //CLog::Log(LOGINFO, "Entry into [%s:%d]:: SAMEER: needsScaling: %d\n",__func__, __LINE__,  needsScaling);
   m_windowResolution = res;
-  if (needsScaling && m_Resolution != RES_INVALID)
+  if (needsScaling && m_Resolution != RES_INVALID) {
+	CLog::Log(LOGINFO, "%s:%d:: SAMEER: needsScaling: %d Res[%dx%d]\n",__func__, __LINE__,  needsScaling, res.iWidth, res.iHeight);
     GetGUIScaling(res, m_guiTransform.scaleX, m_guiTransform.scaleY, &m_guiTransform.matrix);
-  else
+  } else
   {
     m_guiTransform.Reset();
   }
 
+  //CLog::Log(LOGINFO, "%s:%d:: SAMEER: %f x %f\n",__func__, __LINE__,m_guiTransform.scaleX, m_guiTransform.scaleY);
   // reset our origin and camera
   while (!m_origins.empty())
     m_origins.pop();
@@ -739,7 +745,7 @@ void CGraphicContext::SetScalingResolution(const RESOLUTION_INFO &res, bool need
 void CGraphicContext::SetRenderingResolution(const RESOLUTION_INFO &res, bool needsScaling)
 {
   CSingleLock lock(*this);
-
+  CLog::Log(LOGINFO, "SAMEER:: [%s:%d] needsScaling [%d]\n", __func__, __LINE__,needsScaling);
   SetScalingResolution(res, needsScaling);
   UpdateCameraPosition(m_cameras.top(), m_stereoFactors.top());
 }

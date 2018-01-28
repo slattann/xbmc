@@ -159,7 +159,7 @@ void CGUIDialogTeletext::OnDeinitWindow(int nextWindowID)
 void CGUIDialogTeletext::SetCoordinates()
 {
   float left, right, top, bottom;
-
+  CLog::Log(LOGINFO, "SAMEER:: [%s:%d] m_needsScaling[%d] \n", __func__, __LINE__, m_needsScaling);
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(m_coordsRes, m_needsScaling);
 
   left = CServiceBroker::GetWinSystem()->GetGfxContext().ScaleFinalXCoord(0, 0);

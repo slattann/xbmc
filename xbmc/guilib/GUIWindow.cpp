@@ -43,7 +43,7 @@ CGUIWindow::CGUIWindow(int id, const std::string &xmlFile)
   CGUIWindow::SetID(id);
   SetProperty("xmlfile", xmlFile);
   m_lastControlID = 0;
-  m_needsScaling = true;
+  m_needsScaling = false;
   m_windowLoaded = false;
   m_loadType = LOAD_EVERY_TIME;
   m_closing = false;
@@ -176,6 +176,7 @@ bool CGUIWindow::Load(TiXmlElement *pRootElement)
 
   // set the scaling resolution so that any control creation or initialisation can
   // be done with respect to the correct aspect ratio
+  CLog::Log(LOGINFO, "SAMEER: [%s:%d] m_needsScaling[%d]\n",__func__,__LINE__,m_needsScaling);
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(m_coordsRes, m_needsScaling);
 
   // now load in the skin file
@@ -488,6 +489,7 @@ CPoint CGUIWindow::GetPosition() const
 // OnMouseAction - called by OnAction()
 EVENT_RESULT CGUIWindow::OnMouseAction(const CAction &action)
 {
+  CLog::Log(LOGINFO, "SAMEER: [%s:%d] m_needsScaling[%d]\n",__func__,__LINE__,m_needsScaling);
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(m_coordsRes, m_needsScaling);
   CPoint mousePoint(action.GetAmount(0), action.GetAmount(1));
   CServiceBroker::GetWinSystem()->GetGfxContext().InvertFinalCoords(mousePoint.x, mousePoint.y);
@@ -990,6 +992,7 @@ void CGUIWindow::SetDefaults()
 CRect CGUIWindow::GetScaledBounds() const
 {
   CSingleLock lock(CServiceBroker::GetWinSystem()->GetGfxContext());
+  CLog::Log(LOGINFO, "SAMEER: [%s:%d] m_needsScaling[%d]\n",__func__,__LINE__,m_needsScaling);
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(m_coordsRes, m_needsScaling);
   CPoint pos(GetPosition());
   CRect rect(pos.x, pos.y, pos.x + m_width, pos.y + m_height);

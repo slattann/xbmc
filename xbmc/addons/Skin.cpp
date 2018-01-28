@@ -221,6 +221,7 @@ void CSkinInfo::Start()
     for (int i = 0; i < items.Size(); i++)
     {
       RESOLUTION_INFO res;
+      CLog::Log(LOGINFO, "SAMEER:[%s:%d]  Res [%dx%d]\n",__func__,__LINE__,res.iWidth, res.iHeight);
       if (items[i]->m_bIsFolder && TranslateResolution(items[i]->GetLabel(), res))
         m_resolutions.push_back(res);
     }
@@ -252,7 +253,7 @@ std::string CSkinInfo::GetSkinPath(const std::string& strFile, RESOLUTION_INFO *
   // find the closest resolution
   const RESOLUTION_INFO &target = CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo();
   *res = *std::min_element(m_resolutions.begin(), m_resolutions.end(), closestRes(target));
-
+  *res=target;
   std::string strPath = URIUtils::AddFileToFolder(strPathToUse, res->strMode, strFile);
   if (CFile::Exists(strPath))
     return strPath;

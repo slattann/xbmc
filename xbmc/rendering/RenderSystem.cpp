@@ -71,7 +71,7 @@ void CRenderSystemBase::ShowSplash(const std::string& message)
   CServiceBroker::GetWinSystem()->GetGfxContext().Clear();
 
   RESOLUTION_INFO res = CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo();
-  CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderingResolution(res, true);
+  CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderingResolution(res, false);
 
   //render splash image
   BeginRender();

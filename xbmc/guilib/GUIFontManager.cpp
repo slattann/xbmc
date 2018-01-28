@@ -50,6 +50,7 @@ void GUIFontManager::RescaleFontSizeAndAspect(float *size, float *aspect, const 
   // as fonts aren't scaled at render time (due to aliasing) we must scale
   // the size of the fonts before they are drawn to bitmaps
   float scaleX, scaleY;
+  CLog::Log(LOGINFO, "SAMEER:: [%s:%d] Source Res [%d x %d]\n",__func__,__LINE__, sourceRes.iWidth, sourceRes.iHeight);
   CServiceBroker::GetWinSystem()->GetGfxContext().GetGUIScaling(sourceRes, scaleX, scaleY);
 
   if (preserveAspect)
@@ -88,14 +89,16 @@ static bool CheckFont(std::string& strPath, const std::string& newPath,
 CGUIFont* GUIFontManager::LoadTTF(const std::string& strFontName, const std::string& strFilename, UTILS::Color textColor, UTILS::Color shadowColor, const int iSize, const int iStyle, bool border, float lineSpacing, float aspect, const RESOLUTION_INFO *sourceRes, bool preserveAspect)
 {
   float originalAspect = aspect;
-
   //check if font already exists
   CGUIFont* pFont = GetFont(strFontName, false);
   if (pFont)
     return pFont;
 
-  if (!sourceRes) // no source res specified, so assume the skin res
-    sourceRes = &m_skinResolution;
+  const RESOLUTION_INFO  srcRes=CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo();
+ if (&srcRes) // no source res specified, try gfxContext Res
+	 sourceRes = &srcRes;
+ else  // no source res specified, so assume the skin res
+	sourceRes = &m_skinResolution;
 
   float newSize = (float)iSize;
   RescaleFontSizeAndAspect(&newSize, &aspect, *sourceRes, preserveAspect);
