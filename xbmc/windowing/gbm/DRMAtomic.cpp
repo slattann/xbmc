@@ -23,6 +23,14 @@
 
 using namespace KODI::WINDOWING::GBM;
 
+int32_t getScaling_factor(uint32_t destWidth, uint32_t destHeight,uint32_t srcWidth, uint32_t srcHeight ){
+	uint32_t fW, fH;
+	fW=destWidth/srcWidth;
+	fH=destHeight/srcHeight;
+	if(fW != fH)
+		return (fW<fH)?fW:fH;
+	return fW;
+}
 void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer)
 {
   uint32_t blob_id;
@@ -58,14 +66,30 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
 
     if (modeset)
     {
+      drmModeFBPtr r;
+      r=drmModeGetFB(m_fd,fb_id);
+      if(r){
+       CLog::Log(LOGINFO, "SAMEER --> FB Details:\n");
+       CLog::Log(LOGINFO, "SAMEER:[%s:%d]  FB - [ID-%d] [W-%d x H-%d] [Pitch-%d][BPP- %d] [Depth-%d]\n", __func__, __LINE__,r->fb_id,r->width,r->height,r->pitch,r->bpp,r->depth);
+      }
+      CLog::Log(LOGINFO, "SAMEER: [%s:%d] WxH --> %d x %d\n",__func__, __LINE__, m_width,m_height);
+
       AddProperty(m_gui_plane, "SRC_X", 0);
       AddProperty(m_gui_plane, "SRC_Y", 0);
       AddProperty(m_gui_plane, "SRC_W", m_width << 16);
       AddProperty(m_gui_plane, "SRC_H", m_height << 16);
       AddProperty(m_gui_plane, "CRTC_X", 0);
       AddProperty(m_gui_plane, "CRTC_Y", 0);
-      AddProperty(m_gui_plane, "CRTC_W", m_mode->hdisplay);
-      AddProperty(m_gui_plane, "CRTC_H", m_mode->vdisplay);
+	uint32_t scale_factor = getScaling_factor(m_mode->hdisplay, m_mode->vdisplay, m_width, m_height);
+	CLog::Log(LOGINFO, "SAMEER --> [%s:%d] IS-Factor is :%ld\n", __func__, __LINE__,scale_factor );
+	AddProperty(m_gui_plane, "CRTC_W", (scale_factor*m_width));
+	AddProperty(m_gui_plane, "CRTC_H", (scale_factor*m_height));
+	uint32_t property_id = this->GetPropertyId(m_gui_plane, "SCALING_FILTER");
+	CLog::Log(LOGINFO, "SAMEER --> [%s:%d] Property_ID:%ld - SCALING_FILTER\n", __func__, __LINE__,property_id );
+	AddProperty(m_gui_plane, "SCALING_FILTER", property_id ? 1 : 0);
+	property_id = this->GetPropertyId(m_video_plane, "SCALING_FILTER");
+	CLog::Log(LOGINFO, "SAMEER --> [%s:%d] Property_ID:%ld - SCALING_FILTER\n", __func__, __LINE__,property_id );
+	AddProperty(m_video_plane, "SCALING_FILTER", property_id ? 1 : 0);
     }
 
     if (videoLayer)
