@@ -94,8 +94,11 @@ CGUIFont* GUIFontManager::LoadTTF(const std::string& strFontName, const std::str
   if (pFont)
     return pFont;
 
-  if (!sourceRes) // no source res specified, so assume the skin res
-    sourceRes = &m_skinResolution;
+  const RESOLUTION_INFO  srcRes = CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo();
+ if (&srcRes) // no source res specified, try gfxContext Res
+	 sourceRes = &srcRes;
+ else  // no source res specified, so assume the skin res
+	sourceRes = &m_skinResolution;
 
   float newSize = (float)iSize;
   RescaleFontSizeAndAspect(&newSize, &aspect, *sourceRes, preserveAspect);

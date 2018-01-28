@@ -43,7 +43,7 @@ CGUIWindow::CGUIWindow(int id, const std::string &xmlFile)
   CGUIWindow::SetID(id);
   SetProperty("xmlfile", xmlFile);
   m_lastControlID = 0;
-  m_needsScaling = true;
+  m_needsScaling = false;
   m_windowLoaded = false;
   m_loadType = LOAD_EVERY_TIME;
   m_closing = false;

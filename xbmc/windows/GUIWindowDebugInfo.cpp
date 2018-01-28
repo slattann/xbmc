@@ -138,7 +138,7 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
         windowName = window->GetProperty("xmlfile").asString();
       info += "Window: " + windowName + "\n";
       // transform the mouse coordinates to this window's coordinates
-      CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(window->GetCoordsRes(), true);
+      CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(window->GetCoordsRes(),false);
       point.x *= CServiceBroker::GetWinSystem()->GetGfxContext().GetGUIScaleX();
       point.y *= CServiceBroker::GetWinSystem()->GetGfxContext().GetGUIScaleY();
       CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderingResolution(CServiceBroker::GetWinSystem()->GetGfxContext().GetResInfo(), false);

@@ -403,7 +403,7 @@ void CGUIWindowSettingsScreenCalibration::DoProcess(unsigned int currentTime, CD
   for (int i = CONTROL_TOP_LEFT; i <= CONTROL_PIXEL_RATIO; i++)
     SET_CONTROL_HIDDEN(i);
 
-  m_needsScaling = true;
+  m_needsScaling = false;
   CGUIWindow::DoProcess(currentTime, dirtyregions);
   m_needsScaling = false;
 
@@ -424,7 +424,7 @@ void CGUIWindowSettingsScreenCalibration::DoProcess(unsigned int currentTime, CD
 void CGUIWindowSettingsScreenCalibration::DoRender()
 {
   // we set that we need scaling here to render so that anything else on screen scales correctly
-  m_needsScaling = true;
+  m_needsScaling = false;
   CGUIWindow::DoRender();
   m_needsScaling = false;
 }
