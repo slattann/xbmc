@@ -41,6 +41,7 @@ void CGBMUtils::DestroyDevice()
 
 bool CGBMUtils::CreateSurface(int width, int height, uint32_t format, const uint64_t *modifiers, const int modifiers_count)
 {
+  CLog::Log(LOGWARNING, "SAMEER::[%s:%d] - WxH -->[%dx%d]",__func__,__LINE__,width, height);
   if (m_surface)
     CLog::Log(LOGWARNING, "CGBMUtils::%s - surface already created", __FUNCTION__);
 
