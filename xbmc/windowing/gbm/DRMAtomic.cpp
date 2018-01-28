@@ -22,11 +22,31 @@
 #include <unistd.h>
 
 using namespace KODI::WINDOWING::GBM;
-
+uint32_t CDRMAtomic::GetScalingFactor(uint32_t destWidth, uint32_t destHeight,uint32_t srcWidth, uint32_t srcHeight ){
+  uint32_t fW, fH;
+  fW = destWidth / srcWidth;
+  fH = destHeight / srcHeight;
+  if (fW != fH)
+     return (fW < fH) ? fW : fH;
+  return fW;
+}
+bool CDRMAtomic::SetScalingFilter(struct drm_object *object, const char *name) {
+  uint32_t scale_factor;
+  for (uint32_t i = 0; i < object->props->count_props; i++)
+      if (!strcmp(object->props_info[i]->name, name))
+	 for (int j = 0; j < object->props_info[i]->count_enums; j++)
+	     if (!strcmp(object->props_info[i]->enums[j].name, "Nearest Neighbor")){
+		if (AddProperty(object, name, m_gui_plane->props_info[i]->enums[j].value)){
+		   scale_factor = GetScalingFactor(m_mode->hdisplay, m_mode->vdisplay, m_width, m_height);
+		   AddProperty(object, "CRTC_W", (scale_factor*m_width));
+		   AddProperty(object, "CRTC_H", (scale_factor*m_height));
+		   return true;
+		}
+	     }
+}
 void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer)
 {
   uint32_t blob_id;
-
   bool modeset = (flags & DRM_MODE_ATOMIC_ALLOW_MODESET);
   if (modeset)
   {
@@ -64,8 +84,15 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
       AddProperty(m_gui_plane, "SRC_H", m_height << 16);
       AddProperty(m_gui_plane, "CRTC_X", 0);
       AddProperty(m_gui_plane, "CRTC_Y", 0);
-      AddProperty(m_gui_plane, "CRTC_W", m_mode->hdisplay);
-      AddProperty(m_gui_plane, "CRTC_H", m_mode->vdisplay);
+      if (CServiceBroker::GetWinSystem()->UseScalingFilter()){
+         SetScalingFilter(m_gui_plane, "SCALING_FILTER");
+         SetScalingFilter(m_video_plane, "SCALING_FILTER");
+      }
+      else
+      {
+	 AddProperty(object, "CRTC_W",m_mode->hdisplay);
+	 AddProperty(object, "CRTC_H", m_mode->vdisplay); 
+      }
     }
 
     if (videoLayer)

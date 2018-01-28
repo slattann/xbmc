@@ -32,7 +32,8 @@ public:
 private:
   void DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer);
   bool ResetPlanes();
-
+  uint32_t GetScalingFactor(uint32_t destWidth, uint32_t destHeight, uint32_t srcWidth, uint32_t srcHeight);
+  bool  SetScalingFilter(struct drm_object *object, const char *name);
   bool m_need_modeset;
   bool m_active = true;
   drmModeAtomicReq *m_req = nullptr;
