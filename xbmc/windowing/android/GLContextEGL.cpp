@@ -102,7 +102,7 @@ bool CGLContextEGL::CreateDisplay(EGLDisplay display,
 
 bool CGLContextEGL::CreateContext()
 {
-  for (int client_version = 3; client_version > 1; --client_version)
+  for (int client_version = 2; client_version > 1; --client_version)
   {
     const EGLint context_attribs[] =
     {
