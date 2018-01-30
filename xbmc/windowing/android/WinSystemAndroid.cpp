@@ -34,6 +34,10 @@
 #include "threads/SingleLock.h"
 #include "platform/android/activity/XBMCApp.h"
 
+#if HAS_GLES == 3
+#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES3.h"
+#endif
+
 #include "cores/RetroPlayer/process/android/RPProcessInfoAndroid.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererGuiTexture.h"
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodecAndroidMediaCodec.h"
@@ -80,6 +84,9 @@ bool CWinSystemAndroid::InitWindowSystem()
   CDVDAudioCodecAndroidMediaCodec::Register();
 
   CLinuxRendererGLES::Register();
+#if HAS_GLES == 3
+  CLinuxRendererGLES3::Register();
+#endif
   RETRO::CRPProcessInfoAndroid::Register();
   RETRO::CRPProcessInfoAndroid::RegisterRendererFactory(new RETRO::CRendererFactoryGuiTexture);
   CRendererMediaCodec::Register();
