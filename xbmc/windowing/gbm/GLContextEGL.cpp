@@ -125,16 +125,19 @@ bool CGLContextEGL::CreateDisplay(EGLDisplay display,
 
 bool CGLContextEGL::CreateContext()
 {
-  int client_version = 2;
-
-  const EGLint context_attribs[] = {
-    EGL_CONTEXT_CLIENT_VERSION, client_version, EGL_NONE
-  };
-
-  if (m_eglContext == EGL_NO_CONTEXT)
+  for (int client_version = 3; client_version > 1; --client_version)
   {
-  m_eglContext = eglCreateContext(m_eglDisplay, m_eglConfig,
-                                  EGL_NO_CONTEXT, context_attribs);
+    const EGLint context_attribs[] =
+    {
+      EGL_CONTEXT_CLIENT_VERSION, client_version, EGL_NONE
+    };
+
+    if (m_eglContext == EGL_NO_CONTEXT)
+    {
+      CLog::Log(LOGDEBUG, "creating EGL context using GLES client version %d", client_version);
+      m_eglContext = eglCreateContext(m_eglDisplay, m_eglConfig,
+                                      EGL_NO_CONTEXT, context_attribs);
+    }
   }
 
   if (m_eglContext == EGL_NO_CONTEXT)
