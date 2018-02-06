@@ -145,14 +145,16 @@ protected:
   virtual void DeleteTexture(int index);
   virtual bool CreateTexture(int index);
 
-  bool UploadYV12Texture(int index);
+  GLint GetInternalFormat(GLint format, int bpp);
+
+  virtual bool UploadYV12Texture(int index);
   void DeleteYV12Texture(int index);
-  bool CreateYV12Texture(int index);
+  virtual bool CreateYV12Texture(int index);
   virtual bool SkipUploadYV12(int index) { return false; }
 
-  bool UploadNV12Texture(int index);
+  virtual bool UploadNV12Texture(int index);
   void DeleteNV12Texture(int index);
-  bool CreateNV12Texture(int index);
+  virtual bool CreateNV12Texture(int index);
 
   void CalculateTextureSourceRects(int source, int num_planes);
 

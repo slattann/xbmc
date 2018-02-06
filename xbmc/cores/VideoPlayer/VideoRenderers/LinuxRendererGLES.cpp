@@ -1138,19 +1138,26 @@ void CLinuxRendererGLES::DeleteYV12Texture(int index)
     im.plane[p] = NULL;
 }
 
-static GLint GetInternalFormat(GLint format, int bpp)
+GLint CLinuxRendererGLES::GetInternalFormat(GLint format, int bpp)
 {
   if(bpp == 2)
   {
     switch (format)
     {
+#ifdef GL_R16
+    case GL_RED:
+      return GL_R16;
+#endif
 #ifdef GL_ALPHA16
-      case GL_ALPHA:     return GL_ALPHA16;
+      case GL_ALPHA:
+        return GL_ALPHA16;
 #endif
 #ifdef GL_LUMINANCE16
-      case GL_LUMINANCE: return GL_LUMINANCE16;
+      case GL_LUMINANCE:
+        return GL_LUMINANCE16;
 #endif
-      default:           return format;
+      default:
+        return format;
     }
   }
   else
@@ -1402,6 +1409,7 @@ bool CLinuxRendererGLES::CreateNV12Texture(int index)
 
   return true;
 }
+
 void CLinuxRendererGLES::DeleteNV12Texture(int index)
 {
   YUVBUFFER& buf = m_buffers[index];
