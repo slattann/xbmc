@@ -24,6 +24,19 @@
 #include "settings/AdvancedSettings.h"
 #include "rendering/RenderSystem.h"
 
+static const char * glStrError(GLenum error)
+{
+  switch (error) {
+  // TODO
+  case GL_INVALID_ENUM:
+    return "GL_INVALID_ENUM";
+  case GL_INVALID_OPERATION:
+    return "GL_INVALID_OPERATION";
+  default:
+    return "UNKNOWN";
+  }
+}
+
 void _VerifyGLState(const char* szfile, const char* szfunction, int lineno){
 #if defined(HAS_GL) && defined(_DEBUG)
 #define printMatrix(matrix)                                             \
@@ -58,6 +71,14 @@ void _VerifyGLState(const char* szfile, const char* szfunction, int lineno){
   CLog::Log(LOGDEBUG, "Modelview Matrix:");
   printMatrix(matrix);
 //  abort();
+#elif defined(HAS_GLES)
+  GLenum err = glGetError();
+  if (err==GL_NO_ERROR)
+    return;
+  if (szfile && szfunction)
+    CLog::Log(LOGERROR, "GLES ERROR %s at: file:%s function:%s line:%d", glStrError(err), szfile, szfunction, lineno);
+  else
+    CLog::Log(LOGERROR, "GLES ERROR %s ", glStrError(err));
 #endif
 }
 
