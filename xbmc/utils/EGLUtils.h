@@ -24,6 +24,9 @@
 #include <stdexcept>
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+#include "system_gl.h"
 
 #include "StringUtils.h"
 
@@ -143,4 +146,45 @@ public:
   EGLSurface m_eglSurface;
   EGLContext m_eglContext;
   EGLConfig m_eglConfig;
+};
+
+/* --- CEGLImage ---------------------------------------------*/
+
+class CEGLImage
+{
+public:
+  static const int MAX_NUM_PLANES{3};
+
+  struct EglPlane
+  {
+    int fd{0};
+    int offset{0};
+    int pitch{0};
+    uint64_t modifier{0};
+  };
+
+  struct EglAttrs
+  {
+    int width{0};
+    int height{0};
+    uint32_t format{0};
+    std::array<EglPlane, MAX_NUM_PLANES> planes;
+  };
+
+  explicit CEGLImage(EGLDisplay display);
+
+  CEGLImage(CEGLImage const& other) = delete;
+  CEGLImage& operator=(CEGLImage const& other) = delete;
+
+  bool CreateImage(EglAttrs imageAttrs);
+  void UploadImage(GLenum textureTarget);
+  void DestroyImage();
+
+private:
+  EGLDisplay m_display{nullptr};
+  EGLImage m_image{nullptr};
+
+  PFNEGLCREATEIMAGEKHRPROC m_eglCreateImageKHR{nullptr};
+  PFNEGLDESTROYIMAGEKHRPROC m_eglDestroyImageKHR{nullptr};
+  PFNGLEGLIMAGETARGETTEXTURE2DOESPROC m_glEGLImageTargetTexture2DOES{nullptr};
 };
