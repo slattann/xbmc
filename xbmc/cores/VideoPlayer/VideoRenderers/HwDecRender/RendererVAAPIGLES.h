@@ -22,7 +22,7 @@
 
 #include <memory>
 
-#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
+#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES3.h"
 #include "VaapiEGL.h"
 
 namespace VAAPI
@@ -30,7 +30,7 @@ namespace VAAPI
 class IVaapiWinSystem;
 }
 
-class CRendererVAAPI : public CLinuxRendererGLES
+class CRendererVAAPI : public CLinuxRendererGLES3
 {
 public:
   CRendererVAAPI();
