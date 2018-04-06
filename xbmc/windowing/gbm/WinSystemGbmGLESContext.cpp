@@ -136,6 +136,8 @@ bool CWinSystemGbmGLESContext::CreateNewWindow(const std::string& name,
     return false;
   }
 
+  /* Registration for GLES renderers must be done after EGL context is created so we can check GL_VERSION */
+
 #if HAS_GLES == 3
   if (!CLinuxRendererGLES3::Register())
 #endif
