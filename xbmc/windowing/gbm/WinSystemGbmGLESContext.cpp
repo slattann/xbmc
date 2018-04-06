@@ -46,11 +46,6 @@ std::unique_ptr<CWinSystemBase> CWinSystemBase::CreateWinSystem()
 
 bool CWinSystemGbmGLESContext::InitWindowSystem()
 {
-  CLinuxRendererGLES::Register();
-#if HAS_GLES == 3
-  CLinuxRendererGLES3::Register();
-#endif
-
   RETRO::CRPProcessInfoGbm::Register();
   RETRO::CRPProcessInfoGbm::RegisterRendererFactory(new RETRO::CRendererFactoryOpenGLES);
 
@@ -140,6 +135,11 @@ bool CWinSystemGbmGLESContext::CreateNewWindow(const std::string& name,
   {
     return false;
   }
+
+#if HAS_GLES == 3
+  if (!CLinuxRendererGLES3::Register())
+#endif
+    CLinuxRendererGLES::Register();
 
   return true;
 }
