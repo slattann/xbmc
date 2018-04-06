@@ -32,19 +32,28 @@ using namespace Shaders;
 
 CBaseRenderer* CLinuxRendererGLES3::Create(CVideoBuffer *buffer)
 {
-  CRenderSystemGLES *renderSystem = dynamic_cast<CRenderSystemGLES*>(&CServiceBroker::GetRenderSystem());
-  unsigned int major, minor;
-  renderSystem->GetRenderVersion(major, minor);
-  if (major >= 3)
-    return new CLinuxRendererGLES3();
-
-  return nullptr;
+  return new CLinuxRendererGLES3();
 }
 
 bool CLinuxRendererGLES3::Register()
 {
-  VIDEOPLAYER::CRendererFactory::RegisterRenderer("default", CLinuxRendererGLES3::Create);
-  return true;
+  int renderVersionMajor = 0;
+  const char* ver = (const char*)glGetString(GL_VERSION);
+
+  if (ver != 0)
+  {
+    sscanf(ver, "%d.%*d", &renderVersionMajor);
+    if (!renderVersionMajor)
+      sscanf(ver, "%*s %*s %d.%*d", &renderVersionMajor);
+  }
+
+  if (renderVersionMajor >= 3)
+  {
+    VIDEOPLAYER::CRendererFactory::RegisterRenderer("default", CLinuxRendererGLES3::Create);
+    return true;
+  }
+
+  return false;
 }
 
 //********************************************************************************************************
