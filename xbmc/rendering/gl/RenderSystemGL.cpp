@@ -50,6 +50,7 @@ bool CRenderSystemGL::InitRenderSystem()
   // Get the GL version number
   m_RenderVersionMajor = 0;
   m_RenderVersionMinor = 0;
+
   const char* ver = (const char*)glGetString(GL_VERSION);
   if (ver != 0)
   {
