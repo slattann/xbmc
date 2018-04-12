@@ -24,7 +24,6 @@
 #include "guilib/IDirtyRegionSolver.h"
 #include "settings/AdvancedSettings.h"
 
-#include <EGL/eglext.h>
 #include <string.h>
 
 std::set<std::string> CEGLUtils::GetClientExtensions()
@@ -51,9 +50,35 @@ std::set<std::string> CEGLUtils::GetExtensions(EGLDisplay eglDisplay)
   return result;
 }
 
+std::set<std::string> CEGLUtils::GetDeviceExtensions(EGLDeviceEXT device)
+{
+  auto eglQueryDeviceStringEXT = GetRequiredProcAddress<PFNEGLQUERYDEVICESTRINGEXTPROC>("eglQueryDeviceStringEXT");
+
+  const char* extensions = eglQueryDeviceStringEXT(device, EGL_EXTENSIONS);
+  if (!extensions)
+  {
+    return {};
+  }
+  std::set<std::string> result;
+  StringUtils::SplitTo(std::inserter(result, result.begin()), extensions, " ");
+  return result;
+}
+
+bool CEGLUtils::HasClientExtension(const std::string& name)
+{
+  auto exts = GetClientExtensions();
+  return (exts.find(name) != exts.end());
+}
+
 bool CEGLUtils::HasExtension(EGLDisplay eglDisplay, const std::string& name)
 {
   auto exts = GetExtensions(eglDisplay);
+  return (exts.find(name) != exts.end());
+}
+
+bool CEGLUtils::HasDeviceExtension(EGLDeviceEXT device, const std::string& name)
+{
+  auto exts = GetDeviceExtensions(device);
   return (exts.find(name) != exts.end());
 }
 
@@ -271,4 +296,358 @@ void CEGLContextUtils::SwapBuffers()
   }
 
   eglSwapBuffers(m_eglDisplay, m_eglSurface);
+}
+
+bool CEGLContextUtils::GetEGLDevice()
+{
+  EGLint numDevices;
+
+  if (!CEGLUtils::HasClientExtension("EGL_EXT_device_base") &&
+     (!CEGLUtils::HasClientExtension("EGL_EXT_device_enumeration") ||
+      !CEGLUtils::HasClientExtension("EGL_EXT_device_query")))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_device base extensions not found");
+    return false;
+  }
+
+  auto eglQueryDevicesEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDEVICESEXTPROC>("eglQueryDevicesEXT");
+
+  /* Query how many devices are present. */
+  auto ret = eglQueryDevicesEXT(0, nullptr, &numDevices);
+
+  if (!ret)
+  {
+    CLog::Log(LOGERROR, "failed to query EGL devices %d", eglGetError());
+    return false;
+  }
+
+  if (numDevices < 1)
+  {
+    CLog::Log(LOGERROR, "no EGL devices found");
+    return false;
+  }
+
+  EGLDeviceEXT *devices = new EGLDeviceEXT[numDevices];
+
+  if (devices == nullptr)
+  {
+    CLog::Log(LOGERROR, "memory allocation failure");
+    return false;
+  }
+
+  /* Query the EGLDeviceEXTs. */
+  ret = eglQueryDevicesEXT(numDevices, devices, &numDevices);
+
+  if (!ret)
+  {
+    CLog::Log(LOGERROR, "failed to query EGL devices %d", eglGetError());
+    return false;
+  }
+
+  for (auto i = 0; i < numDevices; i++)
+  {
+    if (CEGLUtils::HasDeviceExtension(devices[i], "EGL_EXT_device_drm"))
+    {
+      m_eglDevice = devices[i];
+      break;
+    }
+  }
+
+  delete [] devices;
+  devices = nullptr;
+
+  if (m_eglDevice == EGL_NO_DEVICE_EXT)
+  {
+    CLog::Log(LOGERROR, "no EGL_EXT_device_drm-capable EGL device found");
+    return false;
+  }
+
+  return true;
+}
+
+int CEGLContextUtils::GetDrmFd()
+{
+  if (!CEGLUtils::HasDeviceExtension(m_eglDevice, "EGL_EXT_device_drm"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_device_drm extension not found");
+    return -1;
+  }
+
+  auto eglQueryDeviceStringEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDEVICESTRINGEXTPROC>("eglQueryDeviceStringEXT");
+
+  const char *drmDeviceFile = eglQueryDeviceStringEXT(m_eglDevice, EGL_DRM_DEVICE_FILE_EXT);
+
+  if (drmDeviceFile == nullptr)
+  {
+    CLog::Log(LOGERROR, "no DRM device file found for EGL device");
+    return -1;
+  }
+
+  auto fd = open(drmDeviceFile, O_RDWR, 0);
+
+  if (fd < 0)
+  {
+    CLog::Log(LOGERROR, "unable to open DRM device file");
+    return -1;
+  }
+
+  return fd;
+}
+
+/* XXX khronos eglext.h does not yet have EGL_DRM_MASTER_FD_EXT */
+#if !defined(EGL_DRM_MASTER_FD_EXT)
+#define EGL_DRM_MASTER_FD_EXT 0x333C
+#endif
+
+bool CEGLContextUtils::CreateEglDisplay(int drmFd)
+{
+  /*
+   * Provide the DRM fd when creating the EGLDisplay, so that the
+   * EGL implementation can make any necessary DRM calls using the
+   * same fd as the application.
+   */
+  EGLint attribs[] =
+  {
+    EGL_DRM_MASTER_FD_EXT,
+    drmFd,
+    EGL_NONE
+  };
+
+  /*
+   * eglGetPlatformDisplayEXT requires EGL client extension
+   * EGL_EXT_platform_base.
+   */
+  if (!CEGLUtils::HasClientExtension("EGL_EXT_platform_base"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_platform_base not found");
+    return false;
+  }
+
+  /*
+   * EGL_EXT_platform_device is required to pass
+   * EGL_PLATFORM_DEVICE_EXT to eglGetPlatformDisplayEXT().
+   */
+
+  if (!CEGLUtils::HasClientExtension("EGL_EXT_platform_device"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_platform_device not found");
+    return false;
+  }
+
+  /*
+   * Providing a DRM fd during EGLDisplay creation requires
+   * EGL_EXT_device_drm.
+   */
+  if (!CEGLUtils::HasDeviceExtension(m_eglDevice, "EGL_EXT_device_drm"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_device_drm not found");
+    return false;
+  }
+
+  auto eglGetPlatformDisplayEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLGETPLATFORMDISPLAYEXTPROC>("eglGetPlatformDisplayEXT");
+
+  /* Get an EGLDisplay from the EGLDeviceEXT. */
+  m_eglDisplay = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, (void*)m_eglDevice, attribs);
+
+  if (m_eglDisplay == EGL_NO_DISPLAY)
+  {
+    CLog::Log(LOGERROR, "failed to get EGLDisplay from EGLDevice");
+    return false;
+  }
+
+  if (!eglInitialize(m_eglDisplay, NULL, NULL))
+  {
+    CLog::Log(LOGERROR, "failed to initialize EGLDisplay");
+    return false;
+  }
+
+  return true;
+}
+
+bool CEGLContextUtils::CreateEglSurface(uint32_t planeID, int width, int height)
+{
+  EGLint configAttribs[] =
+  {
+    EGL_SURFACE_TYPE, EGL_STREAM_BIT_KHR,
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+    EGL_RED_SIZE, 8,
+    EGL_GREEN_SIZE, 8,
+    EGL_BLUE_SIZE, 8,
+    EGL_ALPHA_SIZE, 8,
+    EGL_DEPTH_SIZE, 16,
+    EGL_STENCIL_SIZE, 0,
+    EGL_SAMPLE_BUFFERS, 0,
+    EGL_SAMPLES, 0,
+    EGL_NONE,
+  };
+
+  EGLint contextAttribs[] = { EGL_NONE };
+
+  EGLAttrib layerAttribs[] =
+  {
+    EGL_DRM_PLANE_EXT,
+    planeID,
+    EGL_NONE,
+  };
+
+  EGLint streamAttribs[] = { EGL_NONE };
+
+  EGLint surfaceAttribs[] =
+  {
+    EGL_WIDTH, width,
+    EGL_HEIGHT, height,
+    EGL_NONE
+  };
+
+  EGLint n = 0;
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_EXT_output_base"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_output_base not found");
+    return false;
+  }
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_EXT_output_drm"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_output_drm not found");
+    return false;
+  }
+
+  /*
+   * EGL_KHR_stream, EGL_EXT_stream_consumer_egloutput, and
+   * EGL_KHR_stream_producer_eglsurface are needed to create an
+   * EGLStream connecting an EGLSurface and an EGLOutputLayer.
+   */
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_KHR_stream"))
+  {
+    CLog::Log(LOGERROR, "EGL_KHR_stream not found");
+    return false;
+  }
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_EXT_stream_consumer_egloutput"))
+  {
+    CLog::Log(LOGERROR, "EGL_EXT_stream_consumer_egloutput not found");
+    return false;
+  }
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_KHR_stream_producer_eglsurface"))
+  {
+    CLog::Log(LOGERROR, "EGL_KHR_stream_producer_eglsurface not found");
+    return false;
+  }
+
+  /* Bind full OpenGL as EGL's client API. */
+  eglBindAPI(EGL_OPENGL_API);
+
+  /* Find a suitable EGL config. */
+
+  auto ret = eglChooseConfig(m_eglDisplay, configAttribs, &m_eglConfig, 1, &n);
+
+  if (!ret || !n)
+  {
+    CLog::Log(LOGERROR, "eglChooseConfig() failed");
+    return false;
+  }
+
+  /* Create an EGL context using the EGL config. */
+
+  m_eglContext = eglCreateContext(m_eglDisplay, m_eglConfig, EGL_NO_CONTEXT, contextAttribs);
+
+  if (m_eglContext == nullptr)
+  {
+    CLog::Log(LOGERROR, "eglCreateContext() failed");
+    return false;
+  }
+
+  auto eglGetOutputLayersEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLGETOUTPUTLAYERSEXTPROC>("eglGetOutputLayersEXT");
+
+  /* Find the EGLOutputLayer that corresponds to the DRM KMS plane. */
+
+  ret = eglGetOutputLayersEXT(m_eglDisplay, layerAttribs, &m_eglLayer, 1, &n);
+
+  if (!ret || !n)
+  {
+    CLog::Log(LOGERROR, "Unable to get EGLOutputLayer for plane %d", planeID);
+    return false;
+  }
+
+  auto eglCreateStreamKHR = CEGLUtils::GetRequiredProcAddress<PFNEGLCREATESTREAMKHRPROC>("eglCreateStreamKHR");
+
+  /* Create an EGLStream. */
+
+  m_eglStream = eglCreateStreamKHR(m_eglDisplay, streamAttribs);
+
+  if (m_eglStream == EGL_NO_STREAM_KHR)
+  {
+    CLog::Log(LOGERROR, "Unable to create stream");
+    return false;
+  }
+
+  auto eglStreamConsumerOutputEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLSTREAMCONSUMEROUTPUTEXTPROC>("eglStreamConsumerOutputEXT");
+
+  /* Set the EGLOutputLayer as the consumer of the EGLStream. */
+
+  ret = eglStreamConsumerOutputEXT(m_eglDisplay, m_eglStream, m_eglLayer);
+
+  if (!ret)
+  {
+    CLog::Log(LOGERROR, "Unable to create EGLOutput stream consumer");
+    return false;
+  }
+
+  /*
+   * EGL_KHR_stream defines that normally stream consumers need to
+   * explicitly retrieve frames from the stream.  That may be useful
+   * when we attempt to better integrate
+   * EGL_EXT_stream_consumer_egloutput with DRM atomic KMS requests.
+   * But, EGL_EXT_stream_consumer_egloutput defines that by default:
+   *
+   *   On success, <layer> is bound to <stream>, <stream> is placed
+   *   in the EGL_STREAM_STATE_CONNECTING_KHR state, and EGL_TRUE is
+   *   returned.  Initially, no changes occur to the image displayed
+   *   on <layer>. When the <stream> enters state
+   *   EGL_STREAM_STATE_NEW_FRAME_AVAILABLE_KHR, <layer> will begin
+   *   displaying frames, without further action required on the
+   *   application's part, as they become available, taking into
+   *   account any timestamps, swap intervals, or other limitations
+   *   imposed by the stream or producer attributes.
+   *
+   * So, eglSwapBuffers() (to produce new frames) is sufficient for
+   * the frames to be displayed.  That behavior can be altered with
+   * the EGL_EXT_stream_acquire_mode extension.
+   */
+
+  /*
+   * Create an EGLSurface as the producer of the EGLStream.  Once
+   * the stream's producer and consumer are defined, the stream is
+   * ready to use.  eglSwapBuffers() calls for the EGLSurface will
+   * deliver to the stream's consumer, i.e., the DRM KMS plane
+   * corresponding to the EGLOutputLayer.
+   */
+
+  auto eglCreateStreamProducerSurfaceKHR = CEGLUtils::GetRequiredProcAddress<PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC>("eglCreateStreamProducerSurfaceKHR");
+
+  m_eglSurface = eglCreateStreamProducerSurfaceKHR(m_eglDisplay, m_eglConfig, m_eglStream, surfaceAttribs);
+
+  if (m_eglSurface == EGL_NO_SURFACE)
+  {
+    CLog::Log(LOGERROR, "Unable to create EGLSurface stream producer");
+    return false;
+  }
+
+  /*
+   * Make current to the EGLSurface, so that OpenGL rendering is
+   * directed to it.
+   */
+
+  ret = eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext);
+
+  if (!ret)
+  {
+    CLog::Log(LOGERROR, "Unable to make context and surface current");
+    return false;
+  }
+
+  return true;
 }

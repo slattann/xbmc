@@ -23,7 +23,8 @@
 #include <string>
 #include <stdexcept>
 
-#include <EGL/egl.h>
+#include <EGL_NVIDIA/egl.h>
+#include <EGL_NVIDIA/eglext.h>
 
 #include "StringUtils.h"
 
@@ -32,7 +33,11 @@ class CEGLUtils
 public:
   static std::set<std::string> GetClientExtensions();
   static std::set<std::string> GetExtensions(EGLDisplay eglDisplay);
+  static std::set<std::string> GetDeviceExtensions(EGLDeviceEXT device);
+  static bool HasClientExtension(std::string const & name);
   static bool HasExtension(EGLDisplay eglDisplay, std::string const & name);
+  static bool HasDeviceExtension(EGLDeviceEXT device, std::string const & name);
+
   static void LogError(std::string const & what);
   template<typename T>
   static T GetRequiredProcAddress(const char * procname)
@@ -139,8 +144,17 @@ public:
   bool SetVSync(bool enable);
   void SwapBuffers();
 
+  bool GetEGLDevice();
+  int GetDrmFd();
+  bool CreateEglDisplay(int drmFd);
+  bool CreateEglSurface(uint32_t planeID, int width, int height);
+
   EGLDisplay m_eglDisplay;
   EGLSurface m_eglSurface;
   EGLContext m_eglContext;
   EGLConfig m_eglConfig;
+
+  EGLDeviceEXT m_eglDevice = EGL_NO_DEVICE_EXT;
+  EGLOutputLayerEXT m_eglLayer;
+  EGLStreamKHR m_eglStream;
 };
