@@ -42,5 +42,5 @@ private:
   void DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer);
 
   bool m_need_modeset;
-  bool active;
+  bool m_active;
 };

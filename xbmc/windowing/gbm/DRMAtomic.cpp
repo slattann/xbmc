@@ -140,10 +140,8 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
       return;
     }
 
-    CLog::Log(LOGNOTICE, "CDRMAtomic: Setting CRTC active: %d", (int)active);
-    if (!AddCrtcProperty(m_req, m_crtc->crtc->crtc_id, "ACTIVE", (int)active))
+    if (!AddCrtcProperty(m_req, m_crtc->crtc->crtc_id, "ACTIVE", (int)m_active))
     {
-      CLog::Log(LOGERROR, "CDRMAtomic: Failed to set CRTC active: %d", (int)active);
       return;
     }
 
@@ -231,7 +229,7 @@ void CDRMAtomic::FlipPage(struct gbm_bo *bo, bool rendered, bool videoLayer)
 
 bool CDRMAtomic::InitDrm()
 {
-  active = true;
+  m_active = true;
   if (!CDRMUtils::OpenDrm())
   {
     return false;
@@ -272,9 +270,8 @@ bool CDRMAtomic::SetVideoMode(RESOLUTION_INFO res, struct gbm_bo *bo)
 
 bool CDRMAtomic::SetActive(bool new_active)
 {
-  CLog::Log(LOGNOTICE, "SetActive %d", (int)new_active);
   m_need_modeset = true;
-  active = new_active;
+  m_active = new_active;
 
   return true;
 }

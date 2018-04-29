@@ -280,7 +280,6 @@ bool DPMSSupport::PlatformSpecificEnablePowerSaving(PowerSavingMode mode)
   switch(mode)
   {
   case OFF:
-    CLog::Log(LOGINFO, "DPMS: Disabling output");
     return winSystem->Hide();
   default:
     return false;
@@ -289,7 +288,6 @@ bool DPMSSupport::PlatformSpecificEnablePowerSaving(PowerSavingMode mode)
 
 bool DPMSSupport::PlatformSpecificDisablePowerSaving()
 {
-  CLog::Log(LOGINFO, "DPMS: Enabling output");
   CWinSystemGbm *winSystem = dynamic_cast<CWinSystemGbm*>(CServiceBroker::GetWinSystem());
   winSystem->Show();
 }
