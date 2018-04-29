@@ -165,6 +165,7 @@ cmake_install.cmake
 /lib/cpluff/loader/cpluff-loader
 /lib/cpluff/m4/
 /lib/cpluff/stamp-h1
+/lib/cpluff/tmp*
 
 # /lib/gtest
 /lib/gtest/Makefile.in
@@ -352,4 +353,4 @@ exclude_dll.txt
 
 # VS git tools doesn't work for true out of tree builds and it's
 # useful to be able to work on multiple configs
-/build*/
+/build*
