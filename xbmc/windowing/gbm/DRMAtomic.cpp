@@ -140,7 +140,7 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
       return;
     }
 
-    if (!AddCrtcProperty(m_req, m_crtc->crtc->crtc_id, "ACTIVE", (int)m_active))
+    if (!AddCrtcProperty(m_req, m_crtc->crtc->crtc_id, "ACTIVE", static_cast<int>(m_active)))
     {
       return;
     }
@@ -229,7 +229,6 @@ void CDRMAtomic::FlipPage(struct gbm_bo *bo, bool rendered, bool videoLayer)
 
 bool CDRMAtomic::InitDrm()
 {
-  m_active = true;
   if (!CDRMUtils::OpenDrm())
   {
     return false;
