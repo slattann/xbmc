@@ -235,14 +235,14 @@ void CWinSystemGbm::WaitVBlank()
 bool CWinSystemGbm::Hide()
 {
   bool ret = m_DRM->SetActive(false);
-  CServiceBroker::GetRenderSystem()->PresentRender(true, false);
+  FlipPage(false, false);
   return ret;
 }
 
 bool CWinSystemGbm::Show(bool raise)
 {
   bool ret = m_DRM->SetActive(true);
-  CServiceBroker::GetRenderSystem()->PresentRender(true, false);
+  FlipPage(false, false);
   return ret;
 }
 

@@ -267,10 +267,10 @@ bool CDRMAtomic::SetVideoMode(RESOLUTION_INFO res, struct gbm_bo *bo)
   return true;
 }
 
-bool CDRMAtomic::SetActive(bool new_active)
+bool CDRMAtomic::SetActive(bool active)
 {
   m_need_modeset = true;
-  m_active = new_active;
+  m_active = active;
 
   return true;
 }
