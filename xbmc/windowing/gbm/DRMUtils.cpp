@@ -147,7 +147,7 @@ static bool GetProperties(int fd, uint32_t id, uint32_t type, struct drm_object 
 
 static void FreeProperties(struct drm_object *object)
 {
-  if (object->props_info)
+  if (object->props_info && object->props)
   {
     for (uint32_t i = 0; i < object->props->count_props; i++)
       drmModeFreeProperty(object->props_info[i]);
@@ -174,29 +174,39 @@ static uint32_t GetPropertyId(struct drm_object *object, const char *name)
 bool CDRMUtils::AddProperty(drmModeAtomicReqPtr req, struct drm_object *object, const char *name, uint64_t value)
 {
   uint32_t property_id = GetPropertyId(object, name);
-  if (property_id)
+  if (property_id == 0)
   {
-    int ret = drmModeAtomicAddProperty(req, object->id, property_id, value);
-    if (ret > 0)
-      return true;
+    CLog::Log(LOGWARNING, "CDRMUtils::%s - could not find property %s", __FUNCTION__, name);
+    return false;
   }
 
-  CLog::Log(LOGWARNING, "CDRMUtils::%s - could not %s property %s", __FUNCTION__, property_id ? "add" : "find", name);
-  return false;
+  int ret = drmModeAtomicAddProperty(req, object->id, property_id, value);
+  if (ret < 0)
+  {
+    CLog::Log(LOGWARNING, "CDRMUtils::%s - could not add property %s", __FUNCTION__, name);
+    return false;
+  }
+
+  return true;
 }
 
 bool CDRMUtils::SetProperty(struct drm_object *object, const char *name, uint64_t value)
 {
   uint32_t property_id = GetPropertyId(object, name);
-  if (property_id)
+  if (property_id == 0)
   {
-    int ret = drmModeObjectSetProperty(m_fd, object->id, object->type, property_id, value);
-    if (!ret)
-      return true;
+    CLog::Log(LOGWARNING, "CDRMUtils::%s - could not find property %s", __FUNCTION__, name);
+    return false;
   }
 
-  CLog::Log(LOGWARNING, "CDRMUtils::%s - could not %s property %s", __FUNCTION__, property_id ? "set" : "find", name);
-  return false;
+  int ret = drmModeObjectSetProperty(m_fd, object->id, object->type, property_id, value);
+  if (ret < 0)
+  {
+    CLog::Log(LOGWARNING, "CDRMUtils::%s - could not set property %s", __FUNCTION__, name);
+    return false;
+  }
+
+  return true;
 }
 
 bool CDRMUtils::GetResources()
