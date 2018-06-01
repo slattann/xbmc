@@ -39,10 +39,19 @@ CRendererDRMPRIME::~CRendererDRMPRIME()
 
 CBaseRenderer* CRendererDRMPRIME::Create(CVideoBuffer* buffer)
 {
-  if (buffer && dynamic_cast<CVideoBufferDRMPRIME*>(buffer))
-    return new CRendererDRMPRIME(m_pWinSystem->m_DRM);
+  CRendererDRMPRIME *renderer = nullptr;
 
-  return nullptr;
+  if (buffer && dynamic_cast<CVideoBufferDRMPRIME*>(buffer))
+  {
+    renderer = new CRendererDRMPRIME(m_pWinSystem->m_DRM);
+    if(!renderer->TestRender())
+    {
+      delete renderer;
+      renderer = nullptr;
+    }
+  }
+
+  return renderer;
 }
 
 bool CRendererDRMPRIME::Register(CWinSystemGbmGLESContext *winSystem)
@@ -246,4 +255,57 @@ void CRendererDRMPRIME::SetVideoPlane(CVideoBufferDRMPRIME* buffer)
       }
     }
   }
+}
+
+bool CRendererDRMPRIME::TestRender()
+{
+  auto device = m_pWinSystem->GetGBMDevice();
+
+  uint32_t width = 1;
+  uint32_t height = 1;
+
+  // todo: move this to GBMUtils with it's own interface
+  auto *bo = gbm_bo_create(device, width, height, GBM_FORMAT_XRGB8888, GBM_BO_USE_LINEAR);
+
+  if (!bo)
+    return false;
+
+  auto *drm_fb = m_DRM->DrmFbGetFromBo(bo);
+
+  if (!drm_fb)
+  {
+    CLog::Log(LOGERROR, "CRendererDRMPRIME::%s - Failed to get a new FBO", __FUNCTION__);
+    return false;
+  }
+
+  int32_t crtc_x = static_cast<int32_t>(0) & ~1;
+  int32_t crtc_y = static_cast<int32_t>(0) & ~1;
+  uint32_t crtc_w = (static_cast<uint32_t>(width) + 1) & ~1;
+  uint32_t crtc_h = (static_cast<uint32_t>(height) + 1) & ~1;
+  uint32_t src_x = 0;
+  uint32_t src_y = 0;
+  uint32_t src_w = width << 16;
+  uint32_t src_h = height << 16;
+
+  if (m_DRM->m_req)
+  {
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "FB_ID",   drm_fb->fb_id);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "CRTC_ID", m_DRM->m_crtc->crtc->crtc_id);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "SRC_X",   src_x);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "SRC_Y",   src_y);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "SRC_W",   src_w);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "SRC_H",   src_h);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "CRTC_X",  crtc_x);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "CRTC_Y",  crtc_y);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "CRTC_W",  crtc_w);
+    m_DRM->AddProperty(m_DRM->m_req, m_DRM->m_primary_plane, "CRTC_H",  crtc_h);
+  }
+
+  if (!m_DRM->TestCommit())
+    return false;
+
+  if (bo)
+    gbm_bo_destroy(bo);
+
+  return true;
 }

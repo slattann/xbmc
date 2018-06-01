@@ -73,6 +73,7 @@ public:
   virtual bool SetActive(bool active) { return false; };
   virtual bool InitDrm();
   virtual void DestroyDrm();
+  virtual bool TestCommit() { return true; }
 
   std::string GetModule() const { return m_module; }
   std::string GetDevicePath() const { return m_device_path; }
@@ -83,6 +84,8 @@ public:
 
   bool AddProperty(drmModeAtomicReqPtr req, struct drm_object *object, const char *name, uint64_t value);
   bool SetProperty(struct drm_object *object, const char *name, uint64_t value);
+
+  drm_fb * DrmFbGetFromBo(struct gbm_bo *bo);
 
   int m_fd;
 
@@ -96,7 +99,6 @@ public:
 
 protected:
   bool OpenDrm();
-  drm_fb * DrmFbGetFromBo(struct gbm_bo *bo);
 
 private:
   bool GetResources();

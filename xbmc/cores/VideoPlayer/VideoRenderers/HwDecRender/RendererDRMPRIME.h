@@ -57,6 +57,7 @@ public:
 private:
   void Reset();
   void SetVideoPlane(CVideoBufferDRMPRIME* buffer);
+  bool TestRender();
 
   bool m_bConfigured = false;
   int m_iLastRenderBuffer = -1;

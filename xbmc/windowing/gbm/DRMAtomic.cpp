@@ -32,6 +32,20 @@
 #include "DRMAtomic.h"
 #include "WinSystemGbmGLESContext.h"
 
+bool CDRMAtomic::TestCommit()
+{
+  auto ret = drmModeAtomicCommit(m_fd, m_req, DRM_MODE_ATOMIC_TEST_ONLY, nullptr);
+
+  if (ret < 0)
+  {
+    CLog::Log(LOGERROR, "CDRMAtomic::%s - test commit failed: %s", __FUNCTION__, strerror(errno));
+    return false;
+  }
+
+  drmModeAtomicFree(m_req);
+  m_req = drmModeAtomicAlloc();
+}
+
 void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool videoLayer)
 {
   uint32_t blob_id;
