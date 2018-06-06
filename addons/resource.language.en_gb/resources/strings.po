@@ -7185,6 +7185,29 @@ msgctxt "#13461"
 msgid "Enable this option to use hardware acceleration for the HEVC codec. If disabled the CPU will be used instead."
 msgstr ""
 
+#: system/settings/settings.xml
+msgctxt "#13462"
+msgid "PRIME Renderer"
+msgstr ""
+
+#. Description of setting with label #13462 "Use Prime Renderer"
+#: system/settings/settings.xml
+msgctxt "#13463"
+msgid "This option switches between Direct and OpenGLES Rendering."
+msgstr ""
+
+#. adjust refreshrate
+#: system/settings/settings.xml
+msgctxt "#13464"
+msgid "Direct"
+msgstr ""
+
+#. adjust refreshrate
+#: system/settings/settings.xml
+msgctxt "#13465"
+msgid "OpenGLES"
+msgstr ""
+
 #empty strings from id 13462 to 13504
 
 #: system/settings/settings.xml
