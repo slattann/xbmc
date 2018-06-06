@@ -182,7 +182,7 @@ public:
 
 private:
   EGLDisplay m_display{nullptr};
-  EGLImage m_image{nullptr};
+  EGLImageKHR m_image{nullptr};
 
   PFNEGLCREATEIMAGEKHRPROC m_eglCreateImageKHR{nullptr};
   PFNEGLDESTROYIMAGEKHRPROC m_eglDestroyImageKHR{nullptr};
