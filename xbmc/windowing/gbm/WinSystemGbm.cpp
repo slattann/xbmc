@@ -132,7 +132,7 @@ bool CWinSystemGbm::CreateNewWindow(const std::string& name,
     return false;
   }
 
-  if(!m_GBM->CreateSurface(res.iWidth, res.iHeight))
+  if(!m_GBM->CreateSurface(res.iWidth, res.iHeight, m_DRM->GetOverlayPlane()->format, m_DRM->GetOverlayPlane()->modifiers, m_DRM->GetOverlayPlane()->modifiers_count))
   {
     CLog::Log(LOGERROR, "CWinSystemGbm::%s - failed to initialize GBM", __FUNCTION__);
     return false;

@@ -48,16 +48,30 @@ void CGBMUtils::DestroyDevice()
   }
 }
 
-bool CGBMUtils::CreateSurface(int width, int height)
+bool CGBMUtils::CreateSurface(int width, int height, uint32_t format, const uint64_t *modifiers, const unsigned int count)
 {
   if (m_surface)
     CLog::Log(LOGWARNING, "CGBMUtils::%s - surface already created", __FUNCTION__);
 
-  m_surface = gbm_surface_create(m_device,
-                                 width,
-                                 height,
-                                 GBM_FORMAT_ARGB8888,
-                                 GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+#if defined(HAS_GBM_MODIFIERS)
+  if (modifiers)
+  {
+    m_surface = gbm_surface_create_with_modifiers(m_device,
+                                                  width,
+                                                  height,
+                                                  format,
+                                                  modifiers,
+                                                  count);
+  }
+  else
+#endif
+  {
+    m_surface = gbm_surface_create(m_device,
+                                   width,
+                                   height,
+                                   GBM_FORMAT_ARGB8888,
+                                   GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+  }
 
   if (!m_surface)
   {

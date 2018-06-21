@@ -105,22 +105,40 @@ drm_fb * CDRMUtils::DrmFbGetFromBo(struct gbm_bo *bo)
            strides[4] = {0},
            offsets[4] = {0};
 
+  uint64_t modifiers[4] = {0};
+
   width = gbm_bo_get_width(bo);
   height = gbm_bo_get_height(bo);
 
+#if defined(HAS_GBM_MODIFIERS)
+  for (int i = 0; i < gbm_bo_get_plane_count(bo); i++)
+  {
+    handles[i] = gbm_bo_get_handle_for_plane(bo, i).u32;
+    strides[i] = gbm_bo_get_stride_for_plane(bo, i);
+    offsets[i] = gbm_bo_get_offset(bo, i);
+    modifiers[i] = gbm_bo_get_modifier(bo);
+  }
+#else
   handles[0] = gbm_bo_get_handle(bo).u32;
   strides[0] = gbm_bo_get_stride(bo);
   memset(offsets, 0, 16);
+#endif
 
-  auto ret = drmModeAddFB2(m_fd,
-                           width,
-                           height,
-                           fb->format,
-                           handles,
-                           strides,
-                           offsets,
-                           &fb->fb_id,
-                           0);
+  if (modifiers[0] == DRM_FORMAT_MOD_INVALID)
+    modifiers[0] = DRM_FORMAT_MOD_LINEAR;
+
+  CLog::Log(LOGDEBUG, "CDRMUtils::%s - using modifier: %lli", __FUNCTION__, modifiers[0]);
+
+  auto ret = drmModeAddFB2WithModifiers(m_fd,
+                                        width,
+                                        height,
+                                        fb->format,
+                                        handles,
+                                        strides,
+                                        offsets,
+                                        modifiers,
+                                        &fb->fb_id,
+                                        (modifiers[0] > 0) ? DRM_MODE_FB_MODIFIERS : 0);
 
   if(ret)
   {
@@ -417,6 +435,74 @@ bool CDRMUtils::FindPlanes()
     return false;
   }
 
+  if(!FindModifiersForPlane(m_overlay_plane))
+  {
+    CLog::Log(LOGDEBUG, "CDRMUtils::%s - no drm modifiers present for the overlay plane", __FUNCTION__);
+  }
+
+  return true;
+}
+
+bool CDRMUtils::FindModifiersForPlane(struct plane *object)
+{
+  uint64_t blob_id = 0;
+
+  uint64_t *modifiers = nullptr;
+  unsigned modifiers_count = 0;
+
+  for (uint32_t i = 0; i < object->props->count_props; i++)
+  {
+    if (strcmp(object->props_info[i]->name, "IN_FORMATS") == 0)
+      blob_id = object->props->prop_values[i];
+  }
+
+  if (blob_id == 0)
+    return false;
+
+  drmModePropertyBlobPtr blob = drmModeGetPropertyBlob(m_fd, blob_id);
+  if (!blob)
+    return false;
+
+  drm_format_modifier_blob *header = static_cast<drm_format_modifier_blob*>(blob->data);
+  uint32_t *formats = reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(header) + header->formats_offset);
+  drm_format_modifier *mod = reinterpret_cast<drm_format_modifier*>(reinterpret_cast<char*>(header) + header->modifiers_offset);
+
+  for (uint32_t i = 0; i < header->count_formats; i++)
+  {
+    if (formats[i] == object->format)
+    {
+      uint64_t mask = 1ULL << i;
+
+      for (uint32_t j = 0; j < header->count_modifiers; j++)
+      {
+        if (mod[j].formats & mask)
+          modifiers_count += 1;
+      }
+
+      if (modifiers_count > 0)
+      {
+        int modifier_index = 0;
+        modifiers = new uint64_t[modifiers_count];
+        for (uint32_t j = 0; j < header->count_modifiers; j++)
+        {
+          if (mod[j].formats & mask)
+            modifiers[modifier_index++] = mod[j].modifier;
+        }
+      }
+      else
+      {
+        modifiers = new uint64_t[1];
+        modifiers_count = 1;
+      }
+    }
+  }
+
+  if (blob)
+    drmModeFreePropertyBlob(blob);
+
+  object->modifiers = modifiers;
+  object->modifiers_count = modifiers_count;
+
   return true;
 }
 
@@ -596,11 +682,13 @@ void CDRMUtils::DestroyDrm()
 
   drmModeFreePlane(m_primary_plane->plane);
   FreeProperties(m_primary_plane);
+  delete [] m_primary_plane->modifiers;
   delete m_primary_plane;
   m_primary_plane = nullptr;
 
   drmModeFreePlane(m_overlay_plane->plane);
   FreeProperties(m_overlay_plane);
+  delete [] m_overlay_plane->modifiers;
   delete m_overlay_plane;
   m_overlay_plane = nullptr;
 }

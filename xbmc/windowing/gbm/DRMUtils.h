@@ -47,6 +47,8 @@ struct plane : drm_object
 {
   drmModePlanePtr plane = nullptr;
   uint32_t format = DRM_FORMAT_XRGB8888;
+  uint64_t *modifiers = nullptr;
+  unsigned modifiers_count = 0;
 };
 
 struct connector : drm_object
@@ -122,6 +124,7 @@ private:
   bool FindEncoder();
   bool FindCrtc();
   bool FindPlanes();
+  bool FindModifiersForPlane(struct plane *object);
   bool FindPreferredMode();
   bool RestoreOriginalMode();
   static void DrmFbDestroyCallback(struct gbm_bo *bo, void *data);
