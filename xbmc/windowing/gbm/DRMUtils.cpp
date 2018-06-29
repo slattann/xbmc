@@ -447,9 +447,6 @@ bool CDRMUtils::FindModifiersForPlane(struct plane *object)
 {
   uint64_t blob_id = 0;
 
-  uint64_t *modifiers = nullptr;
-  unsigned modifiers_count = 0;
-
   for (uint32_t i = 0; i < object->props->count_props; i++)
   {
     if (strcmp(object->props_info[i]->name, "IN_FORMATS") == 0)
@@ -469,39 +466,18 @@ bool CDRMUtils::FindModifiersForPlane(struct plane *object)
 
   for (uint32_t i = 0; i < header->count_formats; i++)
   {
-    if (formats[i] == object->format)
+    std::vector<uint64_t> modifiers;
+    for (uint32_t j = 0; j < header->count_modifiers; j++)
     {
-      uint64_t mask = 1ULL << i;
-
-      for (uint32_t j = 0; j < header->count_modifiers; j++)
-      {
-        if (mod[j].formats & mask)
-          modifiers_count += 1;
-      }
-
-      if (modifiers_count > 0)
-      {
-        int modifier_index = 0;
-        modifiers = new uint64_t[modifiers_count];
-        for (uint32_t j = 0; j < header->count_modifiers; j++)
-        {
-          if (mod[j].formats & mask)
-            modifiers[modifier_index++] = mod[j].modifier;
-        }
-      }
-      else
-      {
-        modifiers = new uint64_t[1];
-        modifiers_count = 1;
-      }
+      if (mod[j].formats & 1ULL << i)
+        modifiers.emplace_back(mod[j].modifier);
     }
+
+    object->modifiers_map.emplace(formats[i], modifiers);
   }
 
   if (blob)
     drmModeFreePropertyBlob(blob);
-
-  object->modifiers = modifiers;
-  object->modifiers_count = modifiers_count;
 
   return true;
 }
@@ -682,13 +658,11 @@ void CDRMUtils::DestroyDrm()
 
   drmModeFreePlane(m_primary_plane->plane);
   FreeProperties(m_primary_plane);
-  delete [] m_primary_plane->modifiers;
   delete m_primary_plane;
   m_primary_plane = nullptr;
 
   drmModeFreePlane(m_overlay_plane->plane);
   FreeProperties(m_overlay_plane);
-  delete [] m_overlay_plane->modifiers;
   delete m_overlay_plane;
   m_overlay_plane = nullptr;
 }

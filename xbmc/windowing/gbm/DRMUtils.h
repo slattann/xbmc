@@ -25,6 +25,7 @@
 #include <xf86drmMode.h>
 #include <gbm.h>
 #include <vector>
+#include <map>
 
 #include "windowing/Resolution.h"
 #include "GBMUtils.h"
@@ -47,8 +48,7 @@ struct plane : drm_object
 {
   drmModePlanePtr plane = nullptr;
   uint32_t format = DRM_FORMAT_XRGB8888;
-  uint64_t *modifiers = nullptr;
-  unsigned modifiers_count = 0;
+  std::map<uint32_t, std::vector<uint64_t>> modifiers_map;
 };
 
 struct connector : drm_object
@@ -89,6 +89,8 @@ public:
   int GetFileDescriptor() const { return m_fd; }
   struct plane* GetPrimaryPlane() const { return m_primary_plane; }
   struct plane* GetOverlayPlane() const { return m_overlay_plane; }
+  std::vector<uint64_t> GetPrimaryPlaneModifiersForFormat(uint32_t format) { return m_primary_plane->modifiers_map[format]; }
+  std::vector<uint64_t> GetOverlayPlaneModifiersForFormat(uint32_t format) { return m_overlay_plane->modifiers_map[format]; }
   struct crtc* GetCrtc() const { return m_crtc; }
 
   RESOLUTION_INFO GetCurrentMode();
