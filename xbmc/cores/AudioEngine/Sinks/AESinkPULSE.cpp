@@ -76,8 +76,10 @@ static pa_sample_format AEStreamFormatToPulseFormat(CAEStreamInfo::DataType type
     case CAEStreamInfo::STREAM_TYPE_DTS_512:
     case CAEStreamInfo::STREAM_TYPE_DTS_1024:
     case CAEStreamInfo::STREAM_TYPE_DTS_2048:
+    case CAEStreamInfo::STREAM_TYPE_DTSHD:
     case CAEStreamInfo::STREAM_TYPE_DTSHD_CORE:
     case CAEStreamInfo::STREAM_TYPE_EAC3:
+    case CAEStreamInfo::STREAM_TYPE_TRUEHD:
       return PA_SAMPLE_S16NE;
 
     default:
@@ -114,8 +116,14 @@ static pa_encoding AEStreamFormatToPulseEncoding(CAEStreamInfo::DataType type)
     case CAEStreamInfo::STREAM_TYPE_DTSHD_CORE:
       return PA_ENCODING_DTS_IEC61937;
 
+    case CAEStreamInfo::STREAM_TYPE_DTSHD:
+      return PA_ENCODING_DTSHD_IEC61937;
+
     case CAEStreamInfo::STREAM_TYPE_EAC3:
       return PA_ENCODING_EAC3_IEC61937;
+
+    case CAEStreamInfo::STREAM_TYPE_TRUEHD:
+      return PA_ENCODING_TRUEHD_IEC61937;
 
     default:
       return PA_ENCODING_INVALID;
@@ -465,8 +473,16 @@ static void SinkInfoRequestCallback(pa_context *c, const pa_sink_info *i, int eo
           device.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_2048);
           device_type = AE_DEVTYPE_IEC958;
           break;
+        case PA_ENCODING_DTSHD_IEC61937:
+          device.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD);
+          device_type = AE_DEVTYPE_IEC958;
+          break;
         case PA_ENCODING_EAC3_IEC61937:
           device.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_EAC3);
+          device_type = AE_DEVTYPE_IEC958;
+          break;
+        case PA_ENCODING_TRUEHD_IEC61937:
+          device.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_TRUEHD);
           device_type = AE_DEVTYPE_IEC958;
           break;
         case PA_ENCODING_PCM:
