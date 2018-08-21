@@ -42,5 +42,12 @@
         </setting>
       </group>
     </category>
+    <category id="input">
+      <group id="4">
+        <setting id="input.libinputkeyboardlayout">
+          <visible>true</visible>
+        </setting>
+      </group>
+    </category>
   </section>
 </settings>

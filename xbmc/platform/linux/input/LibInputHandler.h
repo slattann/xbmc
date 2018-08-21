@@ -15,7 +15,8 @@
 #include <memory>
 #include <vector>
 
-class CLibInputKeyboard;
+#include "LibInputKeyboard.h"
+
 class CLibInputPointer;
 class CLibInputTouch;
 
@@ -26,6 +27,8 @@ public:
   ~CLibInputHandler();
 
   void Start();
+
+  bool SetKeymap(std::string layout) { return m_keyboard->SetKeymap(layout); }
 
 private:
   void Process() override;

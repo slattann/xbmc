@@ -11,6 +11,7 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi OR CORE_PLATFORM_NAME_LC STREQUAL gbm OR 
     list(APPEND SOURCES LibInputHandler.cpp
                         LibInputKeyboard.cpp
                         LibInputPointer.cpp
+                        LibInputSettings.cpp
                         LibInputTouch.cpp)
 
     list(APPEND HEADERS LibInputHandler.h
@@ -19,6 +20,8 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi OR CORE_PLATFORM_NAME_LC STREQUAL gbm OR 
                         LibInputTouch.h)
   endif()
 endif()
+
+list(APPEND HEADERS LibInputSettings.h)
 
 if(SOURCES)
   core_add_library(input_linux)

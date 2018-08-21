@@ -16837,7 +16837,15 @@ msgctxt "#35020"
 msgid "Press all analog buttons now to detect them:[CR][CR]{0:s}"
 msgstr ""
 
-#empty strings from id 35021 to 35046
+#empty strings from id 35021 to 35029
+
+#: system/settings/gbm.xml
+#: xbmc/platforms/linux/input/LibInputSettings.cpp
+msgctxt "#35030"
+msgid "Keyboard"
+msgstr ""
+
+#empty strings from id 35031 to 35046
 
 #. Name of setting to configure peripheral add-ons
 #: system/settings/settings.xml
@@ -19665,7 +19673,13 @@ msgctxt "#36435"
 msgid "Use VideoPlayer for decoding of video files with MMAL acceleration."
 msgstr ""
 
-#empty strings from id 36436 to 36441
+#. Description for setting #310: "Keyboard layouts"
+#: system/settings/settings.xml
+msgctxt "#36436"
+msgid "Select OS keyboard layout."
+msgstr ""
+
+#empty strings from id 36437 to 36441
 
 #. Description of setting "System -> Audio output -> Volume control steps" with label #1302
 #: system/settings/settings.xml
