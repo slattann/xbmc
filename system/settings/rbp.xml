@@ -101,5 +101,12 @@
         </setting>
       </group>
     </category>
+    <category id="input">
+      <group id="3">
+        <setting id="input.libinputkeyboardlayout">
+          <visible>true</visible>
+        </setting>
+      </group>
+    </category>
   </section>
 </settings>

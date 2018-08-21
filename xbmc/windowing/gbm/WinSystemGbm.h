@@ -58,6 +58,8 @@ public:
   struct gbm_device *GetGBMDevice() const { return m_GBM->GetDevice(); }
   std::shared_ptr<CDRMUtils> GetDrm() const { return m_DRM; }
 
+  std::shared_ptr<CLibInputHandler> GetInputManager() { return m_libinput; }
+
 protected:
   void OnLostDevice();
 
@@ -71,5 +73,5 @@ protected:
   bool m_delayDispReset = false;
   XbmcThreads::EndTime m_dispResetTimer;
   std::unique_ptr<OPTIONALS::CLircContainer, OPTIONALS::delete_CLircContainer> m_lirc;
-  std::unique_ptr<CLibInputHandler> m_libinput;
+  std::shared_ptr<CLibInputHandler> m_libinput;
 };

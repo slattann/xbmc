@@ -12,6 +12,8 @@
 #include "ServiceBroker.h"
 #include "utils/log.h"
 
+#include "settings/Settings.h"
+
 #include <algorithm>
 #include <fcntl.h>
 #include <linux/input.h>
@@ -153,7 +155,17 @@ CLibInputKeyboard::CLibInputKeyboard()
     return;
   }
 
-  m_keymap = xkb_keymap_new_from_names(m_ctx, nullptr, XKB_KEYMAP_COMPILE_NO_FLAGS);
+  std::string layout = CServiceBroker::GetSettings().GetString(CSettings::SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
+
+  xkb_rule_names names;
+
+  names.rules = nullptr;
+  names.model = nullptr;
+  names.layout = layout.c_str();
+  names.variant = nullptr;
+  names.options = nullptr;
+
+  m_keymap = xkb_keymap_new_from_names(m_ctx, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
   if (!m_keymap)
   {
     CLog::Log(LOGERROR, "CLibInputKeyboard::%s - failed to compile keymap", __FUNCTION__);
@@ -184,6 +196,45 @@ CLibInputKeyboard::~CLibInputKeyboard()
   xkb_state_unref(m_state);
   xkb_keymap_unref(m_keymap);
   xkb_context_unref(m_ctx);
+}
+
+bool CLibInputKeyboard::SetKeymap(std::string layout)
+{
+  xkb_state_unref(m_state);
+  xkb_keymap_unref(m_keymap);
+
+  xkb_rule_names names;
+
+  names.rules = nullptr;
+  names.model = nullptr;
+  names.layout = layout.c_str();
+  names.variant = nullptr;
+  names.options = nullptr;
+
+  m_keymap = xkb_keymap_new_from_names(m_ctx, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
+  if (!m_keymap)
+  {
+    CLog::Log(LOGERROR, "CLibInputKeyboard::%s - failed to compile keymap", __FUNCTION__);
+    return false;
+  }
+
+  m_state = xkb_state_new(m_keymap);
+  if (!m_state)
+  {
+    CLog::Log(LOGERROR, "CLibInputKeyboard::%s - failed to create xkb state", __FUNCTION__);
+    return false;
+  }
+
+  m_modindex[0] = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_CTRL);
+  m_modindex[1] = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_ALT);
+  m_modindex[2] = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_SHIFT);
+  m_modindex[3] = xkb_keymap_mod_get_index(m_keymap, XKB_MOD_NAME_LOGO);
+
+  m_ledindex[0] = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_NUM);
+  m_ledindex[1] = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_CAPS);
+  m_ledindex[2] = xkb_keymap_led_get_index(m_keymap, XKB_LED_NAME_SCROLL);
+
+  return true;
 }
 
 void CLibInputKeyboard::ProcessKey(libinput_event_keyboard *e)

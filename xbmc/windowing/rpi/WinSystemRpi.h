@@ -40,6 +40,9 @@ public:
   void SetVisible(bool visible);
   virtual void Register(IDispResource *resource);
   virtual void Unregister(IDispResource *resource);
+
+  std::shared_ptr<CLibInputHandler> GetInputManager() { return m_libinput; }
+
 protected:
   CRPIUtils *m_rpi;
   EGLDisplay m_nativeDisplay;
@@ -56,5 +59,5 @@ protected:
   CCriticalSection m_resourceSection;
   std::vector<IDispResource*> m_resources;
   std::unique_ptr<OPTIONALS::CLircContainer, OPTIONALS::delete_CLircContainer> m_lirc;
-  std::unique_ptr<CLibInputHandler> m_libinput;
+  std::shared_ptr<CLibInputHandler> m_libinput;
 };
