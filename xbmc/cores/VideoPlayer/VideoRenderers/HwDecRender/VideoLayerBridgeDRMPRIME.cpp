@@ -25,6 +25,13 @@ CVideoLayerBridgeDRMPRIME::~CVideoLayerBridgeDRMPRIME()
 
 void CVideoLayerBridgeDRMPRIME::Disable()
 {
+  struct connector* connector = m_DRM->GetConnector();
+  if (m_DRM->HasProperty(connector, "content type"))
+  {
+    m_DRM->AddProperty(connector, "content type", m_DRM->GetContentType(false));
+    m_DRM->SetActive(true);
+  }
+
   // disable video plane
   struct plane* plane = m_DRM->GetPrimaryPlane();
   m_DRM->AddProperty(plane, "FB_ID", 0);
@@ -127,6 +134,12 @@ void CVideoLayerBridgeDRMPRIME::Unmap(CVideoBufferDRMPRIME* buffer)
 
 void CVideoLayerBridgeDRMPRIME::Configure(CVideoBufferDRMPRIME* buffer)
 {
+  struct connector* connector = m_DRM->GetConnector();
+  if (m_DRM->HasProperty(connector, "content type"))
+  {
+    m_DRM->AddProperty(connector, "content type", m_DRM->GetContentType(true));
+    m_DRM->SetActive(true);
+  }
 }
 
 void CVideoLayerBridgeDRMPRIME::SetVideoPlane(CVideoBufferDRMPRIME* buffer, const CRect& destRect)

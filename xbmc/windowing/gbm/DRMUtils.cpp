@@ -16,6 +16,7 @@
 #include <EGL/egl.h>
 #include <unistd.h>
 
+#include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "windowing/GraphicContext.h"
@@ -724,4 +725,17 @@ std::vector<RESOLUTION_INFO> CDRMUtils::GetModes()
   }
 
   return resolutions;
+}
+
+const std::string SETTING_VIDEOSCREEN_HDMICONTENTTYPE = "videoscreen.hdmicontenttype";
+const std::string SETTING_VIDEOPLAYER_HDMICONTENTTYPE = "videoplayer.hdmicontenttype";
+
+int CDRMUtils::GetContentType(bool videoLayer)
+{
+  int contentType = 0;
+  if (videoLayer)
+    contentType = CServiceBroker::GetSettings().GetInt(SETTING_VIDEOPLAYER_HDMICONTENTTYPE);
+  if (contentType == 0)
+    contentType = CServiceBroker::GetSettings().GetInt(SETTING_VIDEOSCREEN_HDMICONTENTTYPE);
+  return contentType;
 }
