@@ -132,6 +132,32 @@ void CVideoLayerBridgeDRMPRIME::Unmap(CVideoBufferDRMPRIME* buffer)
   }
 }
 
+static int GetColorEncoding(CVideoBufferDRMPRIME* buffer)
+{
+  AVFrame* frame = buffer->GetFrame();
+  if (frame->colorspace == AVCOL_SPC_BT2020_NCL ||
+      frame->colorspace == AVCOL_SPC_BT2020_CL ||
+      frame->color_primaries == AVCOL_PRI_BT2020 ||
+      frame->color_trc == AVCOL_TRC_SMPTE2084 ||
+      frame->color_trc == AVCOL_TRC_BT2020_10)
+    return DRM_COLOR_YCBCR_BT2020;
+
+  if (frame->colorspace == AVCOL_SPC_SMPTE170M ||
+      frame->color_primaries == AVCOL_PRI_SMPTE170M)
+    return DRM_COLOR_YCBCR_BT601;
+
+  return DRM_COLOR_YCBCR_BT709;
+}
+
+static int GetColorRange(CVideoBufferDRMPRIME* buffer)
+{
+  AVFrame* frame = buffer->GetFrame();
+  if (frame->color_range == AVCOL_RANGE_JPEG)
+    return DRM_COLOR_YCBCR_FULL_RANGE;
+
+  return DRM_COLOR_YCBCR_LIMITED_RANGE;
+}
+
 void CVideoLayerBridgeDRMPRIME::Configure(CVideoBufferDRMPRIME* buffer)
 {
   struct connector* connector = m_DRM->GetConnector();
@@ -139,6 +165,14 @@ void CVideoLayerBridgeDRMPRIME::Configure(CVideoBufferDRMPRIME* buffer)
   {
     m_DRM->AddProperty(connector, "content type", m_DRM->GetContentType(true));
     m_DRM->SetActive(true);
+  }
+
+  struct plane* plane = m_DRM->GetPrimaryPlane();
+  if (m_DRM->HasProperty(plane, "COLOR_ENCODING") &&
+      m_DRM->HasProperty(plane, "COLOR_RANGE"))
+  {
+    m_DRM->AddProperty(plane, "COLOR_ENCODING", GetColorEncoding(buffer));
+    m_DRM->AddProperty(plane, "COLOR_RANGE", GetColorRange(buffer));
   }
 }
 

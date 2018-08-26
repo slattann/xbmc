@@ -39,3 +39,14 @@ private:
   CVideoBufferDRMPRIME* m_buffer = nullptr;
   CVideoBufferDRMPRIME* m_prev_buffer = nullptr;
 };
+
+enum drm_color_encoding {
+  DRM_COLOR_YCBCR_BT601,
+  DRM_COLOR_YCBCR_BT709,
+  DRM_COLOR_YCBCR_BT2020,
+};
+
+enum drm_color_range {
+  DRM_COLOR_YCBCR_LIMITED_RANGE,
+  DRM_COLOR_YCBCR_FULL_RANGE,
+};
