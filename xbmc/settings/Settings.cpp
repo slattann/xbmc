@@ -364,7 +364,6 @@ const std::string CSettings::SETTING_AUDIOOUTPUT_DTSPASSTHROUGH = "audiooutput.d
 const std::string CSettings::SETTING_AUDIOOUTPUT_TRUEHDPASSTHROUGH = "audiooutput.truehdpassthrough";
 const std::string CSettings::SETTING_AUDIOOUTPUT_DTSHDPASSTHROUGH = "audiooutput.dtshdpassthrough";
 const std::string CSettings::SETTING_AUDIOOUTPUT_VOLUMESTEPS = "audiooutput.volumesteps";
-const std::string CSettings::SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT = "input.libinputkeyboardlayout";
 const std::string CSettings::SETTING_INPUT_PERIPHERALS = "input.peripherals";
 const std::string CSettings::SETTING_INPUT_PERIPHERALLIBRARIES = "input.peripherallibraries";
 const std::string CSettings::SETTING_INPUT_ENABLEMOUSE = "input.enablemouse";
@@ -702,7 +701,6 @@ void CSettings::InitializeOptionFillers()
   GetSettingsManager()->RegisterSettingOptionsFiller("timezonecountries", CLinuxTimezone::SettingOptionsTimezoneCountriesFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller("timezones", CLinuxTimezone::SettingOptionsTimezonesFiller);
 #endif
-  GetSettingsManager()->RegisterSettingOptionsFiller("libinputkeyboardlayout", CLibInputSettings::SettingOptionsKeyboardLayoutsFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller("keyboardlayouts", CKeyboardLayoutManager::SettingOptionsKeyboardLayoutsFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller("loggingcomponents", CAdvancedSettings::SettingOptionsLoggingComponentsFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller("pvrrecordmargins", PVR::CPVRSettings::MarginTimeFiller);
@@ -751,7 +749,6 @@ void CSettings::UninitializeOptionFillers()
 #endif // defined(TARGET_LINUX)
   GetSettingsManager()->UnregisterSettingOptionsFiller("verticalsyncs");
   GetSettingsManager()->UnregisterSettingOptionsFiller("keyboardlayouts");
-  GetSettingsManager()->UnregisterSettingOptionsFiller("libinputkeyboardlayout");
   GetSettingsManager()->UnregisterSettingOptionsFiller("pvrrecordmargins");
 }
 
@@ -794,7 +791,6 @@ void CSettings::InitializeISettingsHandlers()
   GetSettingsManager()->RegisterSettingsHandler(&g_timezone);
 #endif
   GetSettingsManager()->RegisterSettingsHandler(&CMediaSettings::GetInstance());
-  GetSettingsManager()->RegisterSettingsHandler(&CLibInputSettings::GetInstance());
 }
 
 void CSettings::UninitializeISettingsHandlers()
@@ -816,7 +812,6 @@ void CSettings::UninitializeISettingsHandlers()
   GetSettingsManager()->UnregisterCallback(&XBMCHelper::GetInstance());
 #endif
   GetSettingsManager()->UnregisterCallback(&CWakeOnAccess::GetInstance());
-  GetSettingsManager()->RegisterSettingsHandler(&CLibInputSettings::GetInstance());
 }
 
 void CSettings::InitializeISubSettings()
@@ -963,10 +958,6 @@ void CSettings::InitializeISettingCallbacks()
   settingSet.insert(CSettings::SETTING_DISC_PLAYBACK);
   GetSettingsManager()->RegisterCallback(&CDiscSettings::GetInstance(), settingSet);
 #endif
-
-  settingSet.clear();
-  settingSet.insert(CSettings::SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
-  GetSettingsManager()->RegisterCallback(&CLibInputSettings::GetInstance(), settingSet);
 }
 
 void CSettings::UninitializeISettingCallbacks()
@@ -990,7 +981,6 @@ void CSettings::UninitializeISettingCallbacks()
 #ifdef HAVE_LIBBLURAY
   GetSettingsManager()->UnregisterCallback(&CDiscSettings::GetInstance());
 #endif
-  GetSettingsManager()->UnregisterCallback(&CLibInputSettings::GetInstance());
 }
 
 bool CSettings::Reset()

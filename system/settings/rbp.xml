@@ -102,7 +102,7 @@
       </group>
     </category>
     <category id="input">
-      <group id="3">
+      <group id="4">
         <setting id="input.libinputkeyboardlayout">
           <visible>true</visible>
         </setting>

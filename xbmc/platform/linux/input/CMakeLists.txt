@@ -17,11 +17,10 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi OR CORE_PLATFORM_NAME_LC STREQUAL gbm OR 
     list(APPEND HEADERS LibInputHandler.h
                         LibInputKeyboard.h
                         LibInputPointer.h
+                        LibInputSettings.h
                         LibInputTouch.h)
   endif()
 endif()
-
-list(APPEND HEADERS LibInputSettings.h)
 
 if(SOURCES)
   core_add_library(input_linux)
