@@ -66,8 +66,6 @@
 #include "ServiceBroker.h"
 #include "DiscSettings.h"
 
-#include "platform/linux/input/LibInputSettings.h"
-
 #define SETTINGS_XML_FOLDER "special://xbmc/system/settings/"
 
 using namespace KODI;
