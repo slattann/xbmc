@@ -26,7 +26,7 @@ public:
   void UpdateLeds(libinput_device *dev);
   void GetRepeat(libinput_device *dev);
 
-  bool SetKeymap(std::string layout);
+  bool SetKeymap(const std::string& layout);
 
 private:
   XBMCKey XBMCKeyForKeysym(xkb_keysym_t sym, uint32_t scancode);

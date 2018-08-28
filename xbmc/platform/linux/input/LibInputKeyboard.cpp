@@ -155,7 +155,7 @@ CLibInputKeyboard::CLibInputKeyboard()
     return;
   }
 
-  std::string layout = CServiceBroker::GetSettings().GetString(CSettings::SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
+  std::string layout = CServiceBroker::GetSettings().GetString("input.libinputkeyboardlayout");
 
   xkb_rule_names names;
 
@@ -198,7 +198,7 @@ CLibInputKeyboard::~CLibInputKeyboard()
   xkb_context_unref(m_ctx);
 }
 
-bool CLibInputKeyboard::SetKeymap(std::string layout)
+bool CLibInputKeyboard::SetKeymap(const std::string& layout)
 {
   xkb_state_unref(m_state);
   xkb_keymap_unref(m_keymap);
