@@ -125,6 +125,7 @@ bool CServiceManager::InitStageOnePointFive()
 
 bool CServiceManager::InitStageTwo(const CAppParamParser &params)
 {
+  m_winSystem = CWinSystemBase::CreateWinSystem();
   // Initialize the addon database (must be before the addon manager is init'd)
   m_databaseManager.reset(new CDatabaseManager);
 
@@ -242,6 +243,7 @@ void CServiceManager::DeinitStageTwo()
   m_addonMgr.reset();
   m_Platform.reset();
   m_databaseManager.reset();
+  m_winSystem.reset();
 }
 
 void CServiceManager::DeinitStageOnePointFive()
@@ -419,4 +421,9 @@ CProfilesManager &CServiceManager::GetProfileManager()
 CEventLog &CServiceManager::GetEventLog()
 {
   return m_profileManager->GetEventLog();
+}
+
+CWinSystemBase *CServiceManager::GetWinSystem()
+{
+  return m_winSystem.get();
 }

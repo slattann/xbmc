@@ -110,8 +110,6 @@ public:
   static void RegisterGUI(CGUIComponent *gui);
   static void UnregisterGUI();
 
-  static void RegisterWinSystem(CWinSystemBase *winsystem);
-  static void UnregisterWinSystem();
   static CWinSystemBase* GetWinSystem();
   static CRenderSystemBase* GetRenderSystem();
 

@@ -548,9 +548,6 @@ bool CApplication::Create(const CAppParamParser &params)
   m_pAppPort = std::make_shared<CAppInboundProtocol>(*this);
   CServiceBroker::RegisterAppPort(m_pAppPort);
 
-  m_pWinSystem = CWinSystemBase::CreateWinSystem();
-  CServiceBroker::RegisterWinSystem(m_pWinSystem.get());
-
   if (!m_ServiceManager->InitStageTwo(params))
   {
     return false;
@@ -702,8 +699,6 @@ bool CApplication::InitWindow(RESOLUTION res)
 bool CApplication::DestroyWindow()
 {
   bool ret = CServiceBroker::GetWinSystem()->DestroyWindow();
-  CServiceBroker::UnregisterWinSystem();
-  m_pWinSystem.reset();
   return ret;
 }
 
@@ -2717,6 +2712,9 @@ bool CApplication::Cleanup()
     DllLoaderContainer::Clear();
     CServiceBroker::GetPlaylistPlayer().Clear();
 
+    m_pGUI->Deinit();
+    m_pGUI.reset();
+
     if (m_ServiceManager)
       m_ServiceManager->DeinitStageTwo();
 
@@ -2737,9 +2735,6 @@ bool CApplication::Cleanup()
     _CrtDumpMemoryLeaks();
     while(1); // execution ends
 #endif
-
-    m_pGUI->Deinit();
-    m_pGUI.reset();
 
     // Cleanup was called more than once on exit during my tests
     if (m_ServiceManager)

@@ -74,6 +74,7 @@ class CPlayerCoreFactory;
 class CDatabaseManager;
 class CProfilesManager;
 class CEventLog;
+class CWinSystemBase;
 
 class CServiceManager
 {
@@ -133,6 +134,8 @@ public:
 
   CEventLog &GetEventLog();
 
+  CWinSystemBase *GetWinSystem();
+
 protected:
   struct delete_dataCacheCore
   {
@@ -178,4 +181,5 @@ protected:
   std::unique_ptr<CPlayerCoreFactory> m_playerCoreFactory;
   std::unique_ptr<CDatabaseManager> m_databaseManager;
   std::unique_ptr<CProfilesManager> m_profileManager;
+  std::unique_ptr<CWinSystemBase> m_winSystem;
 };

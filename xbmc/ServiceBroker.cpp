@@ -129,29 +129,14 @@ bool CServiceBroker::IsServiceManagerUp()
   return g_application.m_ServiceManager->init_level == 3;
 }
 
-CWinSystemBase* CServiceBroker::m_pWinSystem = nullptr;
-
 CWinSystemBase* CServiceBroker::GetWinSystem()
 {
-  return m_pWinSystem;
-}
-
-void CServiceBroker::RegisterWinSystem(CWinSystemBase *winsystem)
-{
-  m_pWinSystem = winsystem;
-}
-
-void CServiceBroker::UnregisterWinSystem()
-{
-  m_pWinSystem = nullptr;
+  return g_application.m_ServiceManager->GetWinSystem();
 }
 
 CRenderSystemBase* CServiceBroker::GetRenderSystem()
 {
-  if (m_pWinSystem)
-    return m_pWinSystem->GetRenderSystem();
-
-  return nullptr;
+  return g_application.m_ServiceManager->GetWinSystem()->GetRenderSystem();
 }
 
 CPowerManager& CServiceBroker::GetPowerManager()

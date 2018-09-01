@@ -391,7 +391,6 @@ protected:
   bool NotifyActionListeners(const CAction &action) const;
 
   std::unique_ptr<CGUIComponent> m_pGUI;
-  std::unique_ptr<CWinSystemBase> m_pWinSystem;
   std::unique_ptr<ActiveAE::CActiveAE> m_pActiveAE;
   std::shared_ptr<CAppInboundProtocol> m_pAppPort;
   std::deque<XBMC_Event> m_portEvents;
