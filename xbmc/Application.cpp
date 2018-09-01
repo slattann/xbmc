@@ -696,12 +696,6 @@ bool CApplication::InitWindow(RESOLUTION res)
   return true;
 }
 
-bool CApplication::DestroyWindow()
-{
-  bool ret = CServiceBroker::GetWinSystem()->DestroyWindow();
-  return ret;
-}
-
 bool CApplication::InitDirectoriesLinux()
 {
 /*
