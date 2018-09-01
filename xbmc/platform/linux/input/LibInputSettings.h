@@ -15,6 +15,8 @@
 
 class CLibInputHandler;
 
+static const std::string SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT{"input.libinputkeyboardlayout"};
+
 class CLibInputSettings : public ISettingCallback, public ISettingsHandler
 {
 public:

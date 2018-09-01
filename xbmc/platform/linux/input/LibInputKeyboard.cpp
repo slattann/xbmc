@@ -9,6 +9,7 @@
 #include "LibInputKeyboard.h"
 
 #include "AppInboundProtocol.h"
+#include "LibInputSettings.h"
 #include "ServiceBroker.h"
 #include "utils/log.h"
 
@@ -155,7 +156,7 @@ CLibInputKeyboard::CLibInputKeyboard()
     return;
   }
 
-  std::string layout = CServiceBroker::GetSettings().GetString("input.libinputkeyboardlayout");
+  std::string layout = CServiceBroker::GetSettings().GetString(SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
 
   xkb_rule_names names;
 
