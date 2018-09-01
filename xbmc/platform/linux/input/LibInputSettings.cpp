@@ -24,14 +24,11 @@ static std::vector<std::pair<std::string, std::string>> m_layouts;
 CLibInputSettings::CLibInputSettings(CLibInputHandler *handler) :
   m_libInputHandler(handler)
 {
-  /* register the settings handler and filler */
-  CServiceBroker::GetSettings().GetSettingsManager()->RegisterSettingsHandler(this);
-
   std::set<std::string> settingSet;
-  settingSet.insert("input.libinputkeyboardlayout");
-  CServiceBroker::GetSettings().RegisterCallback(this, settingSet);
+  settingSet.insert(SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
+  CServiceBroker::GetSettings().GetSettingsManager()->RegisterCallback(this, settingSet);
 
-  CServiceBroker::GetSettings().GetSettingsManager()->RegisterSettingOptionsFiller("libinputkeyboardlayout", CLibInputSettings::SettingOptionsKeyboardLayoutsFiller);
+  CServiceBroker::GetSettings().GetSettingsManager()->RegisterSettingOptionsFiller("libinputkeyboardlayout", SettingOptionsKeyboardLayoutsFiller);
 
   /* load the keyboard layouts from xkeyboard-config */
   std::string xkbFile("/usr/share/X11/xkb/rules/base.xml");
@@ -82,9 +79,8 @@ CLibInputSettings::CLibInputSettings(CLibInputHandler *handler) :
 
 CLibInputSettings::~CLibInputSettings()
 {
-  /* This currently will cause a segfault upon shutdown as the settings have gone away before windowing */
-  // CServiceBroker::GetSettings().GetSettingsManager()->UnregisterSettingOptionsFiller("libinputkeyboardlayout");
-  // CServiceBroker::GetSettings().GetSettingsManager()->UnregisterCallback(this);
+  CServiceBroker::GetSettings().GetSettingsManager()->UnregisterSettingOptionsFiller("libinputkeyboardlayout");
+  CServiceBroker::GetSettings().GetSettingsManager()->UnregisterCallback(this);
 }
 
 void CLibInputSettings::SettingOptionsKeyboardLayoutsFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
@@ -98,7 +94,7 @@ void CLibInputSettings::OnSettingChanged(std::shared_ptr<const CSetting> setting
     return;
 
   const std::string &settingId = setting->GetId();
-  if (settingId == "input.libinputkeyboardlayout")
+  if (settingId == SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT)
   {
     std::string layout = std::dynamic_pointer_cast<const CSettingString>(setting)->GetValue();
     m_libInputHandler->SetKeymap(static_cast<std::string>(layout));
