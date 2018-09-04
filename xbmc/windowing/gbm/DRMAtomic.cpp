@@ -14,6 +14,7 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "ServiceBroker.h"
+#include "settings/lib/SettingsManager.h"
 #include "settings/Settings.h"
 #include "utils/log.h"
 
@@ -30,6 +31,11 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
     if (!AddProperty(m_connector, "CRTC_ID", m_crtc->crtc->crtc_id))
     {
       return;
+    }
+
+    if (HasProperty(m_connector, "Broadcast RGB"))
+    {
+      AddProperty(m_connector, "Broadcast RGB", m_color_range);
     }
 
     if (drmModeCreatePropertyBlob(m_fd, m_mode, sizeof(*m_mode), &blob_id) != 0)
@@ -148,6 +154,17 @@ bool CDRMAtomic::InitDrm()
     CLog::Log(LOGDEBUG, "CDRMAtomic::%s - failed to reset planes", __FUNCTION__);
   }
 
+  if (HasProperty(m_connector, "Broadcast RGB"))
+  {
+    CServiceBroker::GetSettings().GetSetting("videoscreen.hdmioutputformat")->SetVisible(true);
+
+    std::set<std::string> settingSet;
+    settingSet.insert("videoscreen.hdmioutputformat");
+    CServiceBroker::GetSettings().GetSettingsManager()->RegisterCallback(this, settingSet);
+
+    m_color_range = std::dynamic_pointer_cast<const CSettingInt>(CServiceBroker::GetSettings().GetSetting("videoscreen.hdmioutputformat"))->GetValue();
+  }
+
   CLog::Log(LOGDEBUG, "CDRMAtomic::%s - initialized atomic DRM", __FUNCTION__);
   return true;
 }
@@ -224,4 +241,16 @@ bool CDRMAtomic::ResetPlanes()
   drmModeFreePlaneResources(plane_resources);
 
   return true;
+}
+
+void CDRMAtomic::OnSettingChanged(std::shared_ptr<const CSetting> setting)
+{
+  if (setting == nullptr)
+    return;
+   const std::string &settingId = setting->GetId();
+  if (settingId == "videoscreen.hdmioutputformat")
+  {
+    m_color_range = std::dynamic_pointer_cast<const CSettingInt>(setting)->GetValue();
+    CLog::Log(LOGERROR, "CDRMAtomic::%s - Changed color range to: %s", __FUNCTION__, m_color_range == 1 ? "RGB" : "YCbCr");
+  }
 }
