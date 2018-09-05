@@ -334,10 +334,10 @@ bool CMMALVideo::SendCodecConfigData()
 bool CMMALVideo::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 {
   CSingleLock lock(m_sharedSection);
-  CLog::Log(LOGDEBUG, LOGVIDEO, "%s::%s usemmal:%d options:%x %dx%d", CLASSNAME, __func__, CServiceBroker::GetSettings().GetBool(CSettings::SETTING_VIDEOPLAYER_USEMMAL), hints.codecOptions, hints.width, hints.height);
+  CLog::Log(LOGDEBUG, LOGVIDEO, "%s::%s usemmal:%d options:%x %dx%d", CLASSNAME, __func__, CServiceBroker::GetSettings()->GetBool(CSettings::SETTING_VIDEOPLAYER_USEMMAL), hints.codecOptions, hints.width, hints.height);
 
   // we always qualify even if DVDFactoryCodec does this too.
-  if (!CServiceBroker::GetSettings().GetBool(CSettings::SETTING_VIDEOPLAYER_USEMMAL) || (hints.codecOptions & CODEC_FORCE_SOFTWARE))
+  if (!CServiceBroker::GetSettings()->GetBool(CSettings::SETTING_VIDEOPLAYER_USEMMAL) || (hints.codecOptions & CODEC_FORCE_SOFTWARE))
     return false;
 
   std::list<EINTERLACEMETHOD> deintMethods;
@@ -377,7 +377,7 @@ bool CMMALVideo::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
       }
       m_codingType = MMAL_ENCODING_H264;
       m_pFormatName = "mmal-h264";
-      if (CServiceBroker::GetSettings().GetBool(CSettings::SETTING_VIDEOPLAYER_SUPPORTMVC))
+      if (CServiceBroker::GetSettings()->GetBool(CSettings::SETTING_VIDEOPLAYER_SUPPORTMVC))
       {
         m_codingType = MMAL_ENCODING_MVC;
         m_pFormatName= "mmal-mvc";

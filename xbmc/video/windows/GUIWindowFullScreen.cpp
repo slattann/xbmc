@@ -249,7 +249,7 @@ bool CGUIWindowFullScreen::OnMessage(CGUIMessage& message)
 
       CGUIWindow::OnMessage(message);
 
-      CServiceBroker::GetSettings().Save();
+      CServiceBroker::GetSettings()->Save();
 
       CServiceBroker::GetWinSystem()->GetGfxContext().SetFullScreenVideo(false);
 

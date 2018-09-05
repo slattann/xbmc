@@ -56,6 +56,7 @@ class CBookmark;
 class IActionListener;
 class CGUIComponent;
 class CAppInboundProtocol;
+class CSettings;
 
 namespace ADDON
 {
@@ -390,6 +391,7 @@ protected:
    */
   bool NotifyActionListeners(const CAction &action) const;
 
+  std::unique_ptr<CSettings> m_pSettings;
   std::unique_ptr<CGUIComponent> m_pGUI;
   std::unique_ptr<CWinSystemBase> m_pWinSystem;
   std::unique_ptr<ActiveAE::CActiveAE> m_pActiveAE;

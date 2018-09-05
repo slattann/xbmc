@@ -28,8 +28,7 @@ class IPlayerCallback;
 class CPlayerCoreFactory : public ISettingsHandler
 {
 public:
-  CPlayerCoreFactory(CSettings &settings,
-                     const CProfilesManager &profileManager);
+  CPlayerCoreFactory(const CProfilesManager &profileManager);
   CPlayerCoreFactory(const CPlayerCoreFactory&) = delete;
   CPlayerCoreFactory& operator=(CPlayerCoreFactory const&) = delete;
   ~CPlayerCoreFactory() override;
@@ -54,7 +53,7 @@ public:
 
 private:
   // Construction parameters
-  CSettings &m_settings;
+  CSettings *m_settings;
   const CProfilesManager &m_profileManager;
 
   int GetPlayerIndex(const std::string& strCoreName) const;

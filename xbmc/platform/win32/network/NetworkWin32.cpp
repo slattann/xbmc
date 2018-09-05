@@ -132,8 +132,8 @@ std::string CNetworkInterfaceWin32::GetCurrentDefaultGateway(void)
   return m_adapter.GatewayList.IpAddress.String;
 }
 
-CNetworkWin32::CNetworkWin32(CSettings &settings)
- : CNetworkBase(settings)
+CNetworkWin32::CNetworkWin32()
+ : CNetworkBase()
 {
   queryInterfaceList();
 }

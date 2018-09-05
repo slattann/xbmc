@@ -293,8 +293,8 @@ std::string CNetworkInterfaceLinux::GetCurrentDefaultGateway(void)
    return result;
 }
 
-CNetworkLinux::CNetworkLinux(CSettings &settings)
- : CNetworkBase(settings)
+CNetworkLinux::CNetworkLinux()
+ : CNetworkBase()
 {
    m_sock = socket(AF_INET, SOCK_DGRAM, 0);
    queryInterfaceList();

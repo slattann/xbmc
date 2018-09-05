@@ -98,7 +98,7 @@ public:
     SERVICES_DOWN
   };
 
-   CNetworkBase(CSettings &settings);
+   CNetworkBase();
    virtual ~CNetworkBase();
 
    // Get network services

@@ -324,8 +324,8 @@ std::string CNetworkInterfaceWin10::GetCurrentDefaultGateway(void)
   return result;
 }
 
-CNetworkWin10::CNetworkWin10(CSettings &settings)
-  : CNetworkBase(settings)
+CNetworkWin10::CNetworkWin10()
+  : CNetworkBase()
   , m_adapterAddresses(nullptr)
 {
   queryInterfaceList();

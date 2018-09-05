@@ -64,9 +64,21 @@ PLAYLIST::CPlayListPlayer &CServiceBroker::GetPlaylistPlayer()
   return g_application.m_ServiceManager->GetPlaylistPlayer();
 }
 
-CSettings& CServiceBroker::GetSettings()
+CSettings* CServiceBroker::m_pSettings = nullptr;
+
+CSettings *CServiceBroker::GetSettings()
 {
-  return g_application.m_ServiceManager->GetSettings();
+  return m_pSettings;
+}
+
+void CServiceBroker::RegisterSettings(CSettings *settings)
+{
+  m_pSettings = settings;
+}
+
+void CServiceBroker::UnregisterSettings()
+{
+  m_pSettings = nullptr;
 }
 
 GAME::CControllerManager& CServiceBroker::GetGameControllerManager()

@@ -12,6 +12,8 @@
 
 #include <string>
 
+class CSettings;
+
 class TestBasicEnvironment : public testing::Environment
 {
 public:
@@ -20,4 +22,5 @@ public:
 private:
   void SetUpError();
   std::string m_tempPath;
+  CSettings *m_pSettings;
 };
