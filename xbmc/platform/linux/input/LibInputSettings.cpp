@@ -26,9 +26,9 @@ CLibInputSettings::CLibInputSettings(CLibInputHandler *handler) :
 {
   std::set<std::string> settingSet;
   settingSet.insert(SETTING_INPUT_LIBINPUTKEYBOARDLAYOUT);
-  CServiceBroker::GetSettings().GetSettingsManager()->RegisterCallback(this, settingSet);
+  CServiceBroker::GetSettings()->GetSettingsManager()->RegisterCallback(this, settingSet);
 
-  CServiceBroker::GetSettings().GetSettingsManager()->RegisterSettingOptionsFiller("libinputkeyboardlayout", SettingOptionsKeyboardLayoutsFiller);
+  CServiceBroker::GetSettings()->GetSettingsManager()->RegisterSettingOptionsFiller("libinputkeyboardlayout", SettingOptionsKeyboardLayoutsFiller);
 
   /* load the keyboard layouts from xkeyboard-config */
   std::string xkbFile("/usr/share/X11/xkb/rules/base.xml");
@@ -79,8 +79,12 @@ CLibInputSettings::CLibInputSettings(CLibInputHandler *handler) :
 
 CLibInputSettings::~CLibInputSettings()
 {
-  CServiceBroker::GetSettings().GetSettingsManager()->UnregisterSettingOptionsFiller("libinputkeyboardlayout");
-  CServiceBroker::GetSettings().GetSettingsManager()->UnregisterCallback(this);
+  CSettings *settings = CServiceBroker::GetSettings();
+  if (settings)
+  {
+    CServiceBroker::GetSettings()->GetSettingsManager()->UnregisterSettingOptionsFiller("libinputkeyboardlayout");
+    CServiceBroker::GetSettings()->GetSettingsManager()->UnregisterCallback(this);
+  }
 }
 
 void CLibInputSettings::SettingOptionsKeyboardLayoutsFiller(std::shared_ptr<const CSetting> setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
