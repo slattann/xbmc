@@ -25,8 +25,8 @@
 #include "OffScreenModeSetting.h"
 #include "messaging/ApplicationMessenger.h"
 
-
 CWinSystemGbm::CWinSystemGbm() :
+  m_VNC(nullptr),
   m_DRM(nullptr),
   m_GBM(new CGBMUtils),
   m_libinput(new CLibInputHandler)
@@ -140,6 +140,12 @@ bool CWinSystemGbm::CreateNewWindow(const std::string& name,
   m_nHeight = res.iHeight;
   m_fRefreshRate = res.fRefreshRate;
 
+  m_VNC.reset(new CVNCServer(res.iWidth, res.iHeight));
+  if (!m_VNC)
+  {
+    CLog::Log(LOGDEBUG, "CWinSystemGbm::%s - failed to initialize vnc server", __FUNCTION__);
+  }
+
   CLog::Log(LOGDEBUG, "CWinSystemGbm::%s - initialized GBM", __FUNCTION__);
   return true;
 }
@@ -244,6 +250,18 @@ void CWinSystemGbm::FlipPage(bool rendered, bool videoLayer)
   struct gbm_bo *bo = m_GBM->LockFrontBuffer();
 
   m_DRM->FlipPage(bo, rendered, videoLayer);
+
+  // limit updates to 10fps for now (10fps / 6 = 10fps)
+  if (m_update == 5)
+  {
+    m_VNC->UpdateFrameBuffer(m_GBM->GetMemory());
+
+    m_GBM->ReleaseMemory();
+
+    m_update = 0;
+  }
+
+  m_update++;
 
   m_GBM->ReleaseBuffer();
 

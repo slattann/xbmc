@@ -17,6 +17,7 @@
 #include "windowing/WinSystem.h"
 #include "DRMUtils.h"
 #include "VideoLayerBridge.h"
+#include "VNCServer.h"
 
 class IDispResource;
 
@@ -61,6 +62,8 @@ public:
 protected:
   void OnLostDevice();
 
+  std::unique_ptr<CVNCServer> m_VNC;
+
   std::shared_ptr<CDRMUtils> m_DRM;
   std::unique_ptr<CGBMUtils> m_GBM;
   std::shared_ptr<CVideoLayerBridge> m_videoLayerBridge;
@@ -72,4 +75,6 @@ protected:
   XbmcThreads::EndTime m_dispResetTimer;
   std::unique_ptr<OPTIONALS::CLircContainer, OPTIONALS::delete_CLircContainer> m_lirc;
   std::unique_ptr<CLibInputHandler> m_libinput;
+
+  int m_update = 0;
 };

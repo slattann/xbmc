@@ -68,6 +68,9 @@ bool CGBMUtils::CreateSurface(int width, int height, const uint64_t *modifiers, 
                                                                          width,
                                                                          height);
 
+  m_width = width;
+  m_height = height;
+
   return true;
 }
 
@@ -101,4 +104,26 @@ void CGBMUtils::ReleaseBuffer()
 
   m_bo = m_next_bo;
   m_next_bo = nullptr;
+}
+
+char* CGBMUtils::GetMemory()
+{
+  if (m_bo)
+  {
+    m_map = static_cast<char*>(gbm_bo_map(m_bo, 0, 0, m_width, m_height, GBM_BO_TRANSFER_READ, &m_stride, &m_map_data));
+    if (m_map)
+      return m_map;
+  }
+
+  return nullptr;
+}
+
+void CGBMUtils::ReleaseMemory()
+{
+  if (m_bo && m_map)
+  {
+    gbm_bo_unmap(m_bo, m_map_data);
+    m_map_data = nullptr;
+    m_map = nullptr;
+  }
 }
