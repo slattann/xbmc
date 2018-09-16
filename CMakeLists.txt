@@ -56,6 +56,7 @@ if(UNIX)
   option(ENABLE_INTERNAL_FMT "Enable internal fmt?" OFF)
   option(ENABLE_INTERNAL_FSTRCMP "Enable internal fstrcmp?" OFF)
   option(ENABLE_INTERNAL_FLATBUFFERS "Enable internal flatbuffers?" OFF)
+  option(ENABLE_INTERNAL_SDBUSCPP "Enable internal sdbus-cpp?" OFF)
 endif()
 # System options
 if(NOT WIN32)
@@ -148,6 +149,7 @@ set(optional_deps Alsa
                   Plist
                   PulseAudio
                   Python
+                  SDBuscpp
                   SmbClient
                   Sndio
                   UDEV
