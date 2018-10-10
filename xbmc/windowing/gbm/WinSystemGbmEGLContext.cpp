@@ -35,6 +35,8 @@ bool CWinSystemGbmEGLContext::InitWindowSystemEGL(EGLint renderableType, EGLint 
     return false;
   }
 
+  m_eglFence.reset(new CEGLFence(m_eglContext.GetEGLDisplay()));
+
   return true;
 }
 

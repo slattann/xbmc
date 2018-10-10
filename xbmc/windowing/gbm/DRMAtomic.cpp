@@ -60,6 +60,12 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
     AddProperty(m_overlay_plane, "CRTC_Y", 0);
     AddProperty(m_overlay_plane, "CRTC_W", m_mode->hdisplay);
     AddProperty(m_overlay_plane, "CRTC_H", m_mode->vdisplay);
+
+    if (kms_in_fence_fd != -1)
+    {
+      AddProperty(m_crtc, "OUT_FENCE_PTR", reinterpret_cast<uint64_t>(&kms_out_fence_fd));
+      AddProperty(m_overlay_plane, "IN_FENCE_FD", kms_in_fence_fd);
+    }
   }
   else if (videoLayer && !CServiceBroker::GetGUI()->GetWindowManager().HasVisibleControls())
   {
@@ -82,6 +88,12 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
     }
   }
 
+  if (kms_in_fence_fd != -1)
+  {
+    close(kms_in_fence_fd);
+    kms_in_fence_fd = -1;
+  }
+
   if (flags & DRM_MODE_ATOMIC_ALLOW_MODESET)
   {
     if (drmModeDestroyPropertyBlob(m_fd, blob_id) != 0)
@@ -95,6 +107,7 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
 void CDRMAtomic::FlipPage(struct gbm_bo *bo, bool rendered, bool videoLayer)
 {
   struct drm_fb *drm_fb = nullptr;
+  uint32_t flags = 0;
 
   if (rendered)
   {
@@ -109,9 +122,9 @@ void CDRMAtomic::FlipPage(struct gbm_bo *bo, bool rendered, bool videoLayer)
       CLog::Log(LOGERROR, "CDRMAtomic::%s - Failed to get a new FBO", __FUNCTION__);
       return;
     }
-  }
 
-  uint32_t flags = 0;
+    flags |= DRM_MODE_ATOMIC_NONBLOCK;
+  }
 
   if (m_need_modeset)
   {

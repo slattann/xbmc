@@ -194,8 +194,10 @@ if(AML_FOUND)
 endif()
 
 if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
-  list(APPEND SOURCES EGLImage.cpp)
-  list(APPEND HEADERS EGLImage.h)
+  list(APPEND SOURCES EGLImage.cpp
+                      EGLFence.cpp)
+  list(APPEND HEADERS EGLImage.h
+                      EGLFence.h)
 
   if(GBM_HAS_BO_MAP)
     list(APPEND SOURCES GBMBufferObject.cpp)

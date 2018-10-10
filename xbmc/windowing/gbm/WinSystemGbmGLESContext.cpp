@@ -112,8 +112,23 @@ void CWinSystemGbmGLESContext::PresentRender(bool rendered, bool videoLayer)
         CEGLUtils::LogError("eglSwapBuffers failed");
         throw std::runtime_error("eglSwapBuffers failed");
       }
+
+      m_eglFence->CreateGPUFence();
+      m_DRM->kms_in_fence_fd = m_eglFence->FlushFence();
+      m_eglFence->WaitSyncCPU();
     }
+
     CWinSystemGbm::FlipPage(rendered, videoLayer);
+
+    if (rendered)
+    {
+      if (m_DRM->kms_out_fence_fd != -1)
+      {
+        m_eglFence->CreateKMSFence(m_DRM->kms_out_fence_fd);
+        m_eglFence->WaitSyncGPU();
+        m_DRM->kms_out_fence_fd = -1;
+      }
+    }
   }
   else
   {

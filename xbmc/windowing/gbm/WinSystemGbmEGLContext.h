@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "utils/EGLFence.h"
 #include "utils/EGLUtils.h"
 #include "WinSystemGbm.h"
 #include <memory>
@@ -41,6 +42,7 @@ protected:
   virtual bool CreateContext() = 0;
 
   CEGLContextUtils m_eglContext;
+  std::unique_ptr<CEGLFence> m_eglFence{nullptr};
 
   struct delete_CVaapiProxy
   {

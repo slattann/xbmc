@@ -92,6 +92,9 @@ public:
   static uint32_t FourCCWithAlpha(uint32_t fourcc);
   static uint32_t FourCCWithoutAlpha(uint32_t fourcc);
 
+  int kms_in_fence_fd{-1};
+  int kms_out_fence_fd{-1};
+
 protected:
   bool OpenDrm(bool needConnector);
   uint32_t GetPropertyId(struct drm_object *object, const char *name);
