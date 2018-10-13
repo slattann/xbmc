@@ -37,7 +37,21 @@ bool CWinSystemGbmEGLContext::InitWindowSystemEGL(EGLint renderableType, EGLint 
 
   if (!m_eglContext.ChooseConfig(renderableType, visualId))
   {
-    return false;
+    if (CEGLUtils::HasExtension(m_eglContext.GetEGLDisplay(), "EGL_KHR_no_config_context"))
+    {
+      // fallback to 8bit format if no EGL config was found for 10bit
+      CWinSystemGbm::GetDrm()->GetOverlayPlane()->useFallbackFormat = true;
+      visualId = CDRMUtils::FourCCWithAlpha(CWinSystemGbm::GetDrm()->GetOverlayPlane()->GetFormat());
+
+      if (!m_eglContext.ChooseConfig(renderableType, visualId))
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
   }
 
   if (!CreateContext())

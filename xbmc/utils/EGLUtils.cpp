@@ -222,6 +222,11 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
 {
   EGLint numMatched{0};
 
+  if (m_eglDisplay == EGL_NO_DISPLAY)
+  {
+    throw std::logic_error("Choosing an EGLConfig requires an EGL display");
+  }
+
   EGLint surfaceType = EGL_WINDOW_BIT;
   // for the non-trivial dirty region modes, we need the EGL buffer to be preserved across updates
   int guiAlgorithmDirtyRegions = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions;
@@ -257,6 +262,7 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
     return false;
   }
 
+  EGLint id{0};
   for (const auto &eglConfig: eglConfigs)
   {
     m_eglConfig = eglConfig;
@@ -264,12 +270,17 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
     if (visualId == 0)
       break;
 
-    EGLint id{0};
     if (eglGetConfigAttrib(m_eglDisplay, m_eglConfig, EGL_NATIVE_VISUAL_ID, &id) != EGL_TRUE)
       CEGLUtils::LogError("failed to query EGL attibute EGL_NATIVE_VISUAL_ID");
 
     if (visualId == id)
       break;
+  }
+
+  if (visualId != 0 && visualId != id)
+  {
+    CLog::Log(LOGDEBUG, "failed to find matching EGL visual id");
+    return false;
   }
 
   CLog::Log(LOGDEBUG, "EGL Config Attributes:");
