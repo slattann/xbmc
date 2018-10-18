@@ -132,7 +132,7 @@ bool CWinSystemGbm::CreateNewWindow(const std::string& name,
   std::vector<uint64_t> *modifiers = m_DRM->GetOverlayPlaneModifiersForFormat(m_DRM->GetOverlayPlane()->format);
 
   /* the gbm format needs alpha support */
-  uint32_t format = CDRMUtils::FourCCWithAlpha(m_DRM->GetOverlayPlane()->format);
+  uint32_t format = CDRMUtils::FourCCWithAlpha(m_DRM->GetOverlayPlane()->GetFormat());
 
   if (!m_GBM->CreateSurface(res.iWidth, res.iHeight, format, modifiers->data(), modifiers->size()))
   {
