@@ -51,9 +51,11 @@ endif()
 
 if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
   list(APPEND SOURCES RendererDRMPRIME.cpp
-                      VideoLayerBridgeDRMPRIME.cpp)
+                      VideoLayerBridgeDRMPRIME.cpp
+                      VideoLayerBridgeHDR.cpp)
   list(APPEND HEADERS RendererDRMPRIME.h
-                      VideoLayerBridgeDRMPRIME.h)
+                      VideoLayerBridgeDRMPRIME.h
+                      VideoLayerBridgeHDR.h)
   if(OPENGLES_FOUND)
     list(APPEND SOURCES RendererDRMPRIMEGLES.cpp
                         DRMPRIMEEGL.cpp)

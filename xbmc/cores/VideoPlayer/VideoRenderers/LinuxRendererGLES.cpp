@@ -31,7 +31,14 @@
 #include "cores/IPlayer.h"
 #include "windowing/WinSystem.h"
 
+#include "cores/VideoPlayer/VideoRenderers/HwDecRender/VideoLayerBridgeHDR.h"
+
+#include "windowing/gbm/DRMAtomic.h"
+#include "windowing/gbm/WinSystemGbm.h"
+
 using namespace Shaders;
+
+using namespace KODI::WINDOWING::GBM;
 
 CLinuxRendererGLES::CPictureBuffer::CPictureBuffer()
 {
@@ -54,6 +61,9 @@ CLinuxRendererGLES::~CLinuxRendererGLES()
   UnInit();
 
   ReleaseShaders();
+
+  if (m_videoLayerBridge)
+    m_videoLayerBridge->Disable();
 }
 
 CBaseRenderer* CLinuxRendererGLES::Create(CVideoBuffer *buffer)
@@ -128,6 +138,15 @@ bool CLinuxRendererGLES::Configure(const VideoPicture &picture, float fps, unsig
   // setup the background colour
   m_clearColour = CServiceBroker::GetWinSystem()->UseLimitedColor() ? (16.0f / 0xff) : 0.0f;
 
+  if (!m_videoLayerBridge)
+  {
+    CWinSystemGbm* winSystem = static_cast<CWinSystemGbm*>(CServiceBroker::GetWinSystem());
+
+    m_videoLayerBridge = std::make_shared<CVideoLayerBridgeHDR>(winSystem->GetDrm());
+
+    winSystem->RegisterVideoLayerBridge(m_videoLayerBridge);
+  }
+
   return true;
 }
 
@@ -169,6 +188,9 @@ void CLinuxRendererGLES::AddVideoPicture(const VideoPicture &picture, int index)
   {
     buf.hasLightMetadata = picture.hasLightMetadata;
   }
+
+  if (m_videoLayerBridge)
+    m_videoLayerBridge->Configure(picture);
 }
 
 void CLinuxRendererGLES::ReleaseBuffer(int idx)
