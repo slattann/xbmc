@@ -103,10 +103,12 @@ bool CEGLImage::CreateImage(EglAttrs imageAttrs)
 
 void CEGLImage::UploadImage(GLenum textureTarget)
 {
-  m_glEGLImageTargetTexture2DOES(textureTarget, m_image);
+  if (m_image)
+    m_glEGLImageTargetTexture2DOES(textureTarget, m_image);
 }
 
 void CEGLImage::DestroyImage()
 {
-  m_eglDestroyImageKHR(m_display, m_image);
+  if (m_image)
+    m_eglDestroyImageKHR(m_display, m_image);
 }
