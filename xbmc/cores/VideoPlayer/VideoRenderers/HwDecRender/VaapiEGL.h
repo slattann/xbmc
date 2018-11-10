@@ -53,6 +53,10 @@ public:
   virtual GLuint GetTextureY() = 0;
   virtual GLuint GetTextureVU() = 0;
   virtual CSizeInt GetTextureSize() = 0;
+
+protected:
+  int GetColorSpace(int colorSpace);
+  int GetColorRange(int colorRange);
 };
 
 class CVaapi1Texture : public CVaapiTexture

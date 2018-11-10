@@ -18,6 +18,38 @@
 
 using namespace VAAPI;
 
+int CVaapiTexture::GetColorSpace(int colorSpace)
+{
+  switch (colorSpace)
+  {
+    case AVCOL_SPC_BT2020_CL:
+    case AVCOL_SPC_BT2020_NCL:
+      return EGL_ITU_REC2020_EXT;
+    case AVCOL_SPC_SMPTE170M:
+    case AVCOL_SPC_BT470BG:
+    case AVCOL_SPC_FCC:
+      return EGL_ITU_REC601_EXT;
+    case AVCOL_SPC_BT709:
+      return EGL_ITU_REC709_EXT;
+    case AVCOL_SPC_RESERVED:
+    case AVCOL_SPC_UNSPECIFIED:
+    default:
+      return EGL_ITU_REC601_EXT;
+  }
+}
+
+int CVaapiTexture::GetColorRange(int colorRange)
+{
+  switch (colorRange)
+  {
+    case AVCOL_RANGE_JPEG:
+      return EGL_YUV_FULL_RANGE_EXT;
+    case AVCOL_RANGE_MPEG:
+    default:
+      return EGL_YUV_NARROW_RANGE_EXT;
+  }
+}
+
 CVaapi1Texture::CVaapi1Texture()
 {
 }
