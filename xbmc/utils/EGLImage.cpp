@@ -61,7 +61,7 @@ CEGLImage::CEGLImage(EGLDisplay display) :
 
 bool CEGLImage::CreateImage(EglAttrs imageAttrs)
 {
-  CEGLAttributes<22> attribs;
+  CEGLAttributesVec attribs;
   attribs.Add({{EGL_WIDTH, imageAttrs.width},
                {EGL_HEIGHT, imageAttrs.height},
                {EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(imageAttrs.format)}});
