@@ -18,26 +18,19 @@
 #include <GLES3/gl3.h>
 #endif
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+#include "utils/EGLImage.h"
+
 #include <va/va.h>
 
 #include "utils/Geometry.h"
 #include "platform/posix/utils/FileHandle.h"
 
+#include <memory>
+
 namespace VAAPI
 {
 
 class CVaapiRenderPicture;
-
-struct InteropInfo
-{
-  EGLDisplay eglDisplay = nullptr;
-  PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;
-  PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR;
-  PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
-  GLenum textureTarget;
-};
 
 class CVaapiTexture
 {
@@ -45,7 +38,7 @@ public:
   CVaapiTexture() = default;
   virtual ~CVaapiTexture() = default;
 
-  virtual void Init(InteropInfo &interop) = 0;
+  virtual void Init(EGLDisplay display) = 0;
   virtual bool Map(CVaapiRenderPicture *pic) = 0;
   virtual void Unmap() = 0;
 
@@ -66,7 +59,7 @@ public:
 
   bool Map(CVaapiRenderPicture *pic) override;
   void Unmap() override;
-  void Init(InteropInfo &interop) override;
+  void Init(EGLDisplay eglDisplay) override;
 
   int GetBits() override;
   GLuint GetTextureY() override;
@@ -75,7 +68,6 @@ public:
 
   static void TestInterop(VADisplay vaDpy, EGLDisplay eglDisplay, bool &general, bool &deepColor);
 
-  GLuint m_texture = 0;
   GLuint m_textureY = 0;
   GLuint m_textureVU = 0;
   int m_texWidth = 0;
@@ -85,14 +77,14 @@ public:
 protected:
   static bool TestInteropDeepColor(VADisplay vaDpy, EGLDisplay eglDisplay);
 
-  InteropInfo m_interop;
+  GLenum m_textureTarget{GL_TEXTURE_2D};
   CVaapiRenderPicture *m_vaapiPic = nullptr;
   struct GLSurface
   {
     VAImage vaImage{VA_INVALID_ID};
     VABufferInfo vBufInfo;
-    EGLImageKHR eglImage;
-    EGLImageKHR eglImageY, eglImageVU;
+    std::unique_ptr<CEGLImage> eglImageY;
+    std::unique_ptr<CEGLImage> eglImageVU;
   } m_glSurface;
 };
 
@@ -101,7 +93,7 @@ class CVaapi2Texture : public CVaapiTexture
 public:
   bool Map(CVaapiRenderPicture *pic) override;
   void Unmap() override;
-  void Init(InteropInfo &interop) override;
+  void Init(EGLDisplay eglDisplay) override;
 
   int GetBits() override;
   GLuint GetTextureY() override;
@@ -116,11 +108,11 @@ private:
 
   struct MappedTexture
   {
-    EGLImageKHR eglImage{EGL_NO_IMAGE_KHR};
+    std::unique_ptr<CEGLImage> eglImage;
     GLuint glTexture{0};
   };
 
-  InteropInfo m_interop;
+  GLenum m_textureTarget{GL_TEXTURE_2D};
   CVaapiRenderPicture* m_vaapiPic{};
   bool m_hasPlaneModifiers{false};
   std::array<KODI::UTILS::POSIX::CFileHandle, 4> m_drmFDs;
