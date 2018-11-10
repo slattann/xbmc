@@ -90,6 +90,12 @@ bool CEGLImage::CreateImage(EglAttrs imageAttrs)
     }
   }
 
+  const EGLint* attrib = attribs.Get();
+  for (int i = 0; i < attribs.Size(); i+=2)
+  {
+    CLog::Log(LOGERROR, "CEGLImage::{} - {:#04x}: {}", __FUNCTION__, attrib[i], attrib[i+1]);
+  }
+
   m_image = m_eglCreateImageKHR(m_display, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs.Get());
 
   if(!m_image)
