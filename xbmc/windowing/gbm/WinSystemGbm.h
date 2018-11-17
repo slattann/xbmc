@@ -11,6 +11,9 @@
 #include <gbm.h>
 #include <EGL/egl.h>
 
+#if defined (HAS_DBUS)
+#include "platform/linux/LogindUtils.h"
+#endif
 #include "platform/linux/input/LibInputHandler.h"
 #include "platform/linux/OptionalsReg.h"
 #include "threads/CriticalSection.h"
@@ -72,6 +75,10 @@ protected:
   XbmcThreads::EndTime m_dispResetTimer;
   std::unique_ptr<OPTIONALS::CLircContainer, OPTIONALS::delete_CLircContainer> m_lirc;
   std::unique_ptr<CLibInputHandler> m_libinput;
+
+#if defined (HAS_DBUS)
+  std::unique_ptr<CLogindUtils> m_login;
+#endif
 };
 
 }

@@ -30,8 +30,10 @@ using namespace KODI::WINDOWING::GBM;
 
 CWinSystemGbm::CWinSystemGbm() :
   m_DRM(nullptr),
-  m_GBM(new CGBMUtils),
-  m_libinput(new CLibInputHandler)
+  m_GBM(new CGBMUtils)
+#if defined (HAS_DBUS)
+  , m_login(new CLogindUtils)
+#endif
 {
   std::string envSink;
   if (getenv("KODI_AE_SINK"))
@@ -68,11 +70,21 @@ CWinSystemGbm::CWinSystemGbm() :
 
   CLinuxPowerSyscall::Register();
   m_lirc.reset(OPTIONALS::LircRegister());
-  m_libinput->Start();
 }
 
 bool CWinSystemGbm::InitWindowSystem()
 {
+#if defined (HAS_DBUS)
+  if (!m_login->Connect())
+  {
+    m_login.reset();
+    return false;
+  }
+#endif
+
+  m_libinput.reset(new CLibInputHandler());
+  m_libinput->Start();
+
   m_DRM = std::make_shared<CDRMAtomic>();
 
   if (!m_DRM->InitDrm())
@@ -119,6 +131,13 @@ bool CWinSystemGbm::DestroyWindowSystem()
   CLog::Log(LOGDEBUG, "CWinSystemGbm::%s - deinitialized DRM", __FUNCTION__);
 
   m_libinput.reset();
+
+#if defined (HAS_DBUS)
+  if (m_login)
+  {
+    m_login->Destroy();
+  }
+#endif
 
   return true;
 }
