@@ -12,6 +12,7 @@
 #include "LibInputSettings.h"
 #include "LibInputTouch.h"
 
+#include "platform/linux/SessionUtils.h"
 #include "utils/log.h"
 
 #include <algorithm>
@@ -24,7 +25,7 @@
 
 static int open_restricted(const char *path, int flags, void __attribute__((unused)) *user_data)
 {
-  int fd = open(path, flags);
+  int fd = CSessionUtils::Open(path, flags);
 
   if (fd < 0)
   {
@@ -41,9 +42,9 @@ static int open_restricted(const char *path, int flags, void __attribute__((unus
   return fd;
 }
 
-static void close_restricted(int fd, void  __attribute__((unused)) *user_data)
+static void close_restricted(int fd, void __attribute__((unused)) *user_data)
 {
-  close(fd);
+  CSessionUtils::Close(fd);
 }
 
 static const struct libinput_interface m_interface =
