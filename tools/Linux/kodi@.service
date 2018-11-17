@@ -1,0 +1,41 @@
+[Unit]
+Description=Kodi on %I
+After=systemd-user-sessions.service network.target sound.target network-online.target
+
+# D-Bus is necessary for contacting logind. Logind is required.
+Wants=dbus.socket
+After=dbus.socket
+
+Before=graphical.target
+
+# On systems without virtual consoles, don't start kodi
+ConditionPathExists=/dev/tty0
+
+[Service]
+# Change to your user of choice
+User=kodi
+PAMName=login
+ExecStart=/usr/local/bin/kodi --windowing gbm
+Type=simple
+Restart=on-abort
+RestartSec=5
+KillMode=control-group
+
+# A virtual terminal is needed.
+TTYPath=/dev/%I
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+# Fail to start if not controlling the tty.
+StandardOutput=tty
+StandardInput=tty
+StandardError=journal
+
+# Log this user with utmp, letting it show up with commands 'w' and 'who'.
+UtmpIdentifier=%i
+UtmpMode=user
+
+[Install]
+WantedBy=graphical.target
+DefaultInstance=tty7

@@ -314,3 +314,11 @@ if(CPACK_GENERATOR)
     message(FATAL_ERROR "DEB Generator: Can't configure CPack to generate Debian packages on non-linux systems.")
   endif()
 endif()
+
+if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
+  if(SYSTEMD_FOUND)
+    install(FILES ${CMAKE_SOURCE_DIR}/tools/Linux/kodi@.service
+            DESTINATION ${APP_PREFIX}/lib/systemd/system/
+            COMPONENT kodi-systemd-service)
+  endif()
+endif()
