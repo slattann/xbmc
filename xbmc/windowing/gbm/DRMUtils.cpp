@@ -16,6 +16,7 @@
 #include <EGL/egl.h>
 #include <unistd.h>
 
+#include "platform/linux/SessionUtils.h"
 #include "platform/linux/XTimeUtils.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
@@ -554,6 +555,12 @@ bool CDRMUtils::OpenDrm(bool needConnector)
 
       m_module = module;
 
+      // store path and reset fd so the device can be reopened with logind
+      std::string path = drmGetDeviceNameFromFd2(m_fd);
+      m_fd.reset();
+
+      m_fd.attach(CSessionUtils::Open(path, 0));
+
       CLog::Log(LOGDEBUG, "CDRMUtils::%s - opened device: %s using module: %s", __FUNCTION__, drmGetDeviceNameFromFd2(m_fd), module);
 
       m_renderFd.attach(drmOpenWithType(module, nullptr, DRM_NODE_RENDER));
@@ -692,6 +699,8 @@ void CDRMUtils::DestroyDrm()
   }
 
   m_renderFd.reset();
+
+  CSessionUtils::Close(m_fd);
   m_fd.reset();
 
   drmModeFreeResources(m_drm_resources);
