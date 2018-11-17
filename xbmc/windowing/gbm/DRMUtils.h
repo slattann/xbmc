@@ -94,7 +94,6 @@ class CDRMUtils
 {
 public:
   CDRMUtils();
-  virtual ~CDRMUtils() = default;
   virtual void FlipPage(struct gbm_bo *bo, bool rendered, bool videoLayer) {};
   virtual bool SetVideoMode(const RESOLUTION_INFO& res, struct gbm_bo *bo) { return false; };
   virtual bool SetActive(bool active) { return false; };
