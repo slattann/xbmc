@@ -50,6 +50,20 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
                       OMXCore.h)
 endif()
 
+if(CORE_PLATFORM_NAME_LC STREQUAL gbm OR
+   CORE_PLATFORM_NAME_LC STREQUAL rbpi OR
+   CORE_PLATFORM_NAME_LC STREQUAL aml)
+  if(DBUS_FOUND AND CORE_PLATFORM_NAME_LC STREQUAL gbm)
+    list(APPEND SOURCES LogindUtils.cpp)
+    list(APPEND HEADERS LogindUtils.h)
+  else()
+    list(APPEND SOURCES SessionUtils.cpp)
+  endif()
+
+  list(APPEND HEADERS SessionUtils.h)
+
+endif()
+
 if(HAVE_SSE4_1)
   add_subdirectory(sse4)
 endif()
