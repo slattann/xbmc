@@ -12,8 +12,15 @@
 #include "platform/linux/DBusMessage.h"
 #include "utils/log.h"
 
-#include <systemd/sd-login.h>
 #include <sys/sysmacros.h>
+
+namespace
+{
+  const std::string logindService{"org.freedesktop.login1"};
+  const std::string logindObject{"/org/freedesktop/login1"};
+  const std::string logindManagerInterface{"org.freedesktop.login1.Manager"};
+  const std::string logindSessionInterface{"org.freedesktop.login1.Session"};
+}
 
 uint32_t CSessionUtils::Open(std::string path, int flags)
 {
@@ -98,7 +105,7 @@ void CSessionUtils::Close(int fd)
 
 std::string CLogindUtils::GetSessionPath()
 {
-  CDBusMessage message("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "GetSessionByPID");
+  CDBusMessage message(logindService, logindObject, logindManagerInterface, "GetSessionByPID");
   message.AppendArguments<uint32_t>(getpid());
 
   CDBusError error;
@@ -117,7 +124,7 @@ std::string CLogindUtils::GetSessionPath()
 
   if (!b)
   {
-    CLog::Log(LOGERROR, "logind: failed to get unix fd");
+    CLog::Log(LOGERROR, "logind: failed to get session path");
     return "";
   }
 
@@ -127,7 +134,7 @@ std::string CLogindUtils::GetSessionPath()
 
 uint32_t CLogindUtils::TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor)
 {
-  CDBusMessage message("org.freedesktop.login1", sessionPath, "org.freedesktop.login1.Session", "TakeDevice");
+  CDBusMessage message(logindService, sessionPath, logindSessionInterface, "TakeDevice");
   message.AppendArguments<uint32_t, uint32_t>(major, minor);
 
   CDBusError error;
@@ -157,8 +164,8 @@ uint32_t CLogindUtils::TakeDevice(std::string sessionPath, uint32_t major, uint3
 
 void CLogindUtils::ReleaseDevice(std::string sessionPath, uint32_t major, uint32_t minor)
 {
-  CDBusMessage message("org.freedesktop.login1", sessionPath, "org.freedesktop.login1.Session", "ReleaseDevice");
-  message.AppendArguments(major, minor);
+  CDBusMessage message(logindService, sessionPath, logindSessionInterface, "ReleaseDevice");
+  message.AppendArguments<uint32_t, uint32_t>(major, minor);
 
   if (!message.SendAsyncSystem())
   {
@@ -168,7 +175,7 @@ void CLogindUtils::ReleaseDevice(std::string sessionPath, uint32_t major, uint32
 
 bool CLogindUtils::TakeControl()
 {
-  CDBusMessage message("org.freedesktop.login1", m_sessionPath, "org.freedesktop.login1.Session", "TakeControl");
+  CDBusMessage message(logindService, m_sessionPath, logindSessionInterface, "TakeControl");
 
   message.AppendArgument<bool>(false);
 
@@ -186,7 +193,7 @@ bool CLogindUtils::TakeControl()
 
 bool CLogindUtils::Activate()
 {
-  CDBusMessage message("org.freedesktop.login1", m_sessionPath, "org.freedesktop.login1.Session", "Activate");
+  CDBusMessage message(logindService, m_sessionPath, logindSessionInterface, "Activate");
 
   if (!message.SendAsync(m_connection))
   {
@@ -217,14 +224,14 @@ bool CLogindUtils::Connect()
     return false;
   }
 
-  CLog::Log(LOGDEBUG, "logind: successfull registered session: {}", m_sessionPath);
+  CLog::Log(LOGDEBUG, "logind: successfully registered session: {}", m_sessionPath);
 
   return true;
 }
 
 void CLogindUtils::ReleaseControl()
 {
-  CDBusMessage message("org.freedesktop.login1", m_sessionPath, "org.freedesktop.login1.Session", "ReleaseControl");
+  CDBusMessage message(logindService, m_sessionPath, logindSessionInterface, "ReleaseControl");
   message.SendAsync(m_connection);
 }
 
