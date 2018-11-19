@@ -318,7 +318,7 @@ endif()
 if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
   if(SYSTEMD_FOUND)
     install(FILES ${CMAKE_SOURCE_DIR}/tools/Linux/kodi@.service
-            DESTINATION ${APP_PREFIX}/lib/systemd/system/
+            DESTINATION ${systemdsytemunitdir}
             COMPONENT kodi-systemd-service)
   endif()
 endif()
