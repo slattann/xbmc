@@ -19,6 +19,10 @@
 #include "GBMUtils.h"
 #include "platform/posix/utils/FileHandle.h"
 
+#include <memory>
+
+class CSessionUtils;
+
 namespace KODI
 {
 namespace WINDOWING
@@ -160,6 +164,8 @@ private:
 
   drmModeResPtr m_drm_resources = nullptr;
   drmModeCrtcPtr m_orig_crtc = nullptr;
+
+  std::shared_ptr<CSessionUtils> m_session;
 };
 
 }

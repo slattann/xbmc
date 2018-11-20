@@ -32,6 +32,7 @@ CDRMUtils::CDRMUtils()
   , m_crtc(new crtc)
   , m_video_plane(new plane)
   , m_gui_plane(new plane)
+  , m_session(new CSessionUtils)
 {
 }
 
@@ -559,7 +560,7 @@ bool CDRMUtils::OpenDrm(bool needConnector)
       std::string path = drmGetDeviceNameFromFd2(m_fd);
       m_fd.reset();
 
-      m_fd.attach(CSessionUtils::Open(path, 0));
+      m_fd.attach(m_session->Open(path, 0));
 
       CLog::Log(LOGDEBUG, "CDRMUtils::%s - opened device: %s using module: %s", __FUNCTION__, drmGetDeviceNameFromFd2(m_fd), module);
 
@@ -700,7 +701,7 @@ void CDRMUtils::DestroyDrm()
 
   m_renderFd.reset();
 
-  CSessionUtils::Close(m_fd);
+  m_session->Close(m_fd);
   m_fd.reset();
 
   drmModeFreeResources(m_drm_resources);
