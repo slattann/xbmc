@@ -23,9 +23,10 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-static int open_restricted(const char *path, int flags, void __attribute__((unused)) *user_data)
+static int open_restricted(const char *path, int flags, void *user_data)
 {
-  int fd = CSessionUtils::Open(path, flags);
+  CSessionUtils* session = static_cast<CSessionUtils*>(user_data);
+  int fd = session->Open(path, flags);
 
   if (fd < 0)
   {
@@ -42,9 +43,10 @@ static int open_restricted(const char *path, int flags, void __attribute__((unus
   return fd;
 }
 
-static void close_restricted(int fd, void __attribute__((unused)) *user_data)
+static void close_restricted(int fd, void *user_data)
 {
-  CSessionUtils::Close(fd);
+  CSessionUtils* session = static_cast<CSessionUtils*>(user_data);
+  session->Close(fd);
 }
 
 static const struct libinput_interface m_interface =
@@ -64,7 +66,10 @@ static void LogHandler(libinput  __attribute__((unused)) *libinput, libinput_log
   }
 }
 
-CLibInputHandler::CLibInputHandler() : CThread("libinput")
+CLibInputHandler::CLibInputHandler() :
+  CThread("libinput"),
+  m_session(new CSessionUtils)
+
 {
   m_udev = udev_new();
   if (!m_udev)
@@ -73,7 +78,7 @@ CLibInputHandler::CLibInputHandler() : CThread("libinput")
     return;
   }
 
-  m_li = libinput_udev_create_context(&m_interface, nullptr, m_udev);
+  m_li = libinput_udev_create_context(&m_interface, m_session.get(), m_udev);
   if (!m_li)
   {
     CLog::Log(LOGERROR, "CLibInputHandler::%s - failed to get libinput context", __FUNCTION__);

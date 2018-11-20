@@ -19,6 +19,7 @@ class CLibInputKeyboard;
 class CLibInputPointer;
 class CLibInputSettings;
 class CLibInputTouch;
+class CSessionUtils;
 
 class CLibInputHandler : CThread
 {
@@ -45,5 +46,6 @@ private:
   std::unique_ptr<CLibInputSettings> m_settings;
   std::unique_ptr<CLibInputTouch> m_touch;
   std::vector<libinput_device*> m_devices;
+  std::unique_ptr<CSessionUtils> m_session;
 };
 
