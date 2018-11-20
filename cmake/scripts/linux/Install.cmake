@@ -316,9 +316,12 @@ if(CPACK_GENERATOR)
 endif()
 
 if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
-  if(SYSTEMD_FOUND)
-    install(FILES ${CMAKE_SOURCE_DIR}/tools/Linux/kodi@.service
-            DESTINATION ${systemdsytemunitdir}
+  if(DBUS_FOUND)
+    configure_file(${CMAKE_SOURCE_DIR}/tools/Linux/${APP_NAME_LC}@.service.sample.in
+                   ${CORE_BUILD_DIR}/scripts/${APP_NAME_LC}@.service.sample @ONLY)
+
+    install(FILES ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/scripts/${APP_NAME_LC}@.service.sample
+            DESTINATION ${APP_PREFIX}/share/doc/${APP_NAME_LC}/examples/
             COMPONENT kodi-systemd-service)
   endif()
 endif()
