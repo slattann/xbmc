@@ -59,7 +59,6 @@ set(SOURCES ActorProtocol.cpp
             StreamUtils.cpp
             StringUtils.cpp
             StringValidation.cpp
-            SysfsUtils.cpp
             SystemInfo.cpp
             Temperature.cpp
             TextSearch.cpp
@@ -149,7 +148,6 @@ set(HEADERS ActorProtocol.h
             StreamUtils.h
             StringUtils.h
             StringValidation.h
-            SysfsUtils.h
             SystemInfo.h
             Temperature.h
             TextSearch.h
@@ -181,6 +179,12 @@ endif()
 if(NOT CORE_SYSTEM_NAME STREQUAL windows AND NOT CORE_SYSTEM_NAME STREQUAL windowsstore)
   list(APPEND SOURCES GLUtils.cpp)
   list(APPEND HEADERS GLUtils.h)
+endif()
+
+if(CORE_SYSTEM_NAME STREQUAL linux OR
+   CORE_SYSTEM_NAME STREQUAL android)
+  list(APPEND SOURCES SysfsUtils.cpp)
+  list(APPEND HEADERS SysfsUtils.h)
 endif()
 
 if(CORE_SYSTEM_NAME STREQUAL android OR AML_FOUND)

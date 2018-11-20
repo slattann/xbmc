@@ -16,105 +16,140 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifdef TARGET_WINDOWS_STORE
-#include <io.h>
-#endif
+static const unsigned int PAGESIZE = getpagesize();
 
-int SysfsUtils::SetString(const std::string& path, const std::string& valstr)
+bool SysfsUtils::SetString(const std::string& path, const std::string& value)
 {
-  int fd = open(path.c_str(), O_RDWR, 0644);
-  int ret = 0;
-  if (fd >= 0)
+  auto oldValue = GetString(path);
+  if (oldValue == value)
   {
-    if (write(fd, valstr.c_str(), valstr.size()) < 0)
-      ret = -1;
-    close(fd);
-  }
-  if (ret)
-    CLog::Log(LOGERROR, "%s: error writing %s",__FUNCTION__, path.c_str());
-
-  return ret;
-}
-
-int SysfsUtils::GetString(const std::string& path, std::string& valstr)
-{
-  int len;
-  char buf[256] = {0};
-
-  int fd = open(path.c_str(), O_RDONLY);
-  if (fd >= 0)
-  {
-    valstr.clear();
-    while ((len = read(fd, buf, 256)) > 0)
-      valstr.append(buf, len);
-    close(fd);
-
-    StringUtils::Trim(valstr);
-
-    return 0;
+    return true;
   }
 
-  CLog::Log(LOGERROR, "%s: error reading %s",__FUNCTION__, path.c_str());
-  valstr = "fail";
-  return -1;
-}
-
-int SysfsUtils::SetInt(const std::string& path, const int val)
-{
-  int fd = open(path.c_str(), O_RDWR, 0644);
-  int ret = 0;
-  if (fd >= 0)
+  if (value.size() > PAGESIZE)
   {
-    char bcmd[16];
-    sprintf(bcmd, "%d", val);
-    if (write(fd, bcmd, strlen(bcmd)) < 0)
-      ret = -1;
-    close(fd);
+    CLog::Log(LOGERROR, "{}: string length larger than page size {}", __FUNCTION__, PAGESIZE);
+    return false;
   }
-  if (ret)
-    CLog::Log(LOGERROR, "%s: error writing %s",__FUNCTION__, path.c_str());
 
-  return ret;
+  int fd = open(path.c_str(), O_RDWR);
+  if (fd < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error opening {}", __FUNCTION__, path);
+    return false;
+  }
+
+  auto ret = write(fd, value.c_str(), value.size());
+  close(fd);
+  if (ret < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error writing {}", __FUNCTION__, path);
+    return false;
+  }
+
+  return true;
 }
 
-int SysfsUtils::GetInt(const std::string& path, int& val)
+const std::string SysfsUtils::GetString(const std::string& path)
 {
   int fd = open(path.c_str(), O_RDONLY);
-  int ret = 0;
-  if (fd >= 0)
+  if (fd < 0)
   {
-    char bcmd[16];
-    if (read(fd, bcmd, sizeof(bcmd)) < 0)
-      ret = -1;
-    else
-      val = strtol(bcmd, NULL, 16);
-
-    close(fd);
+    CLog::Log(LOGERROR, "{}: error opening {}", __FUNCTION__, path);
+    return "";
   }
-  if (ret)
-    CLog::Log(LOGERROR, "%s: error reading %s",__FUNCTION__, path.c_str());
 
-  return ret;
+  char buffer[PAGESIZE];
+  auto length = read(fd, buffer, sizeof(buffer));
+  close(fd);
+  if (length < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error reading {}", __FUNCTION__, path);
+    return "";
+  }
+
+  std::string value(buffer, length);
+
+  return StringUtils::Trim(value);
+}
+
+bool SysfsUtils::SetInt(const std::string& path, const int value)
+{
+  auto oldValue = GetInt(path);
+  if (oldValue == value)
+  {
+    return true;
+  }
+
+  std::string buffer{std::to_string(value)};
+
+  if (buffer.size() > PAGESIZE)
+  {
+    CLog::Log(LOGERROR, "{}: int length larger than page size {}", __FUNCTION__, PAGESIZE);
+    return false;
+  }
+
+  int fd = open(path.c_str(), O_RDWR);
+  if (fd < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error opening {}", __FUNCTION__, path);
+    return false;
+  }
+
+  auto ret = write(fd, buffer.c_str(), buffer.size());
+  close(fd);
+  if (ret < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error writing {}", __FUNCTION__, path);
+    return false;
+  }
+
+  return true;
+}
+
+const int SysfsUtils::GetInt(const std::string& path)
+{
+  int fd = open(path.c_str(), O_RDONLY);
+  if (fd < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error opening {}", __FUNCTION__, path);
+    return -1;
+  }
+
+  char buffer[PAGESIZE];
+  auto length = read(fd, buffer, sizeof(buffer));
+  close(fd);
+  if (length < 0)
+  {
+    CLog::Log(LOGERROR, "{}: error reading {}", __FUNCTION__, path);
+    return -1;
+  }
+
+  std::string value(buffer, length);
+
+  return stoi(value);
 }
 
 bool SysfsUtils::Has(const std::string &path)
 {
   int fd = open(path.c_str(), O_RDONLY);
-  if (fd >= 0)
+  if (fd < 0)
   {
-    close(fd);
-    return true;
+    return false;
   }
-  return false;
+
+  close(fd);
+  return true;
 }
 
 bool SysfsUtils::HasRW(const std::string &path)
 {
   int fd = open(path.c_str(), O_RDWR);
-  if (fd >= 0)
+  if (fd < 0)
   {
-    close(fd);
-    return true;
+    return false;
   }
-  return false;
+
+  close(fd);
+  return true;
 }

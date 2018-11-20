@@ -776,12 +776,10 @@ std::string CSysInfo::GetManufacturerName(void)
 #elif defined(TARGET_LINUX)
     if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/family"))
     {
-      std::string family;
-      SysfsUtils::GetString("/sys/bus/soc/devices/soc0/family", family);
+      std::string family = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/family");
       if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/soc_id"))
       {
-        std::string soc_id;
-        SysfsUtils::GetString("/sys/bus/soc/devices/soc0/soc_id", soc_id);
+        std::string soc_id = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/soc_id");
         manufName = family + " " + soc_id;
       }
       else
@@ -822,7 +820,7 @@ std::string CSysInfo::GetModelName(void)
     g_charsetConverter.wToUTF8(std::wstring(manufacturer.c_str()), modelName);
 #elif defined(TARGET_LINUX)
     if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/machine"))
-      SysfsUtils::GetString("/sys/bus/soc/devices/soc0/machine", modelName);
+      modelName = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/machine");
 #elif defined(TARGET_WINDOWS)
     // We just don't care, might be useful on embedded
 #endif

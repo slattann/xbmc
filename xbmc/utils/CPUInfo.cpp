@@ -427,11 +427,11 @@ CCPUInfo::CCPUInfo(void)
     {
       std::string machine, family, soc_id;
       if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/machine"))
-        SysfsUtils::GetString("/sys/bus/soc/devices/soc0/machine", machine);
+        machine = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/machine");
       if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/family"))
-        SysfsUtils::GetString("/sys/bus/soc/devices/soc0/family", family);
+        family = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/family");
       if (SysfsUtils::Has("/sys/bus/soc/devices/soc0/soc_id"))
-        SysfsUtils::GetString("/sys/bus/soc/devices/soc0/soc_id", soc_id);
+        soc_id = SysfsUtils::GetString("/sys/bus/soc/devices/soc0/soc_id");
       if (m_cpuHardware.empty() && !machine.empty())
         m_cpuHardware = machine;
       if (!family.empty() && !soc_id.empty())

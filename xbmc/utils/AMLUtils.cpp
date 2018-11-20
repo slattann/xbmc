@@ -47,8 +47,8 @@ bool aml_wired_present()
   static int has_wired = -1;
   if (has_wired == -1)
   {
-    std::string test;
-    if (SysfsUtils::GetString("/sys/class/net/eth0/operstate", test) != -1)
+    std::string test = SysfsUtils::GetString("/sys/class/net/eth0/operstate");
+    if (test.length() > 0)
       has_wired = 1;
     else
       has_wired = 0;
@@ -162,8 +162,8 @@ bool aml_support_hevc()
 
   if (has_hevc == -1)
   {
-    std::string valstr;
-    if(SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amstream/vcodec_profile");
+    if (valstr.empty())
       has_hevc = 0;
     else
       has_hevc = (valstr.find("hevc:") != std::string::npos) ? 1: 0;
@@ -179,8 +179,8 @@ bool aml_support_hevc_4k2k()
   {
     CRegExp regexp;
     regexp.RegComp("hevc:.*4k");
-    std::string valstr;
-    if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amstream/vcodec_profile");
+    if (valstr.empty())
       has_hevc_4k2k = 0;
     else
       has_hevc_4k2k = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
@@ -196,8 +196,8 @@ bool aml_support_hevc_10bit()
   {
     CRegExp regexp;
     regexp.RegComp("hevc:.*10bit");
-    std::string valstr;
-    if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amstream/vcodec_profile");
+    if (valstr.empty())
       has_hevc_10bit = 0;
     else
       has_hevc_10bit = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
@@ -211,8 +211,8 @@ AML_SUPPORT_H264_4K2K aml_support_h264_4k2k()
 
   if (has_h264_4k2k == AML_SUPPORT_H264_4K2K_UNINIT)
   {
-    std::string valstr;
-    if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amstream/vcodec_profile");
+    if (valstr.empty())
       has_h264_4k2k = AML_NO_H264_4K2K;
     else if (valstr.find("h264:4k") != std::string::npos)
       has_h264_4k2k = AML_HAS_H264_4K2K_SAME_PROFILE;
@@ -232,8 +232,8 @@ bool aml_support_vp9()
   {
     CRegExp regexp;
     regexp.RegComp("vp9:.*compressed");
-    std::string valstr;
-    if (SysfsUtils::GetString("/sys/class/amstream/vcodec_profile", valstr) != 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amstream/vcodec_profile");
+    if (valstr.empty())
       has_vp9 = 0;
     else
       has_vp9 = (regexp.RegFind(valstr) >= 0) ? 1 : 0;
@@ -322,10 +322,9 @@ void aml_probe_hdmi_audio()
 
 int aml_axis_value(AML_DISPLAY_AXIS_PARAM param)
 {
-  std::string axis;
   int value[8];
 
-  SysfsUtils::GetString("/sys/class/display/axis", axis);
+  std::string axis = SysfsUtils::GetString("/sys/class/display/axis");
   sscanf(axis.c_str(), "%d %d %d %d %d %d %d %d", &value[0], &value[1], &value[2], &value[3], &value[4], &value[5], &value[6], &value[7]);
 
   return value[param];
@@ -333,8 +332,7 @@ int aml_axis_value(AML_DISPLAY_AXIS_PARAM param)
 
 bool aml_IsHdmiConnected()
 {
-  int hpd_state;
-  SysfsUtils::GetInt("/sys/class/amhdmitx/amhdmitx0/hpd_state", hpd_state);
+  int hpd_state = SysfsUtils::GetInt("/sys/class/amhdmitx/amhdmitx0/hpd_state");
   if (hpd_state == 2)
   {
     return 1;
@@ -455,14 +453,12 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
 
 bool aml_get_native_resolution(RESOLUTION_INFO *res)
 {
-  std::string mode;
-  SysfsUtils::GetString("/sys/class/display/mode", mode);
+  std::string mode = SysfsUtils::GetString("/sys/class/display/mode");
   bool result = aml_mode_to_resolution(mode.c_str(), res);
 
   if (aml_has_frac_rate_policy())
   {
-    int fractional_rate;
-    SysfsUtils::GetInt("/sys/class/amhdmitx/amhdmitx0/frac_rate_policy", fractional_rate);
+    int fractional_rate = SysfsUtils::GetInt("/sys/class/amhdmitx/amhdmitx0/frac_rate_policy");
     if (fractional_rate == 1)
       res->fRefreshRate /= 1.001;
   }
@@ -484,15 +480,17 @@ bool aml_set_native_resolution(const RESOLUTION_INFO &res, std::string framebuff
 
 bool aml_probe_resolutions(std::vector<RESOLUTION_INFO> &resolutions)
 {
-  std::string valstr, vesastr, dcapfile;
-  dcapfile = CSpecialProtocol::TranslatePath("special://home/userdata/disp_cap");
-
-  if (SysfsUtils::GetString(dcapfile, valstr) < 0)
+  std::string vesastr;
+  std::string dcapfile = CSpecialProtocol::TranslatePath("special://home/userdata/disp_cap");
+  std::string valstr = SysfsUtils::GetString(dcapfile);
+  if (valstr.empty())
   {
-    if (SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr) < 0)
+    std::string valstr = SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap");
+    if (valstr.empty())
       return false;
 
-    if (SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/vesa_cap", vesastr) == 0)
+    std::string vesastr = SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/vesa_cap");
+    if (vesastr.length() > 0)
       valstr += "\n" + vesastr;
   }
   std::vector<std::string> probe_str = StringUtils::Split(valstr, "\n");
@@ -541,9 +539,7 @@ bool aml_get_preferred_resolution(RESOLUTION_INFO *res)
 bool aml_set_display_resolution(const RESOLUTION_INFO &res, std::string framebuffer_name)
 {
   std::string mode = res.strId.c_str();
-  std::string cur_mode;
-
-  SysfsUtils::GetString("/sys/class/display/mode", cur_mode);
+  std::string cur_mode = SysfsUtils::GetString("/sys/class/display/mode");
 
   if (aml_has_frac_rate_policy())
   {
@@ -559,7 +555,7 @@ bool aml_set_display_resolution(const RESOLUTION_INFO &res, std::string framebuf
     return true;
   }
 
-  SysfsUtils::SetString("/sys/class/display/mode", mode.c_str());
+  SysfsUtils::SetString("/sys/class/display/mode", mode);
 
   aml_set_framebuffer_resolution(res, framebuffer_name);
 
@@ -695,8 +691,8 @@ bool aml_read_reg(const std::string &reg, uint32_t &reg_val)
   {
     if (SysfsUtils::SetString(path, reg) == 0)
     {
-      std::string val;
-      if (SysfsUtils::GetString(path, val) == 0)
+      std::string val = SysfsUtils::GetString(path);
+      if (val.length() > 0)
       {
         CRegExp regexp;
         regexp.RegComp("\\[0x(?<reg>.+)\\][\\s]+=[\\s]+(?<val>.+)");
@@ -742,7 +738,7 @@ bool aml_set_reg_ignore_alpha()
   if (aml_has_capability_ignore_alpha())
   {
     std::string path = "/sys/kernel/debug/aml_reg/paddr";
-    if (SysfsUtils::SetString(path, "d01068b4 0x7fc0") == 0)
+    if (SysfsUtils::SetString(path, "d01068b4 0x7fc0"))
       return true;
   }
   return false;
@@ -753,7 +749,7 @@ bool aml_unset_reg_ignore_alpha()
   if (aml_has_capability_ignore_alpha())
   {
     std::string path = "/sys/kernel/debug/aml_reg/paddr";
-    if (SysfsUtils::SetString(path, "d01068b4 0x3fc0") == 0)
+    if (SysfsUtils::SetString(path, "d01068b4 0x3fc0"))
       return true;
   }
   return false;

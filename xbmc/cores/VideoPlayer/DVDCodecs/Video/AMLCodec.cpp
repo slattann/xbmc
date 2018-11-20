@@ -1735,8 +1735,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
 
   m_display_rect = CRect(0, 0, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iWidth, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iHeight);
 
-  std::string strScaler;
-  SysfsUtils::GetString("/sys/class/ppmgr/ppscaler", strScaler);
+  std::string strScaler = SysfsUtils::GetString("/sys/class/ppmgr/ppscaler");
   if (strScaler.find("enabled") == std::string::npos)     // Scaler not enabled, use screen size
     m_display_rect = CRect(0, 0, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenWidth, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenHeight);
 
@@ -1786,8 +1785,7 @@ bool CAMLCodec::OpenAmlVideo(const CDVDStreamInfo &hints)
 
 std::string CAMLCodec::GetVfmMap(const std::string &name)
 {
-  std::string vfmMap;
-  SysfsUtils::GetString("/sys/class/vfm/map", vfmMap);
+  std::string vfmMap = SysfsUtils::GetString("/sys/class/vfm/map");
   std::vector<std::string> sections = StringUtils::Split(vfmMap, '\n');
   std::string sectionMap;
   for (size_t i = 0; i < sections.size(); ++i)
