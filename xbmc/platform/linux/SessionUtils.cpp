@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-uint32_t CSessionUtils::Open(std::string path, int flags)
+int CSessionUtils::Open(std::string path, int flags)
 {
   return open(path.c_str(), O_RDWR | flags);
 }

@@ -13,6 +13,6 @@
 class CSessionUtils
 {
 public:
-  static uint32_t Open(std::string path, int flags);
-  static void Close(int fd);
+  int Open(std::string path, int flags);
+  void Close(int fd);
 };

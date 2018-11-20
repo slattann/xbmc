@@ -22,7 +22,7 @@ namespace
   const std::string logindSessionInterface{"org.freedesktop.login1.Session"};
 }
 
-uint32_t CSessionUtils::Open(std::string path, int flags)
+int CSessionUtils::Open(std::string path, int flags)
 {
   std::string sessionPath = CLogindUtils::GetSessionPath();
 
@@ -132,7 +132,7 @@ std::string CLogindUtils::GetSessionPath()
   return sessionPath;
 }
 
-uint32_t CLogindUtils::TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor)
+int CLogindUtils::TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor)
 {
   CDBusMessage message(logindService, sessionPath, logindSessionInterface, "TakeDevice");
   message.AppendArguments<uint32_t, uint32_t>(major, minor);

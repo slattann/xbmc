@@ -20,7 +20,7 @@ public:
   void Destroy();
 
   static std::string GetSessionPath();
-  static uint32_t TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor);
+  static int TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor);
   static void ReleaseDevice(std::string sessionPath, uint32_t major, uint32_t minor);
 
 private:
