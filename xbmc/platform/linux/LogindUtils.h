@@ -20,8 +20,8 @@ public:
   void Destroy();
 
   static std::string GetSessionPath();
-  static int TakeDevice(std::string sessionPath, uint32_t major, uint32_t minor);
-  static void ReleaseDevice(std::string sessionPath, uint32_t major, uint32_t minor);
+  static int TakeDevice(const std::string& sessionPath, uint32_t major, uint32_t minor);
+  static void ReleaseDevice(const std::string& sessionPath, uint32_t major, uint32_t minor);
 
 private:
   bool TakeControl();

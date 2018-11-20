@@ -13,6 +13,6 @@
 class CSessionUtils
 {
 public:
-  int Open(std::string path, int flags);
+  int Open(const std::string& path, int flags);
   void Close(int fd);
 };
