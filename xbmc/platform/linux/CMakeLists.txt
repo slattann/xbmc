@@ -1,4 +1,5 @@
-set(SOURCES ConvUtils.cpp
+set(SOURCES Backlight.cpp
+            ConvUtils.cpp
             LinuxResourceCounter.cpp
             LinuxTimezone.cpp
             OptionalsReg.cpp
@@ -9,7 +10,8 @@ set(SOURCES ConvUtils.cpp
             XMemUtils.cpp
             XTimeUtils.cpp)
 
-set(HEADERS ConvUtils.h
+set(HEADERS Backlight.h
+            ConvUtils.h
             LinuxResourceCounter.h
             LinuxTimezone.h
             OptionalsReg.h
