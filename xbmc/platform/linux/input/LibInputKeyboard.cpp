@@ -142,8 +142,10 @@ static const std::map<xkb_keysym_t, XBMCKey> xkbMap =
   // XBMCK_REWIND clashes with XBMCK_MEDIA_REWIND
   { XKB_KEY_XF86Phone, XBMCK_PHONE },
   { XKB_KEY_XF86AudioPlay, XBMCK_PLAY },
-  { XKB_KEY_XF86AudioRandomPlay, XBMCK_SHUFFLE }
+  { XKB_KEY_XF86AudioRandomPlay, XBMCK_SHUFFLE },
   // XBMCK_FASTFORWARD clashes with XBMCK_MEDIA_FASTFORWARD
+  { XKB_KEY_XF86MonBrightnessUp, XBMCK_BACKLIGHT_BRIGHTNESS_UP },
+  { XKB_KEY_XF86MonBrightnessDown, XBMCK_BACKLIGHT_BRIGHTNESS_DOWN},
 };
 
 CLibInputKeyboard::CLibInputKeyboard()
