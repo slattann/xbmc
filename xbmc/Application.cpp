@@ -83,6 +83,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/CPUInfo.h"
 #include "utils/FileExtensionProvider.h"
+#include "utils/IBacklight.h"
 #include "utils/log.h"
 #include "SeekHandler.h"
 #include "ServiceBroker.h"
@@ -127,6 +128,7 @@
 #include "dialogs/GUIDialogButtonMenu.h"
 #include "dialogs/GUIDialogSimpleMenu.h"
 #include "dialogs/GUIDialogVolumeBar.h"
+#include "dialogs/GUIDialogBacklightBar.h"
 #include "addons/settings/GUIDialogAddonSettings.h"
 
 // PVR related include Files
@@ -1944,6 +1946,34 @@ bool CApplication::OnAction(const CAction &action)
     return true;
   }
 
+  if (action.GetID() == ACTION_BACKLIGHT_BRIGHTNESS_UP || action.GetID() == ACTION_BACKLIGHT_BRIGHTNESS_DOWN)
+  {
+    std::shared_ptr<IBacklight> backlight = CServiceBroker::GetBacklight();
+
+    if (backlight)
+    {
+      int brightness{backlight->GetBrightness()};
+      int brightnessSteps{5};
+
+      if (action.GetID() == ACTION_BACKLIGHT_BRIGHTNESS_UP)
+      {
+        brightness += action.GetAmount() * brightnessSteps;
+      }
+      else if (action.GetID() == ACTION_BACKLIGHT_BRIGHTNESS_DOWN)
+      {
+        brightness -= action.GetAmount() * brightnessSteps;
+      }
+
+      // limit the range from 0 to max brightness
+      brightness = std::min(backlight->GetMaxBrightness(), brightness);
+      brightness = std::max(0, brightness);
+
+      SetBacklightBrightness(brightness, false);
+    }
+
+    ShowBacklightBar(&action);
+  }
+
   // Check for global volume control
   if ((action.GetAmount() && (action.GetID() == ACTION_VOLUME_UP || action.GetID() == ACTION_VOLUME_DOWN)) || action.GetID() == ACTION_VOLUME_SET)
   {
@@ -3493,7 +3523,7 @@ void CApplication::CheckOSScreenSaverInhibitionSetting()
   // Kodi screen saver overrides OS one: always inhibit OS screen saver then
   // except when DPMS is active (inhibiting the screen saver then might also
   // disable DPMS again)
-  if (!m_dpmsIsActive && 
+  if (!m_dpmsIsActive &&
       !CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_SCREENSAVER_MODE).empty() &&
       CServiceBroker::GetWinSystem()->GetOSScreenSaver())
   {
@@ -4247,6 +4277,19 @@ void CApplication::ShowVolumeBar(const CAction *action)
   }
 }
 
+void CApplication::ShowBacklightBar(const CAction* action)
+{
+  CGUIDialogBacklightBar* backlightBar = CServiceBroker::GetGUI()->GetWindowManager().GetWindow<CGUIDialogBacklightBar>(WINDOW_DIALOG_BACKLIGHT_BAR);
+  if (backlightBar)
+  {
+    backlightBar->Open();
+    if (action)
+    {
+      backlightBar->OnAction(*action);
+    }
+  }
+}
+
 bool CApplication::IsMuted() const
 {
   if (CServiceBroker::GetPeripherals().IsMuted())
@@ -4340,6 +4383,20 @@ void CApplication::VolumeChanged()
   // if player has volume control, set it.
   m_appPlayer.SetVolume(m_volumeLevel);
   m_appPlayer.SetMute(m_muted);
+}
+
+void CApplication::SetBacklightBrightness(int iValue, bool isPercentage/*=true*/)
+{
+  int brightness = iValue;
+
+  std::shared_ptr<IBacklight> backlight = CServiceBroker::GetBacklight();
+
+  if (backlight)
+  {
+    // set the brightness range
+    brightness *= (backlight->GetMaxBrightness() / 100);
+    backlight->SetBrightness(brightness);
+  }
 }
 
 int CApplication::GetSubtitleDelay()

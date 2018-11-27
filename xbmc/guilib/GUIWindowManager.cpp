@@ -87,6 +87,7 @@
 #include "dialogs/GUIDialogSeekBar.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogVolumeBar.h"
+#include "dialogs/GUIDialogBacklightBar.h"
 #include "dialogs/GUIDialogNumeric.h"
 #include "dialogs/GUIDialogGamepad.h"
 #include "dialogs/GUIDialogSubMenu.h"
@@ -303,6 +304,8 @@ void CGUIWindowManager::CreateWindows()
   Add(new GAME::CDialogGameAdvancedSettings);
   Add(new GAME::CDialogGameVideoRotation);
   Add(new RETRO::CGameWindowFullScreen);
+
+  Add(new CGUIDialogBacklightBar);
 }
 
 bool CGUIWindowManager::DestroyWindows()
@@ -428,6 +431,7 @@ bool CGUIWindowManager::DestroyWindows()
     Remove(WINDOW_DIALOG_KAI_TOAST);
     Remove(WINDOW_DIALOG_SEEK_BAR);
     Remove(WINDOW_DIALOG_VOLUME_BAR);
+    Remove(WINDOW_DIALOG_BACKLIGHT_BAR);
 
     DestroyWindow(WINDOW_EVENT_LOG);
 

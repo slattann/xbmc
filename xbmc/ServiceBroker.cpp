@@ -251,3 +251,19 @@ void CServiceBroker::UnregisterAppPort()
 {
   m_pAppPort.reset();
 }
+
+std::shared_ptr<IBacklight> CServiceBroker::m_backlight;
+std::shared_ptr<IBacklight> CServiceBroker::GetBacklight()
+{
+  return m_backlight;
+}
+
+void CServiceBroker::RegisterBacklight(std::shared_ptr<IBacklight> backlight)
+{
+  m_backlight = backlight;
+}
+
+void CServiceBroker::UnregisterBacklight()
+{
+  m_backlight.reset();
+}

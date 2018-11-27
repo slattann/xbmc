@@ -269,6 +269,9 @@
 
 #define ACTION_VIDEO_NEXT_STREAM      250 //!< Cycle video streams. Used in videofullscreen.
 
+#define ACTION_BACKLIGHT_BRIGHTNESS_UP   251
+#define ACTION_BACKLIGHT_BRIGHTNESS_DOWN 252
+
 // Voice actions
 #define ACTION_VOICE_RECOGNIZE        300
 

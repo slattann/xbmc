@@ -1645,7 +1645,9 @@ const infomap system_labels[] =  {{ "hasnetwork",       SYSTEM_ETHERNET_LINK_ACT
                                   { "stereoscopicmode", SYSTEM_STEREOSCOPIC_MODE },
                                   { "hascms",           SYSTEM_HAS_CMS },
                                   { "privacypolicy",    SYSTEM_PRIVACY_POLICY },
-                                  { "haspvraddon",      SYSTEM_HAS_PVR_ADDON }};
+                                  { "haspvraddon",      SYSTEM_HAS_PVR_ADDON },
+                                  { "hasbacklight",     SYSTEM_HAS_BACKLIGHT },
+                                  { "backlightbrightness", SYSTEM_BACKLIGHT_BRIGHTNESS }};
 
 /// \page modules__infolabels_boolean_conditions
 ///   \table_row3{   <b>`System.HasAddon(id)`</b>,

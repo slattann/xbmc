@@ -209,6 +209,7 @@ public:
   void Process() override;
   void ProcessSlow();
   void ResetScreenSaver();
+  void SetBacklightBrightness(int iValue, bool isPercentage = true);
   float GetVolume(bool percentage = true) const;
   void SetVolume(float iValue, bool isPercentage = true);
   bool IsMuted() const;
@@ -216,6 +217,7 @@ public:
   void ToggleMute(void);
   void SetMute(bool mute);
   void ShowVolumeBar(const CAction *action = NULL);
+  void ShowBacklightBar(const CAction* action);
   int GetSubtitleDelay();
   int GetAudioDelay();
   void ResetSystemIdleTimer();

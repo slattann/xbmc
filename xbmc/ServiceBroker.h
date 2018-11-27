@@ -52,6 +52,7 @@ class CEventLog;
 class CGUIComponent;
 class CAppInboundProtocol;
 class CSettingsComponent;
+class IBacklight;
 
 namespace KODI
 {
@@ -127,11 +128,16 @@ public:
   static void RegisterAppPort(std::shared_ptr<CAppInboundProtocol> port);
   static void UnregisterAppPort();
 
+  static std::shared_ptr<IBacklight> GetBacklight();
+  static void RegisterBacklight(std::shared_ptr<IBacklight> backlight);
+  static void UnregisterBacklight();
+
 private:
   static std::shared_ptr<ANNOUNCEMENT::CAnnouncementManager> m_pAnnouncementManager;
   static CGUIComponent* m_pGUI;
   static CWinSystemBase* m_pWinSystem;
   static IAE* m_pActiveAE;
   static std::shared_ptr<CAppInboundProtocol> m_pAppPort;
+  static std::shared_ptr<IBacklight> m_backlight;
   static CSettingsComponent* m_pSettingsComponent;
 };
