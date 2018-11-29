@@ -1853,8 +1853,7 @@ void CAMLCodec::Reset()
   SetPollDevice(-1);
 
   // set the system blackout_policy to leave the last frame showing
-  int blackout_policy;
-  SysfsUtils::GetInt("/sys/class/video/blackout_policy", blackout_policy);
+  int blackout_policy = SysfsUtils::GetInt("/sys/class/video/blackout_policy");
   SysfsUtils::SetInt("/sys/class/video/blackout_policy", 0);
 
   // restore the speed (some amcodec versions require this)
