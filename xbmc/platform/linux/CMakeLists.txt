@@ -1,5 +1,4 @@
-set(SOURCES Backlight.cpp
-            ConvUtils.cpp
+set(SOURCES ConvUtils.cpp
             LinuxResourceCounter.cpp
             LinuxTimezone.cpp
             OptionalsReg.cpp
@@ -10,8 +9,7 @@ set(SOURCES Backlight.cpp
             XMemUtils.cpp
             XTimeUtils.cpp)
 
-set(HEADERS Backlight.h
-            ConvUtils.h
+set(HEADERS ConvUtils.h
             LinuxResourceCounter.h
             LinuxTimezone.h
             OptionalsReg.h
@@ -26,6 +24,11 @@ set(HEADERS Backlight.h
             XHandlePublic.h
             XMemUtils.h
             XTimeUtils.h)
+
+if(CORE_SYSTEM_NAME STREQUAL linux)
+  list(APPEND SOURCES Backlight.cpp)
+  list(APPEND HEADERS Backlight.h)
+endif()
 
 if(ALSA_FOUND)
   list(APPEND SOURCES FDEventMonitor.cpp)
