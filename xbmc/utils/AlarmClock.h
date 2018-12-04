@@ -62,6 +62,3 @@ private:
 
   bool m_bIsRunning = false;
 };
-
-extern CAlarmClock g_alarmClock;
-

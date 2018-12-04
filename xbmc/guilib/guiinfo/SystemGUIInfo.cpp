@@ -239,17 +239,23 @@ bool CSystemGUIInfo::GetLabel(std::string& value, const CFileItem *item, int con
       return true;
 #endif
     case SYSTEM_ALARM_POS:
-      if (g_alarmClock.GetRemaining("shutdowntimer") == 0.f)
-        value.clear();
-      else
+    {
+      std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+      if (alarmClock)
       {
-        double fTime = g_alarmClock.GetRemaining("shutdowntimer");
-        if (fTime > 60.f)
-          value = StringUtils::Format(g_localizeStrings.Get(13213).c_str(), g_alarmClock.GetRemaining("shutdowntimer")/60.f);
+        if (alarmClock->GetRemaining("shutdowntimer") == 0.f)
+          value.clear();
         else
-          value = StringUtils::Format(g_localizeStrings.Get(13214).c_str(), g_alarmClock.GetRemaining("shutdowntimer"));
+        {
+          double fTime = alarmClock->GetRemaining("shutdowntimer");
+          if (fTime > 60.f)
+            value = StringUtils::Format(g_localizeStrings.Get(13213).c_str(), alarmClock->GetRemaining("shutdowntimer")/60.f);
+          else
+            value = StringUtils::Format(g_localizeStrings.Get(13214).c_str(), alarmClock->GetRemaining("shutdowntimer"));
+        }
       }
       return true;
+    }
     case SYSTEM_PROFILENAME:
       value = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetCurrentProfile().getName();
       return true;
@@ -613,17 +619,25 @@ bool CSystemGUIInfo::GetBool(bool& value, const CGUIListItem *gitem, int context
     }
     case SYSTEM_ALARM_LESS_OR_EQUAL:
     {
-      int time = std::lrint(g_alarmClock.GetRemaining(info.GetData3()));
-      int timeCompare = info.GetData2();
-      if (time > 0)
-        value = timeCompare >= time;
-      else
-        value = false;
+      std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+      if (alarmClock)
+      {
+        int time = std::lrint(alarmClock->GetRemaining(info.GetData3()));
+        int timeCompare = info.GetData2();
+        if (time > 0)
+          value = timeCompare >= time;
+        else
+          value = false;
+      }
       return true;
     }
     case SYSTEM_HAS_ALARM:
-      value = g_alarmClock.HasAlarm(info.GetData3());
+    {
+      std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+      if (alarmClock)
+        value = alarmClock->HasAlarm(info.GetData3());
       return true;
+    }
     case SYSTEM_GET_BOOL:
       value = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(info.GetData3());
       return true;

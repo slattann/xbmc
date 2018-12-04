@@ -377,6 +377,9 @@ bool CApplication::Create(const CAppParamParser &params)
   m_pAnnouncementManager->Start();
   CServiceBroker::RegisterAnnouncementManager(m_pAnnouncementManager);
 
+  m_pAlarmClock.reset(new CAlarmClock());
+  CServiceBroker::RegisterAlarmClock(m_pAlarmClock);
+
   m_ServiceManager.reset(new CServiceManager());
 
   if (!m_ServiceManager->InitStageOne())
@@ -2555,7 +2558,11 @@ void CApplication::Stop(int exitCode)
     // Abort any active screensaver
     WakeUpScreenSaverAndDPMS();
 
-    g_alarmClock.StopThread();
+    std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+    if (alarmClock)
+      alarmClock->StopThread();
+
+    CServiceBroker::UnregisterAlarmClock();
 
     CLog::Log(LOGNOTICE, "Storing total System Uptime");
     g_sysinfo.SetTotalUptime(g_sysinfo.GetTotalUptime() + (int)(CTimeUtils::GetFrameTime() / 60000));
@@ -3488,7 +3495,9 @@ bool CApplication::WakeUpScreenSaver(bool bPowerOffKeyPressed /* = false */)
         * makes sure the addon gets terminated after we've moved out of the screensaver window.
         * If we don't do this, we may simply lockup.
         */
-        g_alarmClock.Start(SCRIPT_ALARM, SCRIPT_TIMEOUT, "StopScript(" + m_pythonScreenSaver->LibPath() + ")", true, false);
+        std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+        if(alarmClock)
+          alarmClock->Start(SCRIPT_ALARM, SCRIPT_TIMEOUT, "StopScript(" + m_pythonScreenSaver->LibPath() + ")", true, false);
         m_pythonScreenSaver.reset();
       }
       if (CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() == WINDOW_SCREENSAVER)
@@ -3659,7 +3668,9 @@ void CApplication::ActivateScreenSaver(bool forceType /*= false */)
       CLog::Log(LOGDEBUG, "using python screensaver add-on %s", m_screensaverIdInUse.c_str());
 
       // Don't allow a previously-scheduled alarm to kill our new screensaver
-      g_alarmClock.Stop(SCRIPT_ALARM, true);
+      std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+      if (alarmClock)
+        alarmClock->Stop(SCRIPT_ALARM, true);
 
       if (!CScriptInvocationManager::GetInstance().Stop(libPath))
         CScriptInvocationManager::GetInstance().ExecuteAsync(libPath, AddonPtr(new CAddon(dynamic_cast<ADDON::CAddon&>(*m_pythonScreenSaver))));
@@ -4408,8 +4419,12 @@ void CApplication::ResetShutdownTimers()
   m_shutdownTimer.StartZero();
 
   // delete custom shutdown timer
-  if (g_alarmClock.HasAlarm("shutdowntimer"))
-    g_alarmClock.Stop("shutdowntimer", true);
+  std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+  if (alarmClock)
+  {
+    if (alarmClock->HasAlarm("shutdowntimer"))
+      alarmClock->Stop("shutdowntimer", true);
+  }
 }
 
 // Returns the current time in seconds of the currently playing media.

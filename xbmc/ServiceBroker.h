@@ -53,6 +53,7 @@ class CGUIComponent;
 class CAppInboundProtocol;
 class CSettingsComponent;
 class CDecoderFilterManager;
+class CAlarmClock;
 
 namespace KODI
 {
@@ -107,6 +108,10 @@ public:
   static CDatabaseManager &GetDatabaseManager();
   static CEventLog &GetEventLog();
 
+  static std::shared_ptr<CAlarmClock> GetAlarmClock();
+  static void RegisterAlarmClock(std::shared_ptr<CAlarmClock> alarmClock);
+  static void UnregisterAlarmClock();
+
   static CGUIComponent* GetGUI();
   static void RegisterGUI(CGUIComponent *gui);
   static void UnregisterGUI();
@@ -139,4 +144,5 @@ private:
   static std::shared_ptr<CAppInboundProtocol> m_pAppPort;
   static CSettingsComponent* m_pSettingsComponent;
   static CDecoderFilterManager* m_decoderFilterManager;
+  static std::shared_ptr<CAlarmClock> m_pAlarmClock;
 };

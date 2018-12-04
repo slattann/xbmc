@@ -205,6 +205,22 @@ CEventLog& CServiceBroker::GetEventLog()
   return m_pSettingsComponent->GetProfileManager()->GetEventLog();
 }
 
+std::shared_ptr<CAlarmClock> CServiceBroker::m_pAlarmClock = nullptr;
+std::shared_ptr<CAlarmClock> CServiceBroker::GetAlarmClock()
+{
+  return m_pAlarmClock;
+}
+
+void CServiceBroker::RegisterAlarmClock(std::shared_ptr<CAlarmClock> alarmClock)
+{
+  m_pAlarmClock = alarmClock;
+}
+
+void CServiceBroker::UnregisterAlarmClock()
+{
+  m_pAlarmClock.reset();
+}
+
 CGUIComponent* CServiceBroker::m_pGUI = nullptr;
 
 CGUIComponent* CServiceBroker::GetGUI()

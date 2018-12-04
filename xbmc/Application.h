@@ -55,6 +55,7 @@ class IActionListener;
 class CGUIComponent;
 class CAppInboundProtocol;
 class CSettingsComponent;
+class CAlarmClock;
 
 namespace ADDON
 {
@@ -375,6 +376,7 @@ protected:
    */
   bool NotifyActionListeners(const CAction &action) const;
 
+  std::shared_ptr<CAlarmClock> m_pAlarmClock;
   std::shared_ptr<ANNOUNCEMENT::CAnnouncementManager> m_pAnnouncementManager;
   std::unique_ptr<CSettingsComponent> m_pSettingsComponent;
   std::unique_ptr<CGUIComponent> m_pGUI;

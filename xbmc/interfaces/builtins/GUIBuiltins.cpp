@@ -187,12 +187,18 @@ static int AlarmClock(const std::vector<std::string>& params)
       loop = true;
   }
 
-  if( g_alarmClock.IsRunning() )
-    g_alarmClock.Stop(params[0],silent);
-  // no negative times not allowed, loop must have a positive time
-  if (seconds < 0 || (seconds == 0 && loop))
-    return false;
-  g_alarmClock.Start(params[0], seconds, params[1], silent, loop);
+  std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+  if (alarmClock)
+  {
+    if(alarmClock->IsRunning())
+      alarmClock->Stop(params[0],silent);
+
+    // negative times not allowed, loop must have a positive time
+    if (seconds < 0 || (seconds == 0 && loop))
+      return false;
+
+    alarmClock->Start(params[0], seconds, params[1], silent, loop);
+  }
 
   return 0;
 }
@@ -206,7 +212,10 @@ static int CancelAlarm(const std::vector<std::string>& params)
   bool silent = (params.size() > 1 &&
       (StringUtils::EqualsNoCase(params[1], "true") ||
        StringUtils::EqualsNoCase(params[1], "silent")));
-  g_alarmClock.Stop(params[0],silent);
+
+  std::shared_ptr<CAlarmClock> alarmClock = CServiceBroker::GetAlarmClock();
+  if (alarmClock)
+    alarmClock->Stop(params[0],silent);
 
   return 0;
 }
