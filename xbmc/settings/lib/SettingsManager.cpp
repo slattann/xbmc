@@ -275,6 +275,18 @@ void CSettingsManager::SetInitialized()
     ResolveSettingDependencies(setting.second);
 }
 
+void CSettingsManager::PrintSettings()
+{
+  std::string settingsStr;
+  for (const auto& setting : m_settings)
+  {
+    if (!setting.second.setting->IsDefault())
+      settingsStr.append(StringUtils::Format("%s: %s\n", setting.first, setting.second.setting->ToString()));
+  }
+
+  CLog::Log(LOGDEBUG, "setting definitions during startup:\n{}", settingsStr);
+}
+
 void CSettingsManager::AddSection(SettingSectionPtr section)
 {
   if (section == nullptr)

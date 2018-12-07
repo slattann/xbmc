@@ -439,6 +439,11 @@ bool CSettings::Initialize()
   return true;
 }
 
+void CSettings::PrintSettings()
+{
+  GetSettingsManager()->PrintSettings();
+}
+
 bool CSettings::Load()
 {
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();

@@ -460,6 +460,8 @@ public:
    */
   void RemoveDynamicCondition(const std::string &identifier);
 
+  void PrintSettings();
+
 private:
   // implementation of ISettingCallback
   bool OnSettingChanging(std::shared_ptr<const CSetting> setting) override;

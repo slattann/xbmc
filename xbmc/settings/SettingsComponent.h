@@ -27,6 +27,8 @@ public:
    */
   void Init(const CAppParamParser &params);
 
+  void PrintSettings();
+
   /*!
    * @brief Initialize all subcomponents with user values (loaded from user settings files, according to active profile).
    * @return true on success, false otherwise.

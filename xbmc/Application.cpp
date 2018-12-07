@@ -541,6 +541,8 @@ bool CApplication::Create(const CAppParamParser &params)
   if (!m_pSettingsComponent->Load())
     return false;
 
+  m_pSettingsComponent->PrintSettings();
+
   CLog::Log(LOGINFO, "creating subdirectories");
   const std::shared_ptr<CProfileManager> profileManager = m_pSettingsComponent->GetProfileManager();
   const std::shared_ptr<CSettings> settings = m_pSettingsComponent->GetSettings();

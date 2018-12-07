@@ -392,6 +392,8 @@ public:
   // specialization of CSettingsBase
   bool Initialize() override;
 
+  void PrintSettings();
+
   // implementations of CSettingsBase
   bool Load() override;
   bool Save() override;

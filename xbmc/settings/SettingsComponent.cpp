@@ -66,6 +66,11 @@ void CSettingsComponent::Init(const CAppParamParser &params)
   }
 }
 
+void CSettingsComponent::PrintSettings()
+{
+  m_settings->PrintSettings();
+}
+
 bool CSettingsComponent::Load()
 {
   if (m_state == State::INITED)
