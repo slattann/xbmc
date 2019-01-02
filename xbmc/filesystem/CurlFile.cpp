@@ -1416,6 +1416,7 @@ int CCurlFile::Stat(const CURL& url, struct __stat64* buffer)
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_TIMEOUT, CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_curlconnecttimeout);
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_NOBODY, 1);
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_FILETIME , 1);
+  g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_FOLLOWLOCATION, 1);
 
   if(url2.IsProtocol("ftp"))
   {
