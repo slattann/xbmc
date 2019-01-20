@@ -180,6 +180,11 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   list(APPEND HEADERS TexturePi.h)
 endif()
 
+if(CORE_PLATFORM_NAME_LC STREQUAL gbm AND GBM_HAS_BO_MAP)
+  list(APPEND SOURCES TextureGBM.cpp)
+  list(APPEND HEADERS TextureGBM.h)
+endif()
+
 if(CORE_SYSTEM_NAME STREQUAL windows OR CORE_SYSTEM_NAME STREQUAL windowsstore)
   list(APPEND SOURCES D3DResource.cpp
                       DirectXGraphics.cpp

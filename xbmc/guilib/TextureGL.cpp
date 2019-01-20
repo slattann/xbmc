@@ -6,6 +6,8 @@
  *  See LICENSES/README.md for more information.
  */
 
+#include "TextureGL.h"
+
 #include "ServiceBroker.h"
 #include "Texture.h"
 #include "rendering/RenderSystem.h"

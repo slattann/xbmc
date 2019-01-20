@@ -40,8 +40,11 @@ CBaseTexture::CBaseTexture(unsigned int width, unsigned int height, unsigned int
 
 CBaseTexture::~CBaseTexture()
 {
-  _aligned_free(m_pixels);
-  m_pixels = NULL;
+  if (m_pixels)
+  {
+    _aligned_free(m_pixels);
+    m_pixels = NULL;
+  }
 }
 
 void CBaseTexture::Allocate(unsigned int width, unsigned int height, unsigned int format)
@@ -94,8 +97,13 @@ void CBaseTexture::Allocate(unsigned int width, unsigned int height, unsigned in
   CLAMP(m_imageWidth, m_textureWidth);
   CLAMP(m_imageHeight, m_textureHeight);
 
+  GetMemory();
+}
+
+void CBaseTexture::GetMemory()
+{
   _aligned_free(m_pixels);
-  m_pixels = NULL;
+  m_pixels = nullptr;
   if (GetPitch() * GetRows() > 0)
   {
     size_t size = GetPitch() * GetRows();
@@ -123,7 +131,7 @@ void CBaseTexture::Update(unsigned int width, unsigned int height, unsigned int 
 
   unsigned int srcPitch = pitch ? pitch : GetPitch(width);
   unsigned int srcRows = GetRows(height);
-  unsigned int dstPitch = GetPitch(m_textureWidth);
+  unsigned int dstPitch = GetDestPitch();
   unsigned int dstRows = GetRows(m_textureHeight);
 
   if (srcPitch == dstPitch)
@@ -139,6 +147,7 @@ void CBaseTexture::Update(unsigned int width, unsigned int height, unsigned int 
       dst += dstPitch;
     }
   }
+
   ClampToEdge();
 
   if (loadToGPU)
@@ -152,7 +161,7 @@ void CBaseTexture::ClampToEdge()
 
   unsigned int imagePitch = GetPitch(m_imageWidth);
   unsigned int imageRows = GetRows(m_imageHeight);
-  unsigned int texturePitch = GetPitch(m_textureWidth);
+  unsigned int texturePitch = GetDestPitch();
   unsigned int textureRows = GetRows(m_textureHeight);
   if (imagePitch < texturePitch)
   {
