@@ -10,6 +10,7 @@
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererGBM.h"
 #include "cores/RetroPlayer/rendering/VideoRenderers/RPRendererOpenGL.h"
 #include "cores/VideoPlayer/DVDCodecs/DVDFactoryCodec.h"
+#include "cores/VideoPlayer/Process/gbm/ProcessInfoGBM.h"
 #include "cores/VideoPlayer/VideoRenderers/LinuxRendererGL.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "EGL/egl.h"
@@ -53,6 +54,8 @@ bool CWinSystemGbmGLContext::InitWindowSystem()
   {
     VAAPIRegister(m_vaapiProxy.get(), deepColor);
   }
+
+  VIDEOPLAYER::CProcessInfoGBM::Register();
 
   return true;
 }
