@@ -62,6 +62,11 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
     AddProperty(m_gui_plane, "CRTC_Y", 0);
     AddProperty(m_gui_plane, "CRTC_W", m_mode->hdisplay);
     AddProperty(m_gui_plane, "CRTC_H", m_mode->vdisplay);
+
+    if (m_gui_plane->zpos)
+    {
+      AddProperty(m_gui_plane, "zpos", 1);
+    }
   }
   else if (videoLayer && !CServiceBroker::GetGUI()->GetWindowManager().HasVisibleControls())
   {

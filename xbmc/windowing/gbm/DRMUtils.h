@@ -47,6 +47,7 @@ struct plane : drm_object
 {
   drmModePlanePtr plane = nullptr;
   bool useFallbackFormat{false};
+  bool zpos{false};
   std::map<uint32_t, std::vector<uint64_t>> modifiers_map;
 
   void SetFormat(uint32_t newFormat)

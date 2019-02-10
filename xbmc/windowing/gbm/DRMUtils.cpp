@@ -463,6 +463,9 @@ bool CDRMUtils::FindPlanes()
       return false;
     }
 
+    if (SupportsProperty(m_video_plane, "zpos"))
+      m_video_plane->zpos = true;
+
     if (!FindModifiersForPlane(m_video_plane))
     {
       CLog::Log(LOGDEBUG, "CDRMUtils::%s - no drm modifiers present for the video plane", __FUNCTION__);
@@ -475,6 +478,9 @@ bool CDRMUtils::FindPlanes()
     CLog::Log(LOGERROR, "CDRMUtils::%s - could not get gui plane %u properties: %s", __FUNCTION__, m_gui_plane->plane->plane_id, strerror(errno));
     return false;
   }
+
+  if (SupportsProperty(m_gui_plane, "zpos"))
+    m_gui_plane->zpos = true;
 
   if (!FindModifiersForPlane(m_gui_plane))
   {

@@ -162,6 +162,11 @@ void CVideoLayerBridgeDRMPRIME::SetVideoPlane(IVideoBufferDRMPRIME* buffer, cons
   m_DRM->AddProperty(plane, "CRTC_Y", static_cast<int32_t>(destRect.y1) & ~1);
   m_DRM->AddProperty(plane, "CRTC_W", (static_cast<uint32_t>(destRect.Width()) + 1) & ~1);
   m_DRM->AddProperty(plane, "CRTC_H", (static_cast<uint32_t>(destRect.Height()) + 1) & ~1);
+
+  if (plane->zpos)
+  {
+    m_DRM->AddProperty(plane, "zpos", 0);
+  }
 }
 
 void CVideoLayerBridgeDRMPRIME::UpdateVideoPlane()
