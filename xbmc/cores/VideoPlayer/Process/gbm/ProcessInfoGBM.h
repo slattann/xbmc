@@ -20,7 +20,7 @@ public:
   static CProcessInfo* Create();
   static void Register();
 
-  CProcessInfoGBM() = default;
+  CProcessInfoGBM();
 };
 
 }
