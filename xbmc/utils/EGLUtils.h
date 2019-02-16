@@ -83,6 +83,11 @@ public:
     return m_attributes.data();
   }
 
+  ssize_t const Size() const
+  {
+    return m_attributes.size() - 1;
+  }
+
 private:
   std::vector<EGLint> m_attributes{EGL_NONE};
 };
