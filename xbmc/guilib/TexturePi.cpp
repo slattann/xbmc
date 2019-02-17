@@ -14,12 +14,8 @@
 
 #include "cores/omxplayer/OMXImage.h"
 
-/************************************************************************/
-/*    CPiTexture                                                       */
-/************************************************************************/
-
 CPiTexture::CPiTexture(unsigned int width, unsigned int height, unsigned int format)
-: CGLTexture(width, height, format)
+: CTextureGLBase(width, height, format)
 {
   m_egl_image = NULL;
 }

@@ -12,22 +12,19 @@
 
 #include "system_gl.h"
 
-/************************************************************************/
-/*    CGLTexture                                                       */
-/************************************************************************/
-class CPiTexture : public CGLTexture
+class CPiTexture : public CTextureGLBase
 {
 public:
   CPiTexture(unsigned int width = 0, unsigned int height = 0, unsigned int format = XB_FMT_A8R8G8B8);
   virtual ~CPiTexture();
-  void CreateTextureObject();
-  void LoadToGPU();
-  void Update(unsigned int width, unsigned int height, unsigned int pitch, unsigned int format, const unsigned char *pixels, bool loadToGPU);
-  void Allocate(unsigned int width, unsigned int height, unsigned int format);
-  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "");
-
-protected:
+  void CreateTextureObject() override;
+  void LoadToGPU() override;
+  void Update(unsigned int width, unsigned int height, unsigned int pitch, unsigned int format, const unsigned char *pixels, bool loadToGPU) override;
+  void Allocate(unsigned int width, unsigned int height, unsigned int format) override;
+  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "") override;
 
 private:
   void *m_egl_image;
 };
+
+using CTexture = CPiTexture;
