@@ -21,8 +21,8 @@ public:
   explicit CGUIFontTTFGLBase(const std::string& strFileName);
   ~CGUIFontTTFGLBase() override;
 
-  virtual bool FirstBegin() = 0;
-  virtual void LastEnd() = 0;
+  virtual bool FirstBegin() override = 0;
+  virtual void LastEnd() override = 0;
 
   CVertexBuffer CreateVertexBuffer(const std::vector<SVertex> &vertices) const override;
   void DestroyVertexBuffer(CVertexBuffer &bufferHandle) const override;
