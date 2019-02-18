@@ -15,9 +15,6 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/StringUtils.h"
-#if HAS_GLES
-#include "guilib/GUIFontTTFGL.h"
-#endif
 
 CWinSystemBase::CWinSystemBase()
 {
@@ -35,9 +32,6 @@ bool CWinSystemBase::InitWindowSystem()
 
 bool CWinSystemBase::DestroyWindowSystem()
 {
-#if HAS_GLES
-  CGUIFontTTFGL::DestroyStaticVertexBuffers();
-#endif
   m_screenSaverManager.reset();
   return false;
 }

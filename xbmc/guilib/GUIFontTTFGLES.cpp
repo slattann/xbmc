@@ -6,10 +6,9 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "GUIFontTTFGL.h"
+#include "GUIFontTTFGLES.h"
 
 #include "GUIComponent.h"
-#include "rendering/gles/RenderSystemGL.h"
 #include "rendering/MatrixGL.h"
 #include "ServiceBroker.h"
 #include "Texture.h"
@@ -17,26 +16,16 @@
 #include "utils/GLUtils.h"
 #include "windowing/GraphicContext.h"
 
-CGUIFontTTFGL::CGUIFontTTFGL(const std::string& strFileName)
+CGUIFontTTFGLES::CGUIFontTTFGLES(const std::string& strFileName)
   : CGUIFontTTFGLBase(strFileName)
 {
-  m_renderSystem = dynamic_cast<CRenderSystemGL*>(CServiceBroker::GetRenderSystem());
+  m_renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
 }
 
-bool CGUIFontTTFGL::FirstBegin()
+bool CGUIFontTTFGLES::FirstBegin()
 {
-  GLenum pixformat = GL_RED;
-  GLenum internalFormat;
-  unsigned int major, minor;
-  m_renderSystem->GetRenderVersion(major, minor);
-  if (major >= 3)
-  {
-    internalFormat = GL_R8;
-  }
-  else
-  {
-    internalFormat = GL_LUMINANCE;
-  }
+  GLenum pixformat = GL_ALPHA; // deprecated
+  GLenum internalFormat = GL_ALPHA;
 
   if (m_textureStatus == TEXTURE_REALLOCATED)
   {
@@ -87,15 +76,14 @@ bool CGUIFontTTFGL::FirstBegin()
   return true;
 }
 
-void CGUIFontTTFGL::LastEnd()
+void CGUIFontTTFGLES::LastEnd()
 {
-  CRenderSystemGL* renderSystem = dynamic_cast<CRenderSystemGL*>(CServiceBroker::GetRenderSystem());
-  renderSystem->EnableShader(SM_FONTS);
+  m_renderSystem->EnableGUIShader(SM_FONTS);
 
-  GLint posLoc = renderSystem->ShaderGetPos();
-  GLint colLoc = renderSystem->ShaderGetCol();
-  GLint tex0Loc = renderSystem->ShaderGetCoord0();
-  GLint modelLoc = renderSystem->ShaderGetModel();
+  GLint posLoc = m_renderSystem->GUIShaderGetPos();
+  GLint colLoc = m_renderSystem->GUIShaderGetCol();
+  GLint tex0Loc = m_renderSystem->GUIShaderGetCoord0();
+  GLint modelLoc = m_renderSystem->GUIShaderGetModel();
 
   // Enable the attributes used by this shader
   glEnableVertexAttribArray(posLoc);
@@ -150,7 +138,7 @@ void CGUIFontTTFGL::LastEnd()
       }
 
       // Apply the clip rectangle
-      CRect clip = renderSystem->ClipRectToScissorRect(m_vertexTrans[i].clip);
+      CRect clip = m_renderSystem->ClipRectToScissorRect(m_vertexTrans[i].clip);
       if (!clip.IsEmpty())
       {
         // intersect with current scissor
@@ -161,7 +149,7 @@ void CGUIFontTTFGL::LastEnd()
           continue;
         }
 
-        renderSystem->SetScissors(clip);
+        m_renderSystem->SetScissors(clip);
       }
 
       // Apply the translation to the currently active (top-of-stack) model view matrix
@@ -192,7 +180,7 @@ void CGUIFontTTFGL::LastEnd()
     }
 
     // Restore the original scissor rectangle
-    renderSystem->SetScissors(scissor);
+    m_renderSystem->SetScissors(scissor);
     // Restore the original model view matrix
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glMatrixModview.Get());
     // Unbind GL_ARRAY_BUFFER and GL_ELEMENT_ARRAY_BUFFER
@@ -205,5 +193,5 @@ void CGUIFontTTFGL::LastEnd()
   glDisableVertexAttribArray(colLoc);
   glDisableVertexAttribArray(tex0Loc);
 
-  renderSystem->DisableShader();
+  m_renderSystem->DisableGUIShader();
 }
