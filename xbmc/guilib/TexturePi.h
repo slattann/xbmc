@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "TextureGL.h"
+#include "TextureGLBase.h"
 
 #include "system_gl.h"
 
@@ -19,9 +19,9 @@ public:
   virtual ~CPiTexture();
   void CreateTextureObject() override;
   void LoadToGPU() override;
-  void Update(unsigned int width, unsigned int height, unsigned int pitch, unsigned int format, const unsigned char *pixels, bool loadToGPU) override;
-  void Allocate(unsigned int width, unsigned int height, unsigned int format) override;
-  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "") override;
+  void Update(unsigned int width, unsigned int height, unsigned int pitch, unsigned int format, const unsigned char *pixels, bool loadToGPU);
+  void Allocate(unsigned int width, unsigned int height, unsigned int format);
+  bool LoadFromFileInternal(const std::string& texturePath, unsigned int maxWidth, unsigned int maxHeight, bool requirePixels, const std::string& strMimeType = "");
 
 private:
   void *m_egl_image;

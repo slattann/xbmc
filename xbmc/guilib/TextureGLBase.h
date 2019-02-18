@@ -20,7 +20,7 @@ public:
 
   void CreateTextureObject() override;
   void DestroyTextureObject() override;
-  virtual void LoadToGPU() = 0;
+  virtual void LoadToGPU() override = 0;
   void BindToUnit(unsigned int unit) override;
 
 protected:
