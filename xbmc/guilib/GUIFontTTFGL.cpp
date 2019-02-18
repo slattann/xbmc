@@ -9,7 +9,7 @@
 #include "GUIFontTTFGL.h"
 
 #include "GUIComponent.h"
-#include "rendering/gles/RenderSystemGL.h"
+#include "rendering/gl/RenderSystemGL.h"
 #include "rendering/MatrixGL.h"
 #include "ServiceBroker.h"
 #include "Texture.h"

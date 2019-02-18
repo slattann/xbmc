@@ -15,7 +15,7 @@
 
 #include <string>
 
-class CGUIFontTTFGL : public CGUIFontTTFBase
+class CGUIFontTTFGL : public CGUIFontTTFGLBase
 {
 public:
   explicit CGUIFontTTFGL(const std::string& strFileName);
