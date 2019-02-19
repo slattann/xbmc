@@ -188,3 +188,27 @@ bool CRendererDRMPRIMEGLES::RenderHook(int index)
 
   return true;
 }
+
+bool CRendererDRMPRIMEGLES::Supports(ERENDERFEATURE feature)
+{
+  if (feature == RENDERFEATURE_STRETCH ||
+      feature == RENDERFEATURE_ZOOM ||
+      feature == RENDERFEATURE_VERTICAL_SHIFT ||
+      feature == RENDERFEATURE_PIXEL_RATIO ||
+      feature == RENDERFEATURE_ROTATION)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+bool CRendererDRMPRIMEGLES::Supports(ESCALINGMETHOD method)
+{
+  if (method == VS_SCALINGMETHOD_LINEAR)
+  {
+    return true;
+  }
+
+  return false;
+}

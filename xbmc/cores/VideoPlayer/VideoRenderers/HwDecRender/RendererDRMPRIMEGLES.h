@@ -25,6 +25,9 @@ public:
   bool Configure(const VideoPicture &picture, float fps, unsigned int orientation) override;
   void ReleaseBuffer(int index) override;
 
+  bool Supports(ERENDERFEATURE feature) override;
+  bool Supports(ESCALINGMETHOD method) override;
+
 protected:
   // CLinuxRendererGLES overrides
   bool LoadShadersHook() override;
