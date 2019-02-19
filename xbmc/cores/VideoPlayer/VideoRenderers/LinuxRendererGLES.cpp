@@ -31,6 +31,25 @@
 
 using namespace Shaders;
 
+std::map<int, std::string> ESCALINGMETHODSTR =
+{
+  {VS_SCALINGMETHOD_NEAREST, "VS_SCALINGMETHOD_NEAREST"},
+  {VS_SCALINGMETHOD_LINEAR, "VS_SCALINGMETHOD_LINEAR"},
+  {VS_SCALINGMETHOD_CUBIC, "VS_SCALINGMETHOD_CUBIC"},
+  {VS_SCALINGMETHOD_LANCZOS2, "VS_SCALINGMETHOD_LANCZOS2"},
+  {VS_SCALINGMETHOD_LANCZOS3_FAST, "VS_SCALINGMETHOD_LANCZOS3_FAST"},
+  {VS_SCALINGMETHOD_LANCZOS3, "VS_SCALINGMETHOD_LANCZOS3"},
+  {VS_SCALINGMETHOD_SINC8, "VS_SCALINGMETHOD_SINC8"},
+  {VS_SCALINGMETHOD_BICUBIC_SOFTWARE, "VS_SCALINGMETHOD_BICUBIC_SOFTWARE"},
+  {VS_SCALINGMETHOD_LANCZOS_SOFTWARE, "VS_SCALINGMETHOD_LANCZOS_SOFTWARE"},
+  {VS_SCALINGMETHOD_SINC_SOFTWARE, "VS_SCALINGMETHOD_SINC_SOFTWARE"},
+  {VS_SCALINGMETHOD_VDPAU_HARDWARE, "VS_SCALINGMETHOD_VDPAU_HARDWARE"},
+  {VS_SCALINGMETHOD_DXVA_HARDWARE, "VS_SCALINGMETHOD_DXVA_HARDWARE"},
+  {VS_SCALINGMETHOD_AUTO, "VS_SCALINGMETHOD_AUTO"},
+  {VS_SCALINGMETHOD_SPLINE36_FAST, "VS_SCALINGMETHOD_SPLINE36_FAST"},
+  {VS_SCALINGMETHOD_SPLINE36, "VS_SCALINGMETHOD_SPLINE36"},
+};
+
 CLinuxRendererGLES::CLinuxRendererGLES()
 {
   m_textureTarget = GL_TEXTURE_2D;
@@ -448,10 +467,25 @@ void CLinuxRendererGLES::UpdateVideoFilter()
   m_scalingMethod = m_scalingMethodGui;
   m_viewRect = viewRect;
 
+  std::string methodStr;
+  auto scalingMethodStr = ESCALINGMETHODSTR.find(m_scalingMethod);
+  if (scalingMethodStr != ESCALINGMETHODSTR.end())
+  {
+    methodStr = scalingMethodStr->second;
+  }
+  else
+  {
+    methodStr = "unknown";
+  }
+
   if(!Supports(m_scalingMethod))
   {
-    CLog::Log(LOGWARNING, "CLinuxRendererGLES::UpdateVideoFilter - chosen scaling method %d, is not supported by renderer", static_cast<int>(m_scalingMethod));
+    CLog::Log(LOGWARNING, "CLinuxRendererGLES::{} - chosen scaling method {} is not supported by renderer", __FUNCTION__, methodStr);
     m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
+  }
+  else
+  {
+    CLog::Log(LOGINFO, "CLinuxRendererGLES::{} - chosen scaling method {}", __FUNCTION__, methodStr);
   }
 
   if (m_pVideoFilterShader)
