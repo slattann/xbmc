@@ -14,6 +14,8 @@
 #include "utils/log.h"
 #include "windowing/gbm/WinSystemGbmGLESContext.h"
 
+#include "libavutil/pixfmt.h"
+
 using namespace KODI::WINDOWING::GBM;
 
 CRendererDRMPRIMEGLES::~CRendererDRMPRIMEGLES()
@@ -24,6 +26,34 @@ CRendererDRMPRIMEGLES::~CRendererDRMPRIMEGLES()
 
 CBaseRenderer* CRendererDRMPRIMEGLES::Create(CVideoBuffer* buffer)
 {
+  CWinSystemGbmGLESContext* winSystem = dynamic_cast<CWinSystemGbmGLESContext*>(CServiceBroker::GetWinSystem());
+  if (!winSystem)
+    return nullptr;
+
+  uint32_t fourcc{0};
+
+  if (buffer)
+  {
+    switch (buffer->GetFormat())
+    {
+    case AV_PIX_FMT_YUV420P:
+      fourcc = DRM_FORMAT_YUV420;
+      break;
+    case AV_PIX_FMT_NV12:
+    default:
+      fourcc = DRM_FORMAT_NV12;
+      break;
+    }
+  }
+
+  if (CEGLUtils::HasExtension(winSystem->GetEGLDisplay(), "EGL_EXT_image_dma_buf_import_modifiers"))
+  {
+    if (!CEGLImage::IsFormatSupported(winSystem->GetEGLDisplay(), fourcc))
+    {
+      return nullptr;
+    }
+  }
+
   if (buffer && dynamic_cast<IVideoBufferDRMPRIME*>(buffer))
     return new CRendererDRMPRIMEGLES();
 
