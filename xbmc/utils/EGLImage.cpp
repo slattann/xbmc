@@ -10,6 +10,7 @@
 
 #include "EGLUtils.h"
 #include "log.h"
+#include "windowing/gbm/DRMUtils.h"
 
 namespace
 {
@@ -109,4 +110,84 @@ void CEGLImage::UploadImage(GLenum textureTarget)
 void CEGLImage::DestroyImage()
 {
   m_eglDestroyImageKHR(m_display, m_image);
+}
+
+bool CEGLImage::IsFormatSupported(EGLDisplay display, uint32_t fourcc)
+{
+#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+
+  if (!CEGLUtils::HasExtension(display, "EGL_EXT_image_dma_buf_import_modifiers"))
+  {
+    return false;
+  }
+
+  auto eglQueryDmaBufFormatsEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFFORMATSEXTPROC>("eglQueryDmaBufFormatsEXT");
+  auto eglQueryDmaBufModifiersEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>("eglQueryDmaBufModifiersEXT");
+
+  EGLint numFormats;
+
+  if (eglQueryDmaBufFormatsEXT(display, 0, nullptr, &numFormats) != EGL_TRUE)
+  {
+    CEGLUtils::LogError("failed to query the max number of EGL DMA BUF formats");
+    return false;
+  }
+
+  std::vector<EGLint> formats(numFormats);
+
+  if (eglQueryDmaBufFormatsEXT(display, numFormats, formats.data(), &numFormats) != EGL_TRUE)
+  {
+    CEGLUtils::LogError("failed to query EGL DMA BUF formats");
+    return false;
+  }
+
+  std::string formatsLogStr;
+
+  std::map<EGLint, std::vector<EGLuint64KHR>> formatsMap;
+
+  for (const auto& format : formats)
+  {
+    formatsLogStr.append(StringUtils::Format("\n%s:", KODI::WINDOWING::GBM::CDRMUtils::FourCCToString(format)));
+
+    numFormats = {};
+    if (eglQueryDmaBufModifiersEXT(display, format, 0, nullptr, nullptr, &numFormats) != EGL_TRUE)
+    {
+      CEGLUtils::LogError("failed to query the max number of EGL DMA BUF format modifiers");
+      return false;
+    }
+
+    std::vector<EGLuint64KHR> modifiers(numFormats);
+
+    if (eglQueryDmaBufModifiersEXT(display, format, numFormats, modifiers.data(), nullptr, &numFormats) != EGL_TRUE)
+    {
+      CEGLUtils::LogError("failed to query EGL DMA BUF format modifiers");
+      return false;
+    }
+
+    for (const auto& modifier: modifiers)
+    {
+      formatsLogStr.append(StringUtils::Format(" %llx", modifier));
+    }
+
+    formatsMap.emplace(format, modifiers);
+  }
+
+  CLog::Log(LOGDEBUG, "CEGLImage::{} - supported EGL image formats and modifiers:{}", __FUNCTION__, formatsLogStr);
+
+  auto i = formatsMap.find(fourcc);
+  if (i != formatsMap.end())
+  {
+    return true;
+  }
+
+#else
+
+  // assume mali support NV12
+  if (fourcc == DRM_FORMAT_NV12)
+  {
+    return true;
+  }
+
+#endif
+
+  return false;
 }

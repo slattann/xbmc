@@ -48,6 +48,8 @@ public:
   void UploadImage(GLenum textureTarget);
   void DestroyImage();
 
+  static bool IsFormatSupported(EGLDisplay display, uint32_t fourcc);
+
 private:
   EGLDisplay m_display{nullptr};
   EGLImageKHR m_image{nullptr};
