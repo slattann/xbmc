@@ -46,12 +46,17 @@ void CGBMBufferObject::DestroyBufferObject()
 {
   if (m_bo)
     gbm_bo_destroy(m_bo);
+
+  m_bo = nullptr;
 }
 
 uint8_t* CGBMBufferObject::GetMemory()
 {
   if (m_bo)
   {
+    if (m_map)
+      return m_map;
+
     m_map = static_cast<uint8_t*>(gbm_bo_map(m_bo, 0, 0, m_width, m_height, GBM_BO_TRANSFER_WRITE, &m_stride, &m_map_data));
     if (m_map)
       return m_map;
