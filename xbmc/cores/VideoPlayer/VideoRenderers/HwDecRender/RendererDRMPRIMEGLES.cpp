@@ -85,6 +85,11 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
 {
   CPictureBuffer &buf = m_buffers[index];
 
+  if (m_buffers[index].loaded)
+  {
+    return true;
+  }
+
   CVideoBufferDRMPRIME *buffer = dynamic_cast<CVideoBufferDRMPRIME*>(buf.videoBuffer);
 
   if (!buffer)
@@ -106,6 +111,8 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
   plane.id = m_DRMPRIMETextures[index].GetTexture();
 
   CalculateTextureSourceRects(index, 1);
+
+  m_buffers[index].loaded = true;
 
   return true;
 }
