@@ -56,7 +56,7 @@ public:
   void SetRef(AVFrame* frame);
   void Unref();
 
-  AVDRMFrameDescriptor* GetDescriptor() override { return reinterpret_cast<AVDRMFrameDescriptor*>(m_pFrame->data[0]); }
+  AVDRMFrameDescriptor* GetDescriptor() override { return reinterpret_cast<AVDRMFrameDescriptor*>(m_pFrame->buf[0]->data); }
   uint32_t GetWidth() const override { return m_pFrame->width; }
   uint32_t GetHeight() const override { return m_pFrame->height; }
   int GetColorEncoding() const override;

@@ -9,7 +9,6 @@
 #include "RendererDRMPRIMEGLES.h"
 
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
-#include "cores/VideoPlayer/Process/gbm/VideoBufferDRMPRIME.h"
 #include "ServiceBroker.h"
 #include "utils/EGLFence.h"
 #include "utils/log.h"
@@ -103,6 +102,8 @@ void CRendererDRMPRIMEGLES::DeleteTexture(int index)
 bool CRendererDRMPRIMEGLES::UploadTexture(int index)
 {
   CPictureBuffer &buf = m_buffers[index];
+
+  CLog::Log(LOGDEBUG, "CRendererDRMPRIMEGLES::{} - index={}", __FUNCTION__, index);
 
   if (m_buffers[index].loaded)
   {

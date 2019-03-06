@@ -20,10 +20,15 @@ bool CDRMPRIMETexture::Map(IVideoBufferDRMPRIME *buffer)
   if (m_primebuffer)
     return true;
 
+  CLog::Log(LOGDEBUG, "CDRMPRIMETexture::{} id={}", __FUNCTION__, buffer->GetId());
+
   m_texWidth = buffer->GetWidth();
   m_texHeight = buffer->GetHeight();
 
   AVDRMFrameDescriptor* descriptor = buffer->GetDescriptor();
+
+  CLog::Log(LOGDEBUG, "CDRMPRIMETexture::{} width={}, height={}, descriptor={} layers={}", __FUNCTION__, m_texWidth, m_texHeight, fmt::ptr(descriptor), descriptor->nb_layers);
+
   if (descriptor && descriptor->nb_layers)
   {
     AVDRMLayerDescriptor* layer = &descriptor->layers[0];

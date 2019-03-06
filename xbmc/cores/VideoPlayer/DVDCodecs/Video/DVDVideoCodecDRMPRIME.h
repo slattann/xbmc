@@ -23,6 +23,9 @@ public:
   static CDVDVideoCodec* Create(CProcessInfo& processInfo);
   static void Register();
 
+  static void FFReleaseBuffer(void *opaque, uint8_t *data);
+  static int FFGetBuffer(AVCodecContext *avctx, AVFrame *frame, int flags);
+
   bool Open(CDVDStreamInfo& hints, CDVDCodecOptions& options) override;
   bool AddData(const DemuxPacket& packet) override;
   void Reset() override;
@@ -40,4 +43,5 @@ protected:
   AVCodecContext* m_pCodecContext = nullptr;
   AVFrame* m_pFrame = nullptr;
   std::shared_ptr<IVideoBufferPool> m_videoBufferPool;
+  std::shared_ptr<IVideoBufferPool> m_videoBufferPoolDumb;
 };

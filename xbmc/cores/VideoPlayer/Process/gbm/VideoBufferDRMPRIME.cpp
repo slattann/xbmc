@@ -9,6 +9,8 @@
 #include "VideoBufferDRMPRIME.h"
 #include "threads/SingleLock.h"
 
+#include "utils/log.h"
+
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavutil/pixdesc.h"
@@ -103,6 +105,8 @@ CVideoBuffer* CVideoBufferPoolDRMPRIME::Get()
     m_all.push_back(buf);
     m_used.push_back(id);
   }
+
+  CLog::Log(LOGDEBUG,"CVideoBufferPoolDRMPRIME::{} - m_all={} m_used={} m_free={}", __FUNCTION__, m_all.size(), m_used.size(), m_free.size());
 
   buf->Acquire(GetPtr());
   return buf;
