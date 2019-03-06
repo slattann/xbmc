@@ -28,7 +28,7 @@ CVideoBufferDumb::CVideoBufferDumb(IVideoBufferPool& pool, int id, AVPixelFormat
   {
   case AV_PIX_FMT_YUV420P:
   {
-    m_bo.reset(new CGBMBufferObject(DRM_FORMAT_R8));
+    m_bo.reset(new CDumbBufferObject(DRM_FORMAT_R8));
     break;
   }
   case AV_PIX_FMT_YUV420P9:
@@ -37,7 +37,7 @@ CVideoBufferDumb::CVideoBufferDumb(IVideoBufferPool& pool, int id, AVPixelFormat
   case AV_PIX_FMT_YUV420P14:
   case AV_PIX_FMT_YUV420P16:
   {
-    m_bo.reset(new CGBMBufferObject(DRM_FORMAT_R8));
+    m_bo.reset(new CDumbBufferObject(DRM_FORMAT_R16));
     break;
   }
   default:

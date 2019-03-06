@@ -10,7 +10,6 @@
 
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodec.h"
 #include "utils/DumbBufferObject.h"
-#include "utils/GBMBufferObject.h"
 #include "VideoBufferDRMPRIME.h"
 
 #include <array>
@@ -44,7 +43,7 @@ private:
   uint32_t m_width = 0;
   uint32_t m_height = 0;
   uint8_t* m_addr = nullptr;
-  std::unique_ptr<CGBMBufferObject> m_bo;
+  std::unique_ptr<CDumbBufferObject> m_bo;
 };
 
 class CVideoBufferPoolDumb : public IVideoBufferPool
