@@ -12,6 +12,7 @@
 #include "cores/VideoPlayer/DVDCodecs/DVDCodecUtils.h"
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
+#include "utils/EGLFence.h"
 #include "utils/log.h"
 #include "utils/GLUtils.h"
 
@@ -95,9 +96,10 @@ bool CRendererVAAPI::Configure(const VideoPicture &picture, float fps, unsigned 
     }
     tex->Init(interop);
   }
-  for (auto &fence : m_fences)
+
+  for (auto& fence : m_fences)
   {
-    fence = GL_NONE;
+    fence.reset(new CEGLFence(m_pWinSystem->GetEGLDisplay()));
   }
 
   return CLinuxRendererGLES::Configure(picture, fps, orientation);
@@ -244,45 +246,27 @@ bool CRendererVAAPI::UploadTexture(int index)
 
 void CRendererVAAPI::AfterRenderHook(int idx)
 {
-  if (glIsSync(m_fences[idx]))
-  {
-    glDeleteSync(m_fences[idx]);
-    m_fences[idx] = GL_NONE;
-  }
-  m_fences[idx] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+  m_fences[idx]->CreateFence();
 }
 
 bool CRendererVAAPI::NeedBuffer(int idx)
 {
-  if (glIsSync(m_fences[idx]))
+  if (m_fences[idx]->IsSignaled())
   {
-    GLint state;
-    GLsizei length;
-    glGetSynciv(m_fences[idx], GL_SYNC_STATUS, 1, &length, &state);
-    if (state == GL_SIGNALED)
-    {
-      glDeleteSync(m_fences[idx]);
-      m_fences[idx] = GL_NONE;
-    }
-    else
-    {
-      return true;
-    }
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 void CRendererVAAPI::ReleaseBuffer(int idx)
 {
-  if (glIsSync(m_fences[idx]))
-  {
-    glDeleteSync(m_fences[idx]);
-    m_fences[idx] = GL_NONE;
-  }
+  m_fences[idx]->DestroyFence();
+
   if (m_isVAAPIBuffer)
   {
     m_vaapiTextures[idx]->Unmap();
   }
+
   CLinuxRendererGLES::ReleaseBuffer(idx);
 }
