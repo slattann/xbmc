@@ -805,3 +805,14 @@ bool CDRMUtils::CheckConnector(int connector_id)
 
   return finalConnectionState == DRM_MODE_CONNECTED;
 }
+
+std::string CDRMUtils::FourCCToString(uint32_t fourcc)
+{
+  std::stringstream cout;
+  cout << static_cast<char>(fourcc & 0x000000FF);
+  cout << static_cast<char>((fourcc & 0x0000FF00) >> 8);
+  cout << static_cast<char>((fourcc & 0x00FF0000) >> 16);
+  cout << static_cast<char>((fourcc & 0xFF000000) >> 24);
+
+  return cout.str();
+}
