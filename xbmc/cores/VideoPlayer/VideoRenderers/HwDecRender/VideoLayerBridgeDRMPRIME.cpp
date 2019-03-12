@@ -92,7 +92,7 @@ bool CVideoLayerBridgeDRMPRIME::Map(IVideoBufferDRMPRIME* buffer)
     }
   }
 
-  if (modifier[0] && modifier[0] != DRM_FORMAT_MOD_INVALID)
+  if (modifier[0] && modifier[0] > DRM_FORMAT_MOD_LINEAR)
     flags = DRM_MODE_FB_MODIFIERS;
 
   // add the video frame FB
