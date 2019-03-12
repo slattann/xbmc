@@ -194,67 +194,67 @@ void CEGLImage::DestroyImage()
 
 bool CEGLImage::IsFormatSupported(EGLDisplay display, uint32_t fourcc)
 {
-#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+// #if defined(EGL_EXT_image_dma_buf_import_modifiers)
 
-  auto eglQueryDmaBufFormatsEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFFORMATSEXTPROC>("eglQueryDmaBufFormatsEXT");
-  auto eglQueryDmaBufModifiersEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>("eglQueryDmaBufModifiersEXT");
+//   auto eglQueryDmaBufFormatsEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFFORMATSEXTPROC>("eglQueryDmaBufFormatsEXT");
+//   auto eglQueryDmaBufModifiersEXT = CEGLUtils::GetRequiredProcAddress<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>("eglQueryDmaBufModifiersEXT");
 
-  EGLint numFormats;
+//   EGLint numFormats;
 
-  if (eglQueryDmaBufFormatsEXT(display, 0, nullptr, &numFormats) != EGL_TRUE)
-  {
-    CEGLUtils::LogError("failed to query the max number of EGL DMA BUF formats");
-    return false;
-  }
+//   if (eglQueryDmaBufFormatsEXT(display, 0, nullptr, &numFormats) != EGL_TRUE)
+//   {
+//     CEGLUtils::LogError("failed to query the max number of EGL DMA BUF formats");
+//     return false;
+//   }
 
-  std::vector<EGLint> formats(numFormats);
+//   std::vector<EGLint> formats(numFormats);
 
-  if (eglQueryDmaBufFormatsEXT(display, numFormats, formats.data(), &numFormats) != EGL_TRUE)
-  {
-    CEGLUtils::LogError("failed to query EGL DMA BUF formats");
-    return false;
-  }
+//   if (eglQueryDmaBufFormatsEXT(display, numFormats, formats.data(), &numFormats) != EGL_TRUE)
+//   {
+//     CEGLUtils::LogError("failed to query EGL DMA BUF formats");
+//     return false;
+//   }
 
-  std::string formatsLogStr;
+//   std::string formatsLogStr;
 
-  std::map<EGLint, std::vector<EGLuint64KHR>> formatsMap;
+//   std::map<EGLint, std::vector<EGLuint64KHR>> formatsMap;
 
-  for (const auto& format : formats)
-  {
-    formatsLogStr.append(StringUtils::Format("%s\n", KODI::WINDOWING::GBM::CDRMUtils::FourCCToString(format)));
+//   for (const auto& format : formats)
+//   {
+//     formatsLogStr.append(StringUtils::Format("%s\n", KODI::WINDOWING::GBM::CDRMUtils::FourCCToString(format)));
 
-    numFormats = {};
-    if (eglQueryDmaBufModifiersEXT(display, format, 0, nullptr, nullptr, &numFormats) != EGL_TRUE)
-    {
-      CEGLUtils::LogError("failed to query the max number of EGL DMA BUF format modifiers");
-      return false;
-    }
+//     numFormats = {};
+//     if (eglQueryDmaBufModifiersEXT(display, format, 0, nullptr, nullptr, &numFormats) != EGL_TRUE)
+//     {
+//       CEGLUtils::LogError("failed to query the max number of EGL DMA BUF format modifiers");
+//       return false;
+//     }
 
-    std::vector<EGLuint64KHR> modifiers(numFormats);
+//     std::vector<EGLuint64KHR> modifiers(numFormats);
 
-    if (eglQueryDmaBufModifiersEXT(display, format, numFormats, modifiers.data(), nullptr, &numFormats) != EGL_TRUE)
-    {
-      CEGLUtils::LogError("failed to query EGL DMA BUF format modifiers");
-      return false;
-    }
+//     if (eglQueryDmaBufModifiersEXT(display, format, numFormats, modifiers.data(), nullptr, &numFormats) != EGL_TRUE)
+//     {
+//       CEGLUtils::LogError("failed to query EGL DMA BUF format modifiers");
+//       return false;
+//     }
 
-    for (const auto& modifier: modifiers)
-    {
-      formatsLogStr.append(StringUtils::Format("\t%lli\n", modifier));
-    }
+//     for (const auto& modifier: modifiers)
+//     {
+//       formatsLogStr.append(StringUtils::Format("\t%lli\n", modifier));
+//     }
 
-    formatsMap.emplace(format, modifiers);
-  }
+//     formatsMap.emplace(format, modifiers);
+//   }
 
-  CLog::Log(LOGDEBUG, "CEGLImage::{} - supported EGL image formats and modifiers:\n{}", __FUNCTION__, formatsLogStr);
+//   CLog::Log(LOGDEBUG, "CEGLImage::{} - supported EGL image formats and modifiers:\n{}", __FUNCTION__, formatsLogStr);
 
-  auto i = formatsMap.find(fourcc);
-  if (i != formatsMap.end())
-  {
-    return true;
-  }
+//   auto i = formatsMap.find(fourcc);
+//   if (i != formatsMap.end())
+//   {
+//     return true;
+//   }
 
-#else
+// #else
 
   // gallium drivers support NV12 and YUV420
   if (fourcc == DRM_FORMAT_NV12 ||
@@ -263,7 +263,7 @@ bool CEGLImage::IsFormatSupported(EGLDisplay display, uint32_t fourcc)
     return true;
   }
 
-#endif
+// #endif
 
   return false;
 }
