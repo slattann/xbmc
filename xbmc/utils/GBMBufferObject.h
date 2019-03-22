@@ -21,6 +21,7 @@ public:
   CGBMBufferObject(int format);
   virtual ~CGBMBufferObject() override;
 
+  bool CreateBufferObjectWithModifiers(int width, int height, const uint64_t* modifiers, const int count);
   bool CreateBufferObject(int width, int height) override;
   void DestroyBufferObject() override;
   uint8_t* GetMemory() override;

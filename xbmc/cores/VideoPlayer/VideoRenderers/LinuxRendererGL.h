@@ -12,7 +12,7 @@
 
 #include "system_gl.h"
 
-#include "FrameBufferObject.h"
+#include "utils/FrameBufferObject.h"
 #include "guilib/Shader.h"
 #include "cores/VideoSettings.h"
 #include "RenderFlags.h"

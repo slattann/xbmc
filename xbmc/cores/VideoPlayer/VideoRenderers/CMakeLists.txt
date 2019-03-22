@@ -36,10 +36,8 @@ if (OPENGL_FOUND OR OPENGLES_FOUND)
 endif()
 
 if(OPENGL_FOUND)
-  list(APPEND SOURCES LinuxRendererGL.cpp
-                      FrameBufferObject.cpp)
-  list(APPEND HEADERS LinuxRendererGL.h
-                      FrameBufferObject.h)
+  list(APPEND SOURCES LinuxRendererGL.cpp)
+  list(APPEND HEADERS LinuxRendererGL.h)
 endif()
 
 if(OPENGLES_FOUND AND (CORE_PLATFORM_NAME_LC STREQUAL android OR
@@ -47,10 +45,8 @@ if(OPENGLES_FOUND AND (CORE_PLATFORM_NAME_LC STREQUAL android OR
                        CORE_PLATFORM_NAME_LC STREQUAL aml OR
                        CORE_PLATFORM_NAME_LC STREQUAL gbm OR
                        CORE_PLATFORM_NAME_LC STREQUAL wayland))
-  list(APPEND SOURCES LinuxRendererGLES.cpp
-                      FrameBufferObject.cpp)
-  list(APPEND HEADERS LinuxRendererGLES.h
-                      FrameBufferObject.cpp)
+  list(APPEND SOURCES LinuxRendererGLES.cpp)
+  list(APPEND HEADERS LinuxRendererGLES.h)
 endif()
 
 core_add_library(videorenderers)

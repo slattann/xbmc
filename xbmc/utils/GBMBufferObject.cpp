@@ -27,6 +27,21 @@ CGBMBufferObject::~CGBMBufferObject()
   DestroyBufferObject();
 }
 
+bool CGBMBufferObject::CreateBufferObjectWithModifiers(int width, int height, const uint64_t* modifiers, const int count)
+{
+  m_width = width;
+  m_height = height;
+
+  m_bo = gbm_bo_create_with_modifiers(m_device, m_width, m_height, m_format, modifiers, count);
+
+  if (!m_bo)
+    return false;
+
+  m_fd = gbm_bo_get_fd(m_bo);
+
+  return true;
+}
+
 bool CGBMBufferObject::CreateBufferObject(int width, int height)
 {
   m_width = width;

@@ -10,6 +10,14 @@
 
 #include <gbm.h>
 
+#include <memory>
+#include <array>
+
+#include "utils/EGLImage.h"
+#include "utils/FrameBufferObject.h"
+//class CEGLImage;
+//class CFrameBufferObject;
+
 namespace KODI
 {
 namespace WINDOWING
@@ -20,6 +28,8 @@ namespace GBM
 class CGBMUtils
 {
 public:
+ static const int NUM_BUFS{2};
+
   CGBMUtils() = default;
   ~CGBMUtils() = default;
   bool CreateDevice(int fd);
@@ -30,13 +40,19 @@ public:
   void ReleaseBuffer();
 
   struct gbm_device* GetDevice() const { return m_device; }
-  struct gbm_surface* GetSurface() const { return m_surface; }
+//  struct gbm_surface* GetSurface() const { return m_surface; }
 
 protected:
   struct gbm_device *m_device = nullptr;
-  struct gbm_surface *m_surface = nullptr;
+  //struct gbm_surface *m_surface = nullptr;
+  uint32_t front_buffer = 0;
+  struct gbm_bo *m_surface[2] = {nullptr};
   struct gbm_bo *m_bo = nullptr;
   struct gbm_bo *m_next_bo = nullptr;
+
+private:
+  std::array<std::unique_ptr<CEGLImage>, NUM_BUFS> m_eglImage;
+  std::array<std::unique_ptr<CFrameBufferObject>, NUM_BUFS> m_fbo;
 };
 
 }

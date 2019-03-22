@@ -32,24 +32,12 @@ bool CWinSystemGbmEGLContext::InitWindowSystemEGL(EGLint renderableType, EGLint 
     return false;
   }
 
-  uint32_t visualId = m_DRM->GetGuiPlane()->GetFormat();
-
-  // prefer alpha visual id, fallback to non-alpha visual id
-  if (!m_eglContext.ChooseConfig(renderableType, CDRMUtils::FourCCWithAlpha(visualId)) &&
-      !m_eglContext.ChooseConfig(renderableType, CDRMUtils::FourCCWithoutAlpha(visualId)))
+  if (!CreateContext())
   {
-    // fallback to 8bit format if no EGL config was found for 10bit
-    m_DRM->GetGuiPlane()->useFallbackFormat = true;
-    visualId = m_DRM->GetGuiPlane()->GetFormat();
-
-    if (!m_eglContext.ChooseConfig(renderableType, CDRMUtils::FourCCWithAlpha(visualId)) &&
-        !m_eglContext.ChooseConfig(renderableType, CDRMUtils::FourCCWithoutAlpha(visualId)))
-    {
-      return false;
-    }
+    return false;
   }
 
-  if (!CreateContext())
+  if (!m_eglContext.BindContext())
   {
     return false;
   }
@@ -75,25 +63,11 @@ bool CWinSystemGbmEGLContext::CreateNewWindow(const std::string& name,
     return false;
   }
 
-  uint32_t format = m_eglContext.GetConfigAttrib(EGL_NATIVE_VISUAL_ID);
-  std::vector<uint64_t> *modifiers = m_DRM->GetGuiPlaneModifiersForFormat(format);
+  std::vector<uint64_t> *modifiers = m_DRM->GetGuiPlaneModifiersForFormat(DRM_FORMAT_XRGB8888);
 
-  if (!m_GBM->CreateSurface(res.iWidth, res.iHeight, format, modifiers->data(), modifiers->size()))
+  if (!m_GBM->CreateSurface(res.iWidth, res.iHeight, DRM_FORMAT_XRGB8888, modifiers->data(), modifiers->size()))
   {
     CLog::Log(LOGERROR, "CWinSystemGbmEGLContext::{} - failed to initialize GBM", __FUNCTION__);
-    return false;
-  }
-
-  // This check + the reinterpret cast is for security reason, if the user has outdated platform header files which often is the case
-  static_assert(sizeof(EGLNativeWindowType) == sizeof(gbm_surface*), "Declaration specifier differs in size");
-
-  if (!m_eglContext.CreatePlatformSurface(m_GBM->GetSurface(), reinterpret_cast<EGLNativeWindowType>(m_GBM->GetSurface())))
-  {
-    return false;
-  }
-
-  if (!m_eglContext.BindContext())
-  {
     return false;
   }
 
@@ -108,7 +82,6 @@ bool CWinSystemGbmEGLContext::CreateNewWindow(const std::string& name,
 
 bool CWinSystemGbmEGLContext::DestroyWindow()
 {
-  m_eglContext.DestroySurface();
   m_GBM->DestroySurface();
 
   CLog::Log(LOGDEBUG, "CWinSystemGbmEGLContext::{} - deinitialized GBM", __FUNCTION__);

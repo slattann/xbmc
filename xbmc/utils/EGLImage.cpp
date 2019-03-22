@@ -98,6 +98,14 @@ bool CEGLImage::CreateImage(EglAttrs imageAttrs)
     return false;
   }
 
+  for (int i = 0; i < MAX_NUM_PLANES; i++)
+  {
+    if (imageAttrs.planes[i].fd != 0)
+    {
+      close(imageAttrs.planes[i].fd);
+    }
+  }
+
   return true;
 }
 

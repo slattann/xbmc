@@ -9,6 +9,13 @@
 #include "GBMUtils.h"
 #include "utils/log.h"
 
+#include "utils/EGLImage.h"
+#include "utils/FrameBufferObject.h"
+
+#include "ServiceBroker.h"
+#include "windowing/gbm/WinSystemGbmGLESContext.h"
+
+
 using namespace KODI::WINDOWING::GBM;
 
 bool CGBMUtils::CreateDevice(int fd)
@@ -40,67 +47,109 @@ void CGBMUtils::DestroyDevice()
 
 bool CGBMUtils::CreateSurface(int width, int height, uint32_t format, const uint64_t *modifiers, const int modifiers_count)
 {
-  if (m_surface)
-    CLog::Log(LOGWARNING, "CGBMUtils::%s - surface already created", __FUNCTION__);
-
-#if defined(HAS_GBM_MODIFIERS)
-  m_surface = gbm_surface_create_with_modifiers(m_device,
-                                                width,
-                                                height,
-                                                format,
-                                                modifiers,
-                                                modifiers_count);
-#endif
-  if (!m_surface)
+  CWinSystemGbmGLESContext* winSystem = dynamic_cast<CWinSystemGbmGLESContext*>(CServiceBroker::GetWinSystem());
+  if (!winSystem)
   {
-    m_surface = gbm_surface_create(m_device,
-                                   width,
-                                   height,
-                                   format,
-                                   GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-  }
-
-  if (!m_surface)
-  {
-    CLog::Log(LOGERROR, "CGBMUtils::%s - failed to create surface", __FUNCTION__);
     return false;
   }
 
-  CLog::Log(LOGDEBUG, "CGBMUtils::%s - created surface with size %dx%d", __FUNCTION__,
-                                                                         width,
-                                                                         height);
+  for (int i = 0; i < NUM_BUFS; i++)
+  {
+#if defined(HAS_GBM_MODIFIERS)
+    m_surface[i] = gbm_bo_create_with_modifiers(m_device, width, height, format, modifiers, modifiers_count);
+#endif
+
+    if (!m_surface[i])
+    {
+      m_surface[i] = gbm_bo_create(m_device, width, height, format, GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    }
+
+    if (!m_surface[i])
+    {
+      CLog::Log(LOGERROR, "CGBMUtils::%s - failed to create surface", __FUNCTION__);
+      return false;
+    }
+
+    CLog::Log(LOGDEBUG, "CGBMUtils::%s - created surface with size %dx%d", __FUNCTION__, width, height);
+
+    m_eglImage[i].reset(new CEGLImage(winSystem->GetEGLDisplay()));
+
+    std::array<CEGLImage::EglPlane, CEGLImage::MAX_NUM_PLANES> planes;
+    for (int j = 0; j < gbm_bo_get_plane_count(m_surface[i]); j++)
+    {
+      planes[j].fd = gbm_bo_get_fd(m_surface[i]),
+      planes[j].offset = gbm_bo_get_offset(m_surface[i], j);
+      planes[j].pitch = gbm_bo_get_stride_for_plane(m_surface[i], j);
+      planes[j].modifier = gbm_bo_get_modifier(m_surface[i]);
+    }
+
+    CEGLImage::EglAttrs attribs;
+    attribs.width = gbm_bo_get_width(m_surface[i]);
+    attribs.height = gbm_bo_get_height(m_surface[i]);
+    attribs.format = gbm_bo_get_format(m_surface[i]);
+    attribs.planes = planes;
+
+    if (!m_eglImage[i]->CreateImage(attribs))
+    {
+      return false;
+    }
+
+    m_fbo[i].reset(new CFrameBufferObject());
+
+    m_fbo[i]->Initialize();
+
+    m_eglImage[i]->UploadImage(GL_TEXTURE_2D);
+
+    m_fbo[i]->CreateAndBindToTexture(GL_TEXTURE_2D, width, height, GL_RGBA);
+  }
 
   return true;
 }
 
 void CGBMUtils::DestroySurface()
 {
-  if (!m_surface)
-    CLog::Log(LOGWARNING, "CGBMUtils::%s - surface already destroyed", __FUNCTION__);
-
-  if (m_surface)
+  for (int i = 0; i < NUM_BUFS; i++)
   {
-    ReleaseBuffer();
+    if (m_fbo[i])
+    {
+      m_fbo[i]->Cleanup();
+    }
 
-    gbm_surface_destroy(m_surface);
-    m_surface = nullptr;
+    if (m_eglImage[i])
+    {
+      m_eglImage[i]->DestroyImage();
+    }
+
+    if (!m_surface[i])
+      CLog::Log(LOGWARNING, "CGBMUtils::%s - surface already destroyed", __FUNCTION__);
+
+    if (m_surface[i])
+    {
+      ReleaseBuffer();
+
+      gbm_bo_destroy(m_surface[i]);
+      m_surface[i] = nullptr;
+    }
   }
 }
 
 struct gbm_bo *CGBMUtils::LockFrontBuffer()
 {
-  if (m_next_bo)
-    CLog::Log(LOGWARNING, "CGBMUtils::%s - uneven surface buffer usage", __FUNCTION__);
+  uint32_t back_buffer = (front_buffer + 1) % NUM_BUFS;
 
-  m_next_bo = gbm_surface_lock_front_buffer(m_surface);
+  m_next_bo = m_surface[back_buffer];
+
+  front_buffer = back_buffer;
+
+  // todo: egl fencing
+  glFinish();
+
   return m_next_bo;
 }
 
 void CGBMUtils::ReleaseBuffer()
 {
-  if (m_bo)
-    gbm_surface_release_buffer(m_surface, m_bo);
+  uint32_t back_buffer = (front_buffer + 1) % NUM_BUFS;
 
-  m_bo = m_next_bo;
-  m_next_bo = nullptr;
+  m_fbo[back_buffer]->BeginRender();
 }

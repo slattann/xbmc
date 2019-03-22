@@ -33,7 +33,7 @@ class CFrameBufferObject
 {
 public:
   // Constructor
-  CFrameBufferObject();
+  CFrameBufferObject() = default;
 
   // returns true if FBO support is detected
   bool IsSupported();
@@ -66,11 +66,11 @@ public:
   void EndRender() const;
 
 private:
-  GLuint m_fbo;
-  bool   m_valid;
-  bool   m_bound;
-  bool   m_supported;
-  GLuint m_texid;
+  GLuint m_fbo{0};
+  GLuint m_texid{false};
+  bool m_valid{false};
+  bool m_bound{false};
+  bool m_supported{false};
 };
 
 

@@ -203,6 +203,12 @@ if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
   endif()
 endif()
 
+if (OPENGL_FOUND OR OPENGLES_FOUND)
+  list(APPEND SOURCES FrameBufferObject.cpp)
+  list(APPEND HEADERS FrameBufferObject.h)
+endif()
+
+
 core_add_library(utils)
 
 if(NOT CORE_SYSTEM_NAME STREQUAL windows AND NOT CORE_SYSTEM_NAME STREQUAL windowsstore)

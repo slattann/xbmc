@@ -228,8 +228,13 @@ bool CEGLContextUtils::CreateDisplay(EGLNativeDisplayType nativeDisplay)
   m_eglDisplay = eglGetDisplay(nativeDisplay);
   if (m_eglDisplay == EGL_NO_DISPLAY)
   {
-    CEGLUtils::LogError("failed to get EGL display");
-    return false;
+    m_eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+    if (m_eglDisplay == EGL_NO_DISPLAY)
+    {
+      CEGLUtils::LogError("failed to get EGL display");
+      return false;
+    }
   }
 
   return true;
@@ -439,9 +444,17 @@ bool CEGLContextUtils::CreateContext(CEGLAttributesVec contextAttribs)
 
 bool CEGLContextUtils::BindContext()
 {
-  if (m_eglDisplay == EGL_NO_DISPLAY || m_eglSurface == EGL_NO_SURFACE || m_eglContext == EGL_NO_CONTEXT)
+  if (m_eglDisplay == EGL_NO_DISPLAY || m_eglContext == EGL_NO_CONTEXT)
   {
-    throw std::logic_error("Activating an EGLContext requires display, surface, and context");
+    throw std::logic_error("Activating an EGLContext requires a display and a context");
+  }
+
+  if (!CEGLUtils::HasExtension(m_eglDisplay, "EGL_KHR_surfaceless_context"))
+  {
+    if (m_eglSurface == EGL_NO_SURFACE)
+    {
+      throw std::logic_error("Activating an EGLContext requires a valid surface");
+    }
   }
 
   if (eglMakeCurrent(m_eglDisplay, m_eglSurface, m_eglSurface, m_eglContext) != EGL_TRUE)

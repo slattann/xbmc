@@ -15,7 +15,7 @@
 #include "BaseRenderer.h"
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodec.h"
 #include "cores/VideoSettings.h"
-#include "FrameBufferObject.h"
+#include "utils/FrameBufferObject.h"
 #include "guilib/Shader.h"
 #include "RenderFlags.h"
 #include "RenderInfo.h"
