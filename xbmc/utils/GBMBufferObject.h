@@ -8,33 +8,37 @@
 
 #pragma once
 
-#include "utils/IBufferObject.h"
+#include "utils/BufferObject.h"
 
+#include <memory>
 #include <stdint.h>
 
 struct gbm_bo;
 struct gbm_device;
 
-class CGBMBufferObject : public IBufferObject
+class CGBMBufferObject : public CBufferObject
 {
 public:
   CGBMBufferObject();
   ~CGBMBufferObject() override;
 
+  // Registration
+  static std::unique_ptr<CBufferObject> Create();
+  static void Register();
+
+  // IBufferObject overrides via CBufferObject
   bool CreateBufferObject(int format, int width, int height) override;
   void DestroyBufferObject() override;
   uint8_t* GetMemory() override;
   void ReleaseMemory() override;
-  int GetFd() override;
-  int GetStride() override;
-  uint64_t GetModifier();
+
+  // CBufferObject overrides
+  uint64_t GetModifier() override;
 
 private:
-  gbm_device *m_device = nullptr;
+  gbm_device* m_device{nullptr};
 
-  int m_fd = -1;
-  uint32_t m_stride = 0;
-  uint8_t *m_map = nullptr;
-  void *m_map_data = nullptr;
-  gbm_bo *m_bo = nullptr;
+  uint8_t* m_map{nullptr};
+  void* m_map_data{nullptr};
+  gbm_bo* m_bo{nullptr};
 };
