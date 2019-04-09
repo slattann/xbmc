@@ -15,7 +15,9 @@ class CTextureGLES : public CTextureGLBase
 public:
   CTextureGLES(unsigned int width = 0, unsigned int height = 0, unsigned int format = XB_FMT_A8R8G8B8);
 
+  // Registration
+  static CTexture* Create(unsigned int width, unsigned int height, unsigned int format);
+  static void Register();
+
   void LoadToGPU() override;
 };
-
-using CTexture = CTextureGLES;

@@ -64,6 +64,7 @@ set(SOURCES DDSImage.cpp
             TextureBundle.cpp
             TextureBundleXBT.cpp
             Texture.cpp
+            TextureFactory.cpp
             TextureManager.cpp
             VisibleEffect.cpp
             XBTF.cpp
@@ -146,6 +147,7 @@ set(HEADERS DDSImage.h
             Texture.h
             TextureBundle.h
             TextureBundleXBT.h
+            TextureFactory.h
             TextureManager.h
             Tween.h
             VisibleEffect.h

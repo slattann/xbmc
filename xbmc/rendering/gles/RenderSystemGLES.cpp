@@ -7,6 +7,8 @@
  */
 
 #include "guilib/DirtyRegion.h"
+#include "guilib/TextureFactory.h"
+#include "guilib/TextureGLES.h"
 #include "windowing/GraphicContext.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
@@ -105,6 +107,9 @@ bool CRenderSystemGLES::InitRenderSystem()
   m_bRenderCreated = true;
 
   InitialiseShaders();
+
+  CTextureFactory::ClearTextures();
+  CTextureGLES::Register();
 
   return true;
 }

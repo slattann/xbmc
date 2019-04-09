@@ -61,7 +61,7 @@ bool CTextureCacheJob::DoWork()
   return CacheTexture();
 }
 
-bool CTextureCacheJob::CacheTexture(CBaseTexture **out_texture)
+bool CTextureCacheJob::CacheTexture(CTexture **out_texture)
 {
   // unwrap the URL as required
   std::string additional_info;
@@ -92,7 +92,7 @@ bool CTextureCacheJob::CacheTexture(CBaseTexture **out_texture)
     return true;
   }
 #endif
-  CBaseTexture *texture = LoadImage(image, width, height, additional_info, true);
+  CTexture *texture = LoadImage(image, width, height, additional_info, true);
   if (texture)
   {
     if (texture->HasAlpha())
@@ -133,7 +133,7 @@ bool CTextureCacheJob::ResizeTexture(const std::string &url, uint8_t* &result, s
   if (image.empty())
     return false;
 
-  CBaseTexture *texture = LoadImage(image, width, height, additional_info, true);
+  CTexture *texture = LoadImage(image, width, height, additional_info, true);
   if (texture == NULL)
     return false;
 
@@ -183,20 +183,20 @@ std::string CTextureCacheJob::DecodeImageURL(const std::string &url, unsigned in
   return image;
 }
 
-CBaseTexture *CTextureCacheJob::LoadImage(const std::string &image, unsigned int width, unsigned int height, const std::string &additional_info, bool requirePixels)
+CTexture *CTextureCacheJob::LoadImage(const std::string &image, unsigned int width, unsigned int height, const std::string &additional_info, bool requirePixels)
 {
   if (additional_info == "music")
   { // special case for embedded music images
     EmbeddedArt art;
     if (CMusicThumbLoader::GetEmbeddedThumb(image, art))
-      return CBaseTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime, width, height);
+      return CTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime, width, height);
   }
 
   if (StringUtils::StartsWith(additional_info, "video_"))
   {
     EmbeddedArt art;
     if (CVideoThumbLoader::GetEmbeddedThumb(image, additional_info.substr(6), art))
-      return CBaseTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime, width, height);
+      return CTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime, width, height);
   }
 
   // Validate file URL to see if it is an image
@@ -206,7 +206,7 @@ CBaseTexture *CTextureCacheJob::LoadImage(const std::string &image, unsigned int
       && !StringUtils::StartsWithNoCase(file.GetMimeType(), "image/") && !StringUtils::EqualsNoCase(file.GetMimeType(), "application/octet-stream")) // ignore non-pictures
     return NULL;
 
-  CBaseTexture *texture = CBaseTexture::LoadFromFile(image, width, height, requirePixels, file.GetMimeType());
+  CTexture *texture = CTexture::LoadFromFile(image, width, height, requirePixels, file.GetMimeType());
   if (!texture)
     return NULL;
 

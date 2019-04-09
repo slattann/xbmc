@@ -17,6 +17,8 @@
 using namespace DirectX;
 #endif
 
+#include "system_gl.h"
+
 using namespace KODI;
 using namespace RETRO;
 

@@ -12,7 +12,7 @@
 
 #include "system_gl.h"
 
-class CTextureGLBase : public CBaseTexture
+class CTextureGLBase : public CTexture
 {
 public:
   CTextureGLBase(unsigned int width = 0, unsigned int height = 0, unsigned int format = XB_FMT_A8R8G8B8);

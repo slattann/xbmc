@@ -99,14 +99,14 @@ bool CSlideShowPic::DisplayEffectNeedChange(DISPLAY_EFFECT newDispEffect) const
   return true;
 }
 
-void CSlideShowPic::SetTexture(int iSlideNumber, CBaseTexture* pTexture, DISPLAY_EFFECT dispEffect, TRANSITION_EFFECT transEffect)
+void CSlideShowPic::SetTexture(int iSlideNumber, CTexture* pTexture, DISPLAY_EFFECT dispEffect, TRANSITION_EFFECT transEffect)
 {
   CSingleLock lock(m_textureAccess);
   Close();
   SetTexture_Internal(iSlideNumber, pTexture, dispEffect, transEffect);
 }
 
-void CSlideShowPic::SetTexture_Internal(int iSlideNumber, CBaseTexture* pTexture, DISPLAY_EFFECT dispEffect, TRANSITION_EFFECT transEffect)
+void CSlideShowPic::SetTexture_Internal(int iSlideNumber, CTexture* pTexture, DISPLAY_EFFECT dispEffect, TRANSITION_EFFECT transEffect)
 {
   CSingleLock lock(m_textureAccess);
   m_bPause = false;
@@ -250,7 +250,7 @@ int CSlideShowPic::GetOriginalHeight()
     return m_iOriginalHeight;
 }
 
-void CSlideShowPic::UpdateTexture(CBaseTexture* pTexture)
+void CSlideShowPic::UpdateTexture(CTexture* pTexture)
 {
   CSingleLock lock(m_textureAccess);
   if (m_pImage)
@@ -781,7 +781,7 @@ bool CSlideShowPic::UpdateVertexBuffer(Vertex* vertices)
 }
 #endif
 
-void CSlideShowPic::Render(float *x, float *y, CBaseTexture* pTexture, UTILS::Color color)
+void CSlideShowPic::Render(float *x, float *y, CTexture* pTexture, UTILS::Color color)
 {
 #ifdef HAS_DX
   Vertex vertex[5];

@@ -8,11 +8,22 @@
 
 #include "TextureGLES.h"
 
+#include "guilib/TextureFactory.h"
 #include "guilib/TextureManager.h"
 #include "rendering/RenderSystem.h"
 #include "ServiceBroker.h"
 #include "utils/GLUtils.h"
 #include "utils/log.h"
+
+CTexture* CTextureGLES::Create(unsigned int width, unsigned int height, unsigned int format)
+{
+  return new CTextureGLES(width, height, format);
+}
+
+void CTextureGLES::Register()
+{
+  CTextureFactory::RegisterTexture(CTextureGLES::Create);
+}
 
 CTextureGLES::CTextureGLES(unsigned int width, unsigned int height, unsigned int format)
   : CTextureGLBase(width, height, format)
