@@ -18,7 +18,7 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 CGUITextureGL::CGUITextureGL(float posX, float posY, float width, float height, const CTextureInfo &texture)
-: CGUITextureBase(posX, posY, width, height, texture)
+: CGUITexture(posX, posY, width, height, texture)
 {
   memset(m_col, 0, sizeof(m_col));
   m_renderSystem = dynamic_cast<CRenderSystemGL*>(CServiceBroker::GetRenderSystem());

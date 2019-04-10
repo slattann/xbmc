@@ -7,6 +7,8 @@
  */
 
 #include "guilib/DirtyRegion.h"
+#include "guilib/GUITextureFactory.h"
+#include "guilib/GUITextureGLES.h"
 #include "guilib/TextureFactory.h"
 #include "guilib/TextureGLES.h"
 #include "windowing/GraphicContext.h"
@@ -110,6 +112,9 @@ bool CRenderSystemGLES::InitRenderSystem()
 
   CTextureFactory::ClearTextures();
   CTextureGLES::Register();
+
+  CGUITextureFactory::ClearTextures();
+  CGUITextureGLES::Register();
 
   return true;
 }

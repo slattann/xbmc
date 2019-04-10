@@ -18,7 +18,7 @@
 using namespace DirectX;
 
 CGUITextureD3D::CGUITextureD3D(float posX, float posY, float width, float height, const CTextureInfo &texture)
-: CGUITextureBase(posX, posY, width, height, texture)
+: CGUITexture(posX, posY, width, height, texture)
 {
 }
 

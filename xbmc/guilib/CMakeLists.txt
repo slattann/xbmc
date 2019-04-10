@@ -51,6 +51,7 @@ set(SOURCES DDSImage.cpp
             GUITextBox.cpp
             GUITextLayout.cpp
             GUITexture.cpp
+            GUITextureFactory.cpp
             GUIToggleButtonControl.cpp
             GUIVideoControl.cpp
             GUIVisualisationControl.cpp
@@ -127,6 +128,7 @@ set(HEADERS DDSImage.h
             GUITextBox.h
             GUITextLayout.h
             GUITexture.h
+            GUITextureFactory.h
             GUIToggleButtonControl.h
             GUIVideoControl.h
             GUIVisualisationControl.h

@@ -7,6 +7,7 @@
  */
 
 #include "GUITextureGLES.h"
+#include "guilib/GUITextureFactory.h"
 #include "Texture.h"
 #include "ServiceBroker.h"
 #include "utils/log.h"
@@ -18,9 +19,30 @@
 
 #include <cstddef>
 
+CGUITexture* CGUITextureGLES::CreateCopy(const CGUITexture& left)
+{
+  return new CGUITextureGLES(left);
+}
+
+CGUITexture* CGUITextureGLES::Create(float posX, float posY, float width, float height, const CTextureInfo &texture)
+{
+  return new CGUITextureGLES(posX, posY, width, height, texture);
+}
+
+void CGUITextureGLES::Register()
+{
+  CGUITextureFactory::RegisterTexture(CGUITextureGLES::CreateCopy);
+  CGUITextureFactory::RegisterTexture(CGUITextureGLES::Create);
+}
 
 CGUITextureGLES::CGUITextureGLES(float posX, float posY, float width, float height, const CTextureInfo &texture)
-: CGUITextureBase(posX, posY, width, height, texture)
+: CGUITexture(posX, posY, width, height, texture)
+{
+  m_renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
+}
+
+CGUITextureGLES::CGUITextureGLES(const CGUITexture& left)
+: CGUITexture(left)
 {
   m_renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
 }
