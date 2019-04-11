@@ -31,6 +31,18 @@ void CVideoLayerBridgeDRMPRIME::Disable()
   struct plane* plane = m_DRM->GetVideoPlane();
   m_DRM->AddProperty(plane, "FB_ID", 0);
   m_DRM->AddProperty(plane, "CRTC_ID", 0);
+
+  // disable HDR metadata
+  struct connector* connector = m_DRM->GetConnector();
+  if (m_DRM->SupportsProperty(connector, "HDR_OUTPUT_METADATA"))
+  {
+    m_DRM->AddProperty(connector, "HDR_OUTPUT_METADATA", 0);
+    m_DRM->SetActive(true);
+
+    if (m_hdr_blob_id)
+      drmModeDestroyPropertyBlob(m_DRM->GetFileDescriptor(), m_hdr_blob_id);
+    m_hdr_blob_id = 0;
+  }
 }
 
 void CVideoLayerBridgeDRMPRIME::Acquire(IVideoBufferDRMPRIME* buffer)
@@ -140,6 +152,52 @@ void CVideoLayerBridgeDRMPRIME::Configure(IVideoBufferDRMPRIME* buffer)
   {
     m_DRM->AddProperty(plane, "COLOR_ENCODING", buffer->GetColorEncoding());
     m_DRM->AddProperty(plane, "COLOR_RANGE", buffer->GetColorRange());
+  }
+
+  struct connector* connector = m_DRM->GetConnector();
+  if (m_DRM->SupportsProperty(connector, "HDR_OUTPUT_METADATA"))
+  {
+    m_hdr_metadata.metadata_type = HDMI_STATIC_METADATA_TYPE1;
+    m_hdr_metadata.hdmi_metadata_type1 = {
+      .eotf = buffer->GetEOTF(),
+      .metadata_type = HDMI_STATIC_METADATA_TYPE1,
+    };
+
+    if (m_hdr_blob_id)
+      drmModeDestroyPropertyBlob(m_DRM->GetFileDescriptor(), m_hdr_blob_id);
+    m_hdr_blob_id = 0;
+
+    if (m_hdr_metadata.hdmi_metadata_type1.eotf)
+    {
+      AVMasteringDisplayMetadata* mdmd = buffer->GetMasteringDisplayMetadata();
+      if (mdmd && mdmd->has_primaries)
+      {
+        for (int i = 0; i < 3; i++)
+        {
+          m_hdr_metadata.hdmi_metadata_type1.display_primaries[i].x = mdmd->display_primaries[i][0].num;
+          m_hdr_metadata.hdmi_metadata_type1.display_primaries[i].y = mdmd->display_primaries[i][1].num;
+        }
+        m_hdr_metadata.hdmi_metadata_type1.white_point.x = mdmd->white_point[0].num;
+        m_hdr_metadata.hdmi_metadata_type1.white_point.y = mdmd->white_point[1].num;
+      }
+      if (mdmd && mdmd->has_luminance)
+      {
+        m_hdr_metadata.hdmi_metadata_type1.max_display_mastering_luminance = mdmd->max_luminance.num;
+        m_hdr_metadata.hdmi_metadata_type1.min_display_mastering_luminance = mdmd->min_luminance.num;
+      }
+
+      AVContentLightMetadata* clmd = buffer->GetContentLightMetadata();
+      if (clmd)
+      {
+        m_hdr_metadata.hdmi_metadata_type1.max_cll = clmd->MaxCLL;
+        m_hdr_metadata.hdmi_metadata_type1.max_fall = clmd->MaxFALL;
+      }
+
+      drmModeCreatePropertyBlob(m_DRM->GetFileDescriptor(), &m_hdr_metadata, sizeof(m_hdr_metadata), &m_hdr_blob_id);
+    }
+
+    m_DRM->AddProperty(connector, "HDR_OUTPUT_METADATA", m_hdr_blob_id);
+    m_DRM->SetActive(true);
   }
 }
 
