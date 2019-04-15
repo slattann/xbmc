@@ -25,6 +25,15 @@
 
 using namespace KODI::WINDOWING::GBM;
 
+namespace
+{
+std::map<AVPixelFormat, uint32_t> pixelFormatsMap =
+{
+  {AV_PIX_FMT_YUV420P, DRM_FORMAT_YUV420},
+  {AV_PIX_FMT_NV12, DRM_FORMAT_NV12},
+};
+} // namespace
+
 CDRMUtils::CDRMUtils()
   : m_connector(new connector)
   , m_encoder(new encoder)
@@ -815,4 +824,16 @@ std::string CDRMUtils::FourCCToString(uint32_t fourcc)
   cout << static_cast<char>((fourcc & 0xFF000000) >> 24);
 
   return cout.str();
+}
+
+uint32_t CDRMUtils::AVPixFormatToDrmFormat(AVPixelFormat avPixFmt)
+{
+  auto pixelFormat = pixelFormatsMap.find(avPixFmt);
+  if (pixelFormat != pixelFormatsMap.end())
+  {
+    return pixelFormat->second;
+  }
+
+  CLog::Log(LOGWARNING, "CDRMUtils::{} - unable to find DRM format for AVPixelFormat: {}", __FUNCTION__, avPixFmt);
+  return 0;
 }

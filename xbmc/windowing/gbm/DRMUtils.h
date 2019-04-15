@@ -19,6 +19,10 @@
 #include "GBMUtils.h"
 #include "platform/posix/utils/FileHandle.h"
 
+extern "C" {
+#include <libavutil/pixfmt.h>
+}
+
 namespace KODI
 {
 namespace WINDOWING
@@ -121,6 +125,7 @@ public:
   static uint32_t FourCCWithAlpha(uint32_t fourcc);
   static uint32_t FourCCWithoutAlpha(uint32_t fourcc);
   static std::string FourCCToString(uint32_t fourcc);
+  static uint32_t AVPixFormatToDrmFormat(enum AVPixelFormat avPixFmt);
 
 protected:
   bool OpenDrm(bool needConnector);
