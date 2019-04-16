@@ -16,7 +16,7 @@ class CVideoBufferDumb
   : public CVideoBufferDRMPRIME
 {
 public:
-  CVideoBufferDumb(IVideoBufferPool& pool, int id);
+  CVideoBufferDumb(IVideoBufferPool& pool, AVPixelFormat format, int id);
   ~CVideoBufferDumb();
   void GetPlanes(uint8_t*(&planes)[YuvImage::MAX_PLANES]) override;
   void GetStrides(int(&strides)[YuvImage::MAX_PLANES]) override;
@@ -48,8 +48,10 @@ public:
   ~CVideoBufferPoolDumb();
   void Return(int id) override;
   CVideoBuffer* Get() override;
+  void Configure(AVPixelFormat format, int size) override;
 
 protected:
+  AVPixelFormat m_pixFormat = AV_PIX_FMT_NONE;
   CCriticalSection m_critSection;
   std::vector<CVideoBufferDumb*> m_all;
   std::deque<int> m_used;

@@ -120,6 +120,9 @@ enum AVPixelFormat CDVDVideoCodecDRMPRIME::GetFormat(struct AVCodecContext* avct
       ctx->m_processInfo.SetVideoDecoderName(ctx->m_name, fmt[n] == AV_PIX_FMT_DRM_PRIME);
 
       CLog::Log(LOGDEBUG, "CDVDVideoCodecDRMPRIME::{} - decoder:{} format:{}", __FUNCTION__, ctx->m_name, pixFmtName);
+
+      ctx->m_videoBufferPoolDumb->Configure(fmt[n], 0);
+
       return fmt[n];
     }
   }

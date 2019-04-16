@@ -21,9 +21,10 @@ extern "C" {
 
 using namespace KODI::WINDOWING::GBM;
 
-CVideoBufferDumb::CVideoBufferDumb(IVideoBufferPool& pool, int id)
+CVideoBufferDumb::CVideoBufferDumb(IVideoBufferPool& pool, AVPixelFormat format, int id)
   : CVideoBufferDRMPRIME(pool, id)
 {
+  m_pixFormat = format;
   CLog::Log(LOGDEBUG, "CVideoBufferDumb::{} - id:{}", __FUNCTION__, m_id);
 }
 
@@ -221,7 +222,7 @@ CVideoBuffer* CVideoBufferPoolDumb::Get()
   else
   {
     int id = m_all.size();
-    buf = new CVideoBufferDumb(*this, id);
+    buf = new CVideoBufferDumb(*this, m_pixFormat, id);
     m_all.push_back(buf);
     m_used.push_back(id);
   }
@@ -249,4 +250,9 @@ void CVideoBufferPoolDumb::Return(int id)
       ++it;
   }
   m_free.push_back(id);
+}
+
+void CVideoBufferPoolDumb::Configure(AVPixelFormat format, int size)
+{
+  m_pixFormat = format;
 }
