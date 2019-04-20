@@ -74,6 +74,12 @@ void CDRMPRIMETexture::Unmap()
 
   glDeleteTextures(1, &m_texture);
 
+  AVDRMFrameDescriptor* descriptor = m_primebuffer->GetDescriptor();
+  for (int object = 0; object < descriptor->nb_objects; object++)
+  {
+    close(descriptor->objects[object].fd);
+  }
+
   m_primebuffer->Release();
   m_primebuffer = nullptr;
 }
