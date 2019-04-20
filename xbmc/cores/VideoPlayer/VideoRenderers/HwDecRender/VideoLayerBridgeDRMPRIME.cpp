@@ -68,11 +68,11 @@ bool CVideoLayerBridgeDRMPRIME::Map(CVideoBufferDRMPRIME* buffer)
   // convert Prime FD to GEM handle
   for (int object = 0; object < descriptor->nb_objects; object++)
   {
-    ret = drmPrimeFDToHandle(m_DRM->GetFileDescriptor(), descriptor->objects[object].fd, &buffer->m_handles[object]);
+    ret = drmPrimeFDToHandle(m_DRM->GetFileDescriptor(), descriptor->objects[object].fd, &handles[object]);
     if (ret < 0)
     {
       CLog::Log(LOGERROR, "CVideoLayerBridgeDRMPRIME::%s - failed to convert prime fd %d to gem handle %u, ret = %d",
-                __FUNCTION__, descriptor->objects[object].fd, buffer->m_handles[object], ret);
+                __FUNCTION__, descriptor->objects[object].fd, handles[object], ret);
       return false;
     }
   }
@@ -82,7 +82,7 @@ bool CVideoLayerBridgeDRMPRIME::Map(CVideoBufferDRMPRIME* buffer)
   for (int plane = 0; plane < layer->nb_planes; plane++)
   {
     int object = layer->planes[plane].object_index;
-    uint32_t handle = buffer->m_handles[object];
+    uint32_t handle = handles[object];
     if (handle && layer->planes[plane].pitch)
     {
       handles[plane] = handle;
@@ -116,14 +116,10 @@ void CVideoLayerBridgeDRMPRIME::Unmap(CVideoBufferDRMPRIME* buffer)
     buffer->m_fb_id = 0;
   }
 
-  for (int i = 0; i < AV_DRM_MAX_PLANES; i++)
+  AVDRMFrameDescriptor* descriptor = buffer->GetDescriptor();
+  for (int object = 0; object < descriptor->nb_objects; object++)
   {
-    if (buffer->m_handles[i])
-    {
-      struct drm_gem_close gem_close = { .handle = buffer->m_handles[i] };
-      drmIoctl(m_DRM->GetFileDescriptor(), DRM_IOCTL_GEM_CLOSE, &gem_close);
-      buffer->m_handles[i] = 0;
-    }
+    close(descriptor->objects[object].fd);
   }
 }
 
