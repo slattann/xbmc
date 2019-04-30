@@ -39,6 +39,12 @@ void CVideoLayerBridgeDRMPRIME::Disable()
     m_DRM->AddProperty(connector, "HDR_OUTPUT_METADATA", 0);
     m_DRM->SetActive(true);
 
+    if (m_DRM->SupportsProperty(connector, "Colorspace"))
+    {
+      CLog::Log(LOGDEBUG, "CVideoLayerBridgeDRMPRIME::{} - Colorspace={}", __FUNCTION__, 0);
+      m_DRM->AddProperty(connector, "Colorspace", 0);
+    }
+
     if (m_hdr_blob_id)
       drmModeDestroyPropertyBlob(m_DRM->GetFileDescriptor(), m_hdr_blob_id);
     m_hdr_blob_id = 0;
@@ -237,6 +243,19 @@ void CVideoLayerBridgeDRMPRIME::Configure(CVideoBufferDRMPRIME* buffer)
       drmModeCreatePropertyBlob(m_DRM->GetFileDescriptor(), &m_hdr_metadata, sizeof(m_hdr_metadata),
                                 &m_hdr_blob_id);
     }
+
+    if (m_DRM->SupportsProperty(connector, "Colorspace"))
+    {
+      CLog::Log(LOGDEBUG, "CVideoLayerBridgeDRMPRIME::{} - Colorspace={}", __FUNCTION__, 9);
+      m_DRM->AddProperty(connector, "Colorspace", 9);
+    }
+
+    /*
+  132 Colorspace:
+    flags: enum
+    enums: Default=0 SMPTE_170M_YCC=1 BT709_YCC=2 XVYCC_601=3 XVYCC_709=4 SYCC_601=5 opYCC_601=6 opRGB=7 BT2020_CYCC=8 BT2020_RGB=9 BT2020_YCC=10 DCI-P3_RGB_D65=11 DCI-P3_RGB_Theater=12
+    value: 0
+    */
 
     m_DRM->AddProperty(connector, "HDR_OUTPUT_METADATA", m_hdr_blob_id);
     m_DRM->SetActive(true);
