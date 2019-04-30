@@ -26,7 +26,7 @@ public:
 
 protected:
   // hooks for hw dec renderer
-  bool LoadShadersHook() override;
+  bool LoadShaders(int field) override;
   void AfterRenderHook(int idx) override;
   EShaderFormat GetShaderFormat() override;
 

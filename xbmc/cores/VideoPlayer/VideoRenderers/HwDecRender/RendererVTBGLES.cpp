@@ -90,16 +90,12 @@ EShaderFormat CRendererVTB::GetShaderFormat()
   return SHADER_YV12;
 }
 
-bool CRendererVTB::LoadShadersHook()
+bool CRendererVTB::LoadShaders(int field)
 {
-  CLog::Log(LOGNOTICE, "GL: Using CVBREF render method");
-  m_textureTarget = GL_TEXTURE_2D;
-  m_renderMethod = RENDER_CUSTOM;
-
   if (!m_textureCache)
   {
     CLog::Log(LOGNOTICE, "CRendererVTB::LoadShadersHook: no texture cache");
-    return false;
+    return;
   }
 
   CVReturn ret = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault,

@@ -9,6 +9,7 @@
 #include "RendererDRMPRIMEGLES.h"
 
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
+#include "rendering/MatrixGL.h"
 #include "ServiceBroker.h"
 #include "utils/EGLFence.h"
 #include "utils/log.h"
@@ -124,15 +125,7 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
   return true;
 }
 
-bool CRendererDRMPRIMEGLES::LoadShadersHook()
-{
-  CLog::Log(LOGNOTICE, "Using DRMPRIMEGLES render method");
-  m_textureTarget = GL_TEXTURE_2D;
-  m_renderMethod = RENDER_CUSTOM;
-  return true;
-}
-
-bool CRendererDRMPRIMEGLES::RenderHook(int index)
+void CRendererDRMPRIMEGLES::RenderToFBO(int index, int field)
 {
   CRenderSystemGLES *renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
   assert(renderSystem);
@@ -144,7 +137,35 @@ bool CRendererDRMPRIMEGLES::RenderHook(int index)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, plane.id);
 
+  m_fbo.fbo.BeginRender();
+
+  glMatrixModview.Push();
+  glMatrixModview->LoadIdentity();
+  glMatrixModview.Load();
+
+  glMatrixProject.Push();
+  glMatrixProject->LoadIdentity();
+  glMatrixProject->Ortho2D(0, m_sourceWidth, 0, m_sourceHeight);
+  glMatrixProject.Load();
+
+  CRect viewport;
+  m_renderSystem->GetViewPort(viewport);
+  glViewport(0, 0, m_sourceWidth, m_sourceHeight);
+  glScissor(0, 0, m_sourceWidth, m_sourceHeight);
+
   renderSystem->EnableGUIShader(SM_TEXTURE_RGBA_OES);
+
+  m_fbo.width  = plane.rect.x2 - plane.rect.x1;
+  m_fbo.height = plane.rect.y2 - plane.rect.y1;
+
+  if (m_textureTarget == GL_TEXTURE_2D)
+  {
+    m_fbo.width  *= plane.texwidth;
+    m_fbo.height *= plane.texheight;
+  }
+
+  m_fbo.width  *= plane.pixpertex_x;
+  m_fbo.height *= plane.pixpertex_y;
 
   GLubyte idx[4] = {0, 1, 3, 2}; // Determines order of triangle strip
   GLuint vertexVBO;
@@ -161,29 +182,29 @@ bool CRendererDRMPRIMEGLES::RenderHook(int index)
   GLint loc = renderSystem->GUIShaderGetCoord0();
 
   // top left
-  vertex[0].x = m_rotatedDestCoords[0].x;
-  vertex[0].y = m_rotatedDestCoords[0].y;
+  vertex[0].x = 0.0f;
+  vertex[0].y = 0.0f;
   vertex[0].z = 0.0f;
   vertex[0].u1 = plane.rect.x1;
   vertex[0].v1 = plane.rect.y1;
 
   // top right
-  vertex[1].x = m_rotatedDestCoords[1].x;
-  vertex[1].y = m_rotatedDestCoords[1].y;
+  vertex[1].x = m_fbo.width;
+  vertex[1].y = 0.0f;
   vertex[1].z = 0.0f;
   vertex[1].u1 = plane.rect.x2;
   vertex[1].v1 = plane.rect.y1;
 
   // bottom right
-  vertex[2].x = m_rotatedDestCoords[2].x;
-  vertex[2].y = m_rotatedDestCoords[2].y;
+  vertex[2].x = m_fbo.width;
+  vertex[2].y = m_fbo.height;
   vertex[2].z = 0.0f;
   vertex[2].u1 = plane.rect.x2;
   vertex[2].v1 = plane.rect.y2;
 
   // bottom left
-  vertex[3].x = m_rotatedDestCoords[3].x;
-  vertex[3].y = m_rotatedDestCoords[3].y;
+  vertex[3].x = 0.0f;
+  vertex[3].y = m_fbo.height;
   vertex[3].z = 0.0f;
   vertex[3].u1 = plane.rect.x1;
   vertex[3].v1 = plane.rect.y2;;
@@ -216,7 +237,12 @@ bool CRendererDRMPRIMEGLES::RenderHook(int index)
 
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
 
-  return true;
+  glMatrixModview.PopLoad();
+  glMatrixProject.PopLoad();
+
+  m_renderSystem->SetViewPort(viewport);
+
+  m_fbo.fbo.EndRender();
 }
 
 void CRendererDRMPRIMEGLES::AfterRenderHook(int index)

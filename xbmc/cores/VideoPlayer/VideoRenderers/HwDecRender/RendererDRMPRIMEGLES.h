@@ -45,8 +45,8 @@ public:
 
 protected:
   // CLinuxRendererGLES overrides
-  bool LoadShadersHook() override;
-  bool RenderHook(int index) override;
+  bool LoadShaders(int field) override { return true; }
+  void RenderToFBO(int index, int field) override;
   void AfterRenderHook(int index) override;
   bool UploadTexture(int index) override;
   void DeleteTexture(int index) override;

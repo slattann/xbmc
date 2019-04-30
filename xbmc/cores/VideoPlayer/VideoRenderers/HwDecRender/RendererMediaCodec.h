@@ -34,8 +34,8 @@ protected:
   virtual bool CreateTexture(int index) override;
 
   // hooks for hw dec renderer
-  virtual bool LoadShadersHook() override;
-  virtual bool RenderHook(int index) override;
+  virtual bool LoadShaders(int field) override { return true; }
+  virtual void RenderToFBO(int index, int field) override;
 
 private:
   float m_textureMatrix[16];

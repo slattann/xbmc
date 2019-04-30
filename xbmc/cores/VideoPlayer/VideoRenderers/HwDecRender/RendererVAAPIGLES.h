@@ -47,8 +47,6 @@ public:
   bool NeedBuffer(int idx) override;
 
 protected:
-  bool LoadShadersHook() override;
-  bool RenderHook(int idx) override;
   void AfterRenderHook(int idx) override;
 
   // textures

@@ -113,7 +113,9 @@ bool CLinuxRendererGLES::ValidateRenderTarget()
 
      // create the yuv textures
     UpdateVideoFilter();
-    LoadShaders();
+
+    if (!LoadShaders())
+      return false;
 
     for (int i = 0 ; i < m_NumYV12Buffers ; i++)
     {
@@ -550,38 +552,31 @@ void CLinuxRendererGLES::UpdateVideoFilter()
   }
 }
 
-void CLinuxRendererGLES::LoadShaders(int field)
+bool CLinuxRendererGLES::LoadShaders(int field)
 {
   m_reloadShaders = 0;
 
-  if (!LoadShadersHook())
+  ReleaseShaders();
+
+  CLog::Log(LOGNOTICE, "GLES: Selecting YUV 2 RGB shader");
+
+  EShaderFormat shaderFormat = GetShaderFormat();
+
+  m_pYUVProgShader = new YUV2RGBProgressiveShader(shaderFormat, AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap);
+  m_pYUVProgShader->SetConvertFullColorRange(m_fullRange);
+
+  m_pYUVBobShader = new YUV2RGBBobShader(shaderFormat, AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap);
+  m_pYUVBobShader->SetConvertFullColorRange(m_fullRange);
+
+  if ((!m_pYUVProgShader || !m_pYUVProgShader->CompileAndLink()) ||
+      (!m_pYUVBobShader || !m_pYUVBobShader->CompileAndLink()))
   {
     ReleaseShaders();
-
-    // Try GLSL shaders if supported and user requested auto or GLSL.
-    if (glCreateProgram())
-    {
-      // create regular scan shader
-      CLog::Log(LOGNOTICE, "GLES: Selecting YUV 2 RGB shader");
-
-      EShaderFormat shaderFormat = GetShaderFormat();
-      m_pYUVProgShader = new YUV2RGBProgressiveShader(shaderFormat, AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap);
-      m_pYUVProgShader->SetConvertFullColorRange(m_fullRange);
-      m_pYUVBobShader = new YUV2RGBBobShader(shaderFormat, AVColorPrimaries::AVCOL_PRI_BT709, m_srcPrimaries, m_toneMap);
-      m_pYUVBobShader->SetConvertFullColorRange(m_fullRange);
-
-      if ((m_pYUVProgShader && m_pYUVProgShader->CompileAndLink())
-          && (m_pYUVBobShader && m_pYUVBobShader->CompileAndLink()))
-      {
-        UpdateVideoFilter();
-      }
-      else
-      {
-        ReleaseShaders();
-        CLog::Log(LOGERROR, "GLES: Error enabling YUV2RGB GLSL shader");
-      }
-    }
+    CLog::Log(LOGERROR, "GLES: Error enabling YUV2RGB GLSL shader");
+    return false;
   }
+
+  return true;
 }
 
 void CLinuxRendererGLES::ReleaseShaders()
@@ -702,16 +697,9 @@ void CLinuxRendererGLES::Render(unsigned int flags, int index)
     return;
   }
 
-  if (RenderHook(index))
-  {
-    ;
-  }
-  else
-  {
-    UpdateVideoFilter();
-    RenderToFBO(index, m_currentField);
-    RenderFromFBO();
-  }
+  UpdateVideoFilter();
+  RenderToFBO(index, m_currentField);
+  RenderFromFBO();
 
   AfterRenderHook(index);
 }
@@ -747,7 +735,8 @@ void CLinuxRendererGLES::RenderToFBO(int index, int field)
   if (m_reloadShaders)
   {
     m_reloadShaders = 0;
-    LoadShaders(m_currentField);
+    if (!LoadShaders(m_currentField))
+      return;
   }
 
   glDisable(GL_DEPTH_TEST);

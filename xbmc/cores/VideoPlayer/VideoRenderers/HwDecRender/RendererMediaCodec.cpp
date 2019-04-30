@@ -14,6 +14,7 @@
 #include "settings/MediaSettings.h"
 #include "ServiceBroker.h"
 #include "rendering/gles/RenderSystemGLES.h"
+#include "rendering/MatrixGL.h"
 #include "../RenderFactory.h"
 
 #if defined(EGL_KHR_reusable_sync) && !defined(EGL_EGLEXT_PROTOTYPES)
@@ -100,15 +101,7 @@ CRenderInfo CRendererMediaCodec::GetRenderInfo()
   return info;
 }
 
-bool CRendererMediaCodec::LoadShadersHook()
-{
-  CLog::Log(LOGNOTICE, "GL: Using MediaCodec render method");
-  m_textureTarget = GL_TEXTURE_2D;
-  m_renderMethod = RENDER_CUSTOM;
-  return true;
-}
-
-bool CRendererMediaCodec::RenderHook(int index)
+void CRendererMediaCodec::RenderToFBO(int index, int field)
 {
   CYuvPlane &plane = m_buffers[index].fields[0][0];
   CYuvPlane &planef = m_buffers[index].fields[m_currentField][0];
@@ -117,6 +110,34 @@ bool CRendererMediaCodec::RenderHook(int index)
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, plane.id);
+
+  m_fbo.fbo.BeginRender();
+
+  glMatrixModview.Push();
+  glMatrixModview->LoadIdentity();
+  glMatrixModview.Load();
+
+  glMatrixProject.Push();
+  glMatrixProject->LoadIdentity();
+  glMatrixProject->Ortho2D(0, m_sourceWidth, 0, m_sourceHeight);
+  glMatrixProject.Load();
+
+  CRect viewport;
+  m_renderSystem->GetViewPort(viewport);
+  glViewport(0, 0, m_sourceWidth, m_sourceHeight);
+  glScissor(0, 0, m_sourceWidth, m_sourceHeight);
+
+  m_fbo.width  = plane.rect.x2 - plane.rect.x1;
+  m_fbo.height = plane.rect.y2 - plane.rect.y1;
+
+  if (m_textureTarget == GL_TEXTURE_2D)
+  {
+    m_fbo.width  *= plane.texwidth;
+    m_fbo.height *= plane.texheight;
+  }
+
+  m_fbo.width  *= plane.pixpertex_x;
+  m_fbo.height *= plane.pixpertex_y;
 
   CRenderSystemGLES* renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
 
@@ -158,13 +179,10 @@ bool CRendererMediaCodec::RenderHook(int index)
   glEnableVertexAttribArray(texLoc);
 
   // Set vertex coordinates
-  for(int i = 0; i < 4; i++)
-  {
-    ver[i][0] = m_rotatedDestCoords[i].x;
-    ver[i][1] = m_rotatedDestCoords[i].y;
-    ver[i][2] = 0.0f;        // set z to 0
-    ver[i][3] = 1.0f;
-  }
+  ver[0][0] = ver[3][0] = 0.0f
+  ver[0][1] = ver[1][1] = 0.0f;
+  ver[1][0] = ver[2][0] = m_fbo.width;
+  ver[2][0] = ver[3][1] = m_fbo.height;
 
   // Set texture coordinates (MediaCodec is flipped in y)
   if (m_currentField == FIELD_FULL)
@@ -207,7 +225,12 @@ bool CRendererMediaCodec::RenderHook(int index)
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
   VerifyGLState();
 
-  return true;
+  glMatrixModview.PopLoad();
+  glMatrixProject.PopLoad();
+
+  m_renderSystem->SetViewPort(viewport);
+
+  m_fbo.fbo.EndRender();
 }
 
 bool CRendererMediaCodec::CreateTexture(int index)

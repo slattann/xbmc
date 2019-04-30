@@ -127,16 +127,6 @@ EShaderFormat CRendererVAAPI::GetShaderFormat()
   return ret;
 }
 
-bool CRendererVAAPI::LoadShadersHook()
-{
-  return false;
-}
-
-bool CRendererVAAPI::RenderHook(int idx)
-{
-  return false;
-}
-
 bool CRendererVAAPI::CreateTexture(int index)
 {
   if (!m_isVAAPIBuffer)

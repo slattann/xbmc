@@ -40,20 +40,6 @@ struct DRAWRECT
   float bottom;
 };
 
-enum RenderMethod
-{
-  RENDER_GLSL = 0x01,
-  RENDER_CUSTOM = 0x02,
-};
-
-enum RenderQuality
-{
-  RQ_LOW = 1,
-  RQ_SINGLEPASS,
-  RQ_MULTIPASS,
-  RQ_SOFTWARE
-};
-
 class CEvent;
 
 class CLinuxRendererGLES : public CBaseRenderer
@@ -95,7 +81,7 @@ protected:
 
   int NextYV12Texture();
   virtual bool ValidateRenderTarget();
-  virtual void LoadShaders(int field=FIELD_FULL);
+  virtual bool LoadShaders(int field=FIELD_FULL);
   virtual void ReleaseShaders();
   void SetTextureFilter(ESCALINGMETHOD scalingMethod);
   void UpdateVideoFilter();
@@ -118,12 +104,10 @@ protected:
   void CalculateTextureSourceRects(int source, int num_planes);
 
   // renderers
-  void RenderToFBO(int index, int field);
+  virtual void RenderToFBO(int index, int field);
   void RenderFromFBO();
 
   // hooks for HwDec Renderered
-  virtual bool LoadShadersHook() { return false; };
-  virtual bool RenderHook(int idx) { return false; };
   virtual void AfterRenderHook(int idx) {};
 
   struct
@@ -139,8 +123,6 @@ protected:
   bool m_bConfigured{false};
   bool m_bValidated{false};
   GLenum m_textureTarget;
-  int m_renderMethod{RENDER_GLSL};
-  RenderQuality m_renderQuality{RQ_SINGLEPASS};
 
   // Raw data used by renderer
   int m_currentField{FIELD_FULL};
