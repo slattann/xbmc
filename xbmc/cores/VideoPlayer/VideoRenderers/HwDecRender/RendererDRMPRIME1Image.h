@@ -25,11 +25,11 @@ class CEGLFence;
 }
 }
 
-class CRendererDRMPRIMEGLES : public CLinuxRendererGLES
+class CRendererDRMPRIME1Image : public CLinuxRendererGLES
 {
 public:
-  CRendererDRMPRIMEGLES() = default;
-  ~CRendererDRMPRIMEGLES();
+  CRendererDRMPRIME1Image() = default;
+  ~CRendererDRMPRIME1Image();
 
   // Registration
   static CBaseRenderer* Create(CVideoBuffer* buffer);

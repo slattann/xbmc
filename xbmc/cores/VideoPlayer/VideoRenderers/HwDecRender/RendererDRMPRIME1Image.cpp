@@ -6,7 +6,7 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "RendererDRMPRIMEGLES.h"
+#include "RendererDRMPRIME1Image.h"
 
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 #include "rendering/MatrixGL.h"
@@ -18,26 +18,26 @@
 using namespace KODI::WINDOWING::GBM;
 using namespace KODI::UTILS::EGL;
 
-CRendererDRMPRIMEGLES::~CRendererDRMPRIMEGLES()
+CRendererDRMPRIME1Image::~CRendererDRMPRIME1Image()
 {
   for (int i = 0; i < NUM_BUFFERS; ++i)
     DeleteTexture(i);
 }
 
-CBaseRenderer* CRendererDRMPRIMEGLES::Create(CVideoBuffer* buffer)
+CBaseRenderer* CRendererDRMPRIME1Image::Create(CVideoBuffer* buffer)
 {
   if (buffer && dynamic_cast<IVideoBufferDRMPRIME*>(buffer))
-    return new CRendererDRMPRIMEGLES();
+    return new CRendererDRMPRIME1Image();
 
   return nullptr;
 }
 
-void CRendererDRMPRIMEGLES::Register()
+void CRendererDRMPRIME1Image::Register()
 {
-  VIDEOPLAYER::CRendererFactory::RegisterRenderer("drm_prime_gles", CRendererDRMPRIMEGLES::Create);
+  VIDEOPLAYER::CRendererFactory::RegisterRenderer("drm_prime_1_image", CRendererDRMPRIME1Image::Create);
 }
 
-bool CRendererDRMPRIMEGLES::Configure(const VideoPicture &picture, float fps, unsigned int orientation)
+bool CRendererDRMPRIME1Image::Configure(const VideoPicture &picture, float fps, unsigned int orientation)
 {
   CWinSystemGbmGLESContext* winSystem = dynamic_cast<CWinSystemGbmGLESContext*>(CServiceBroker::GetWinSystem());
   if (!winSystem)
@@ -54,7 +54,7 @@ bool CRendererDRMPRIMEGLES::Configure(const VideoPicture &picture, float fps, un
   return CLinuxRendererGLES::Configure(picture, fps, orientation);
 }
 
-void CRendererDRMPRIMEGLES::ReleaseBuffer(int index)
+void CRendererDRMPRIME1Image::ReleaseBuffer(int index)
 {
   m_fences[index]->DestroyFence();
 
@@ -62,12 +62,12 @@ void CRendererDRMPRIMEGLES::ReleaseBuffer(int index)
   CLinuxRendererGLES::ReleaseBuffer(index);
 }
 
-bool CRendererDRMPRIMEGLES::NeedBuffer(int index)
+bool CRendererDRMPRIME1Image::NeedBuffer(int index)
 {
   return !m_fences[index]->IsSignaled();
 }
 
-bool CRendererDRMPRIMEGLES::CreateTexture(int index)
+bool CRendererDRMPRIME1Image::CreateTexture(int index)
 {
   CPictureBuffer &buf = m_buffers[index];
   YuvImage &im = buf.image;
@@ -88,7 +88,7 @@ bool CRendererDRMPRIMEGLES::CreateTexture(int index)
   return true;
 }
 
-void CRendererDRMPRIMEGLES::DeleteTexture(int index)
+void CRendererDRMPRIME1Image::DeleteTexture(int index)
 {
   ReleaseBuffer(index);
 
@@ -96,7 +96,7 @@ void CRendererDRMPRIMEGLES::DeleteTexture(int index)
   buf.fields[0][0].id = 0;
 }
 
-bool CRendererDRMPRIMEGLES::UploadTexture(int index)
+bool CRendererDRMPRIME1Image::UploadTexture(int index)
 {
   CPictureBuffer &buf = m_buffers[index];
 
@@ -104,7 +104,7 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
 
   if (!buffer || !buffer->IsValid())
   {
-    CLog::Log(LOGNOTICE, "CRendererDRMPRIMEGLES::%s - no buffer", __FUNCTION__);
+    CLog::Log(LOGNOTICE, "CRendererDRMPRIME1Image::%s - no buffer", __FUNCTION__);
     return false;
   }
 
@@ -125,7 +125,7 @@ bool CRendererDRMPRIMEGLES::UploadTexture(int index)
   return true;
 }
 
-void CRendererDRMPRIMEGLES::RenderToFBO(int index, int field)
+void CRendererDRMPRIME1Image::RenderToFBO(int index, int field)
 {
   CRenderSystemGLES *renderSystem = dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
   assert(renderSystem);
@@ -245,12 +245,12 @@ void CRendererDRMPRIMEGLES::RenderToFBO(int index, int field)
   m_fbo.fbo.EndRender();
 }
 
-void CRendererDRMPRIMEGLES::AfterRenderHook(int index)
+void CRendererDRMPRIME1Image::AfterRenderHook(int index)
 {
   m_fences[index]->CreateFence();
 }
 
-bool CRendererDRMPRIMEGLES::Supports(ERENDERFEATURE feature)
+bool CRendererDRMPRIME1Image::Supports(ERENDERFEATURE feature)
 {
   switch (feature)
   {
@@ -265,7 +265,7 @@ bool CRendererDRMPRIMEGLES::Supports(ERENDERFEATURE feature)
   }
 }
 
-bool CRendererDRMPRIMEGLES::Supports(ESCALINGMETHOD method)
+bool CRendererDRMPRIME1Image::Supports(ESCALINGMETHOD method)
 {
   switch (method)
   {
