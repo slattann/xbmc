@@ -54,15 +54,9 @@ bool CWinSystemGbmGLESContext::InitWindowSystem()
     return false;
   }
 
-  bool general, deepColor;
   m_vaapiProxy.reset(GBM::VaapiProxyCreate(m_DRM->GetRenderNodeFileDescriptor()));
   GBM::VaapiProxyConfig(m_vaapiProxy.get(), m_eglContext.GetEGLDisplay());
-  GBM::VAAPIRegisterRender(m_vaapiProxy.get(), general, deepColor);
-
-  if (general)
-  {
-    GBM::VAAPIRegister(m_vaapiProxy.get(), deepColor);
-  }
+  GBM::VAAPIRegister(m_vaapiProxy.get(), true);
 
   CRendererDRMPRIME1Image::Register();
   CRendererDRMPRIME2Image::Register();
