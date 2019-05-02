@@ -12,7 +12,8 @@
 
 void CDRMPRIMETexture::Init(EGLDisplay eglDisplay)
 {
-  m_eglImage.reset(new CEGLImage(eglDisplay));
+  for (auto& eglImage : m_eglImage)
+    eglImage.reset(new CEGLImage(eglDisplay));
 }
 
 bool CDRMPRIMETexture::Map(IVideoBufferDRMPRIME* buffer)
@@ -29,37 +30,56 @@ bool CDRMPRIMETexture::Map(IVideoBufferDRMPRIME* buffer)
   AVDRMFrameDescriptor* descriptor = buffer->GetDescriptor();
   if (descriptor && descriptor->nb_layers)
   {
-    AVDRMLayerDescriptor* layer = &descriptor->layers[0];
+    if (descriptor->nb_layers >= 2)
+      m_textureTarget = GL_TEXTURE_2D;
 
-    std::array<CEGLImage::EglPlane, CEGLImage::MAX_NUM_PLANES> planes;
-
-    for (int i = 0; i < layer->nb_planes; i++)
+    for (int layer = 0; layer < descriptor->nb_layers; layer++)
     {
-      planes[i].fd = descriptor->objects[layer->planes[i].object_index].fd;
-      planes[i].offset = layer->planes[i].offset;
-      planes[i].pitch = layer->planes[i].pitch;
+      std::array<CEGLImage::EglPlane, CEGLImage::MAX_NUM_PLANES> planes;
+
+      for (int plane = 0; plane < descriptor->layers[layer].nb_planes; plane++)
+      {
+        planes[plane].fd = descriptor->objects[descriptor->layers[layer].planes[plane].object_index].fd;
+        planes[plane].offset = descriptor->layers[layer].planes[plane].offset;
+        planes[plane].pitch = descriptor->layers[layer].planes[plane].pitch;
+      }
+
+      CEGLImage::EglAttrs attribs;
+
+      attribs.width = m_texWidth;
+      attribs.height = m_texHeight;
+
+      if (layer >= 1)
+      {
+        switch(descriptor->layers[layer].format)
+        {
+        case DRM_FORMAT_R8:
+          attribs.width = m_texWidth >> 1;
+          attribs.height = m_texHeight >> 1;
+        case DRM_FORMAT_GR88:
+        case DRM_FORMAT_GR1616:
+          attribs.width = m_texWidth >> 1;
+          attribs.height = m_texHeight >> 1;
+        }
+      }
+
+      attribs.format = descriptor->layers[layer].format;
+      attribs.colorSpace = GetColorSpace(buffer->GetColorEncoding());
+      attribs.colorRange = GetColorRange(buffer->GetColorRange());
+      attribs.planes = planes;
+
+      if (!m_eglImage[layer]->CreateImage(attribs))
+        return false;
+
+      glGenTextures(1, &m_texture[layer]);
+      glBindTexture(m_textureTarget, m_texture[layer]);
+      glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      m_eglImage[layer]->UploadImage(m_textureTarget);
+      glBindTexture(m_textureTarget, 0);
     }
-
-    CEGLImage::EglAttrs attribs;
-
-    attribs.width = m_texWidth;
-    attribs.height = m_texHeight;
-    attribs.format = layer->format;
-    attribs.colorSpace = GetColorSpace(buffer->GetColorEncoding());
-    attribs.colorRange = GetColorRange(buffer->GetColorRange());
-    attribs.planes = planes;
-
-    if (!m_eglImage->CreateImage(attribs))
-      return false;
-
-    glGenTextures(1, &m_texture);
-    glBindTexture(m_textureTarget, m_texture);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(m_textureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    m_eglImage->UploadImage(m_textureTarget);
-    glBindTexture(m_textureTarget, 0);
   }
 
   m_primebuffer = buffer;
@@ -73,9 +93,11 @@ void CDRMPRIMETexture::Unmap()
   if (!m_primebuffer)
     return;
 
-  m_eglImage->DestroyImage();
+  for (auto& eglImage : m_eglImage)
+    eglImage->DestroyImage();
 
-  glDeleteTextures(1, &m_texture);
+  for (auto texture : m_texture)
+    glDeleteTextures(1, &texture);
 
   m_primebuffer->Unmap();
 

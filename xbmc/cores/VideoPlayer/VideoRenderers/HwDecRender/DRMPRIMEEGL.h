@@ -14,22 +14,28 @@
 
 #include "system_gl.h"
 
+#include <array>
+
 class CDRMPRIMETexture
 {
 public:
-  bool Map(IVideoBufferDRMPRIME* buffer);
+  CDRMPRIMETexture() = default;
+  bool Map(IVideoBufferDRMPRIME *buffer);
   void Unmap();
   void Init(EGLDisplay eglDisplay);
 
-  GLuint GetTexture() { return m_texture; }
+  GLuint GetTextureY() { return m_texture[0]; }
+  GLuint GetTextureU() { return m_texture[1]; }
+  GLuint GetTextureV() { return m_texture[2]; }
+
   CSizeInt GetTextureSize() { return { m_texWidth, m_texHeight }; }
 
 protected:
-  IVideoBufferDRMPRIME* m_primebuffer{nullptr};
-  std::unique_ptr<CEGLImage> m_eglImage;
+  IVideoBufferDRMPRIME *m_primebuffer{nullptr};
+  std::array<std::unique_ptr<CEGLImage>, 3> m_eglImage;
 
-  const GLenum m_textureTarget{GL_TEXTURE_EXTERNAL_OES};
-  GLuint m_texture{0};
+  GLenum m_textureTarget{GL_TEXTURE_EXTERNAL_OES};
+  std::array<GLuint, 3> m_texture{0};
   int m_texWidth{0};
   int m_texHeight{0};
 

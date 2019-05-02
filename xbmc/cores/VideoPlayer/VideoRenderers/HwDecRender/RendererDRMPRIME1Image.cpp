@@ -118,7 +118,7 @@ bool CRendererDRMPRIME1Image::UploadTexture(int index)
   plane.pixpertex_x = 1;
   plane.pixpertex_y = 1;
 
-  plane.id = m_DRMPRIMETextures[index].GetTexture();
+  plane.id = m_DRMPRIMETextures[index].GetTextureY();
 
   CalculateTextureSourceRects(index, 1);
 
