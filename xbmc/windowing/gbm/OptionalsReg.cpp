@@ -14,7 +14,8 @@
 #if defined (HAVE_LIBVA)
 #include <va/va_drm.h>
 #include "cores/VideoPlayer/DVDCodecs/Video/VAAPI.h"
-#include "cores/VideoPlayer/VideoRenderers/HwDecRender/RendererVAAPIGLES.h"
+#include "cores/VideoPlayer/VideoRenderers/HwDecRender/VaapiEGL.h"
+#include "utils/log.h"
 
 namespace KODI
 {
@@ -66,7 +67,22 @@ void VAAPIRegister(CVaapiProxy *winSystem, bool deepColor)
 
 void VAAPIRegisterRender(CVaapiProxy *winSystem, bool &general, bool &deepColor)
 {
-  CRendererVAAPI::Register(winSystem, winSystem->vaDpy, winSystem->eglDisplay, general, deepColor);
+  int major_version, minor_version;
+  if (vaInitialize(winSystem->vaDpy, &major_version, &minor_version) != VA_STATUS_SUCCESS)
+  {
+    vaTerminate(winSystem->vaDpy);
+    return;
+  }
+
+  VAAPI::CVaapi2Texture::TestInterop(winSystem->vaDpy, winSystem->eglDisplay, general, deepColor);
+  CLog::Log(LOGDEBUG, "Vaapi2 EGL interop test results: general %s, deepColor %s", general ? "yes" : "no", deepColor ? "yes" : "no");
+  if (!general)
+  {
+    VAAPI::CVaapi1Texture::TestInterop(winSystem->vaDpy, winSystem->eglDisplay, general, deepColor);
+    CLog::Log(LOGDEBUG, "Vaapi1 EGL interop test results: general %s, deepColor %s", general ? "yes" : "no", deepColor ? "yes" : "no");
+  }
+
+  vaTerminate(winSystem->vaDpy);
 }
 
 }
