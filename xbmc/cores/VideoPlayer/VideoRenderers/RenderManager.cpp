@@ -479,6 +479,7 @@ void CRenderManager::CreateRenderer()
       m_pRenderer = VIDEOPLAYER::CRendererFactory::CreateRenderer(id, buffer);
       if (m_pRenderer)
       {
+        CLog::Log(LOGDEBUG, "CRenderManager::{} - using renderer: {}", __FUNCTION__, id);
         return;
       }
     }
