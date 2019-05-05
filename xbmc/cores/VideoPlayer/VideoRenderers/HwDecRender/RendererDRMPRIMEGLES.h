@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include "cores/VideoPlayer/VideoRenderers/LinuxRendererGLES.h"
+#include "cores/VideoPlayer/VideoRenderers/BaseRenderer.h"
 #include "DRMPRIMEEGL.h"
+#include "rendering/gles/RenderSystemGLES.h"
 
 #include <array>
 #include <memory>
@@ -25,7 +26,7 @@ class CEGLFence;
 }
 }
 
-class CRendererDRMPRIMEGLES : public CLinuxRendererGLES
+class CRendererDRMPRIMEGLES : public CBaseRenderer
 {
 public:
   CRendererDRMPRIMEGLES() = default;
@@ -35,23 +36,38 @@ public:
   static CBaseRenderer* Create(CVideoBuffer* buffer);
   static void Register();
 
-  // CLinuxRendererGLES overrides
+  // Player functions
   bool Configure(const VideoPicture &picture, float fps, unsigned int orientation) override;
+  bool IsConfigured() override { return m_bConfigured; }
+  void AddVideoPicture(const VideoPicture &picture, int index) override;
+  void UnInit() override {};
+  bool Flush(bool saveBuffers) override;
   void ReleaseBuffer(int index) override;
   bool NeedBuffer(int index) override;
+  void RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha) override;
+  void Update() override;
+  bool RenderCapture(CRenderCapture* capture) override;
+  CRenderInfo GetRenderInfo() override;
+  bool ConfigChanged(const VideoPicture &picture) override;
 
+  bool SupportsMultiPassRendering() override { return true; } // todo: remove
+
+  // Feature support
   bool Supports(ERENDERFEATURE feature) override;
   bool Supports(ESCALINGMETHOD method) override;
 
 protected:
-  // CLinuxRendererGLES overrides
-  bool LoadShadersHook() override;
-  bool RenderHook(int index) override;
-  void AfterRenderHook(int index) override;
-  bool UploadTexture(int index) override;
-  void DeleteTexture(int index) override;
-  bool CreateTexture(int index) override;
+  void Render(unsigned int flags, int index, ESHADERMETHOD method);
+
+  bool m_bConfigured = false;
+  int m_iLastRenderBuffer = -1;
+  float m_clearColour{0.0f};
 
   std::array<std::unique_ptr<KODI::UTILS::EGL::CEGLFence>, NUM_BUFFERS> m_fences;
-  CDRMPRIMETexture m_DRMPRIMETextures[NUM_BUFFERS];
+
+  struct BUFFER
+  {
+    CVideoBuffer* videoBuffer = nullptr;
+    CDRMPRIMETexture primeTexture;
+  } m_buffers[NUM_BUFFERS];
 };
