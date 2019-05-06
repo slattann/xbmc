@@ -25,7 +25,8 @@ CRendererDRMPRIMEGLES::~CRendererDRMPRIMEGLES()
 
 CBaseRenderer* CRendererDRMPRIMEGLES::Create(CVideoBuffer* buffer)
 {
-  if (buffer && dynamic_cast<IVideoBufferDRMPRIME*>(buffer))
+  if (buffer && dynamic_cast<IVideoBufferDRMPRIME*>(buffer) &&
+      CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(SETTING_VIDEOPLAYER_USEPRIMERENDERER) == 1)
     return new CRendererDRMPRIMEGLES();
 
   return nullptr;
