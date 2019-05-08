@@ -183,6 +183,25 @@ bool CDRMAtomic::AddProperty(struct drm_object *object, const char *name, uint64
   if (!property_id)
     return false;
 
+  auto req = drmModeAtomicAlloc();
+
+  if (drmModeAtomicAddProperty(req, object->id, property_id, value) < 0)
+  {
+    CLog::Log(LOGDEBUG, "CDRMAtomic::{} - could not add property {}={}", __FUNCTION__, name, value);
+    drmModeAtomicFree(req);
+    return false;
+  }
+
+  int ret = drmModeAtomicCommit(m_fd, req, DRM_MODE_ATOMIC_ALLOW_MODESET | DRM_MODE_ATOMIC_TEST_ONLY, nullptr);
+
+  drmModeAtomicFree(req);
+
+  if (ret < 0)
+  {
+    CLog::Log(LOGDEBUG, "CDRMAtomic::{} - test commit failed for property {}={} - {}", __FUNCTION__, name, value, strerror(errno));
+    return false;
+  }
+
   if (drmModeAtomicAddProperty(m_req, object->id, property_id, value) < 0)
   {
     CLog::Log(LOGERROR, "CDRMAtomic::%s - could not add property %s", __FUNCTION__, name);
