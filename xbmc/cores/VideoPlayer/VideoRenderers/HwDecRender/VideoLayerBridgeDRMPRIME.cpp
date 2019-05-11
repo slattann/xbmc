@@ -9,6 +9,7 @@
 #include "VideoLayerBridgeDRMPRIME.h"
 
 #include "cores/VideoPlayer/Process/gbm/VideoBufferDRMPRIME.h"
+#include "utils/EDIDUtils.h"
 #include "utils/log.h"
 #include "windowing/gbm/DRMUtils.h"
 
@@ -154,16 +155,22 @@ void CVideoLayerBridgeDRMPRIME::Configure(IVideoBufferDRMPRIME* buffer)
     m_DRM->AddProperty(plane, "COLOR_RANGE", buffer->GetColorRange());
   }
 
+  m_edid.reset();
+  m_edid = m_DRM->GetEDID();
+
   struct connector* connector = m_DRM->GetConnector();
   if (m_DRM->SupportsProperty(connector, "HDR_OUTPUT_METADATA"))
   {
     CLog::Log(LOGDEBUG, "CVideoLayerBridgeDRMPRIME::{} - supports HDR_OUTPUT_METADATA", __FUNCTION__);
 
     m_hdr_metadata.metadata_type = HDMI_STATIC_METADATA_TYPE1;
-    m_hdr_metadata.hdmi_metadata_type1 = {
-      .eotf = buffer->GetEOTF(),
-      .metadata_type = HDMI_STATIC_METADATA_TYPE1,
-    };
+    m_hdr_metadata.hdmi_metadata_type1.metadata_type = HDMI_STATIC_METADATA_TYPE1;
+
+    int eotf = buffer->GetEOTF();
+    if (!m_edid->SupportsEOTF(eotf))
+      return;
+
+    m_hdr_metadata.hdmi_metadata_type1.eotf = buffer->GetEOTF();
 
     CLog::Log(LOGDEBUG, "CVideoLayerBridgeDRMPRIME::{} - EOTF={}", __FUNCTION__, m_hdr_metadata.hdmi_metadata_type1.eotf);
 
