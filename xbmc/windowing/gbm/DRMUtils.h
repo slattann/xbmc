@@ -8,19 +8,26 @@
 
 #pragma once
 
-#include <drm_fourcc.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
-#include <gbm.h>
-#include <map>
-#include <vector>
-
-#include "windowing/Resolution.h"
 #include "GBMUtils.h"
 #include "platform/posix/utils/FileHandle.h"
+#include "windowing/Resolution.h"
+
+#include <map>
+#include <memory>
+#include <vector>
+
+#include <drm_fourcc.h>
+#include <gbm.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+
 
 namespace KODI
 {
+namespace UTILS
+{
+class CEDIDUtils;
+}
 namespace WINDOWING
 {
 namespace GBM
@@ -110,6 +117,7 @@ public:
   std::vector<uint64_t> *GetGuiPlaneModifiersForFormat(uint32_t format) { return &m_gui_plane->modifiers_map[format]; }
   struct crtc* GetCrtc() const { return m_crtc; }
   struct connector* GetConnector() const { return m_connector; }
+  std::unique_ptr<KODI::UTILS::CEDIDUtils> GetEDID();
 
   virtual RESOLUTION_INFO GetCurrentMode();
   virtual std::vector<RESOLUTION_INFO> GetModes();
