@@ -42,6 +42,7 @@ void CGLESShader::OnCompiledAndLinked()
   // Variables passed directly to the Fragment shader
   m_hTex0   = glGetUniformLocation(ProgramHandle(), "m_samp0");
   m_hTex1   = glGetUniformLocation(ProgramHandle(), "m_samp1");
+  m_hTex2   = glGetUniformLocation(ProgramHandle(), "m_samp2");
   m_hUniCol = glGetUniformLocation(ProgramHandle(), "m_unicol");
   m_hField  = glGetUniformLocation(ProgramHandle(), "m_field");
   m_hStep   = glGetUniformLocation(ProgramHandle(), "m_step");
@@ -63,6 +64,7 @@ void CGLESShader::OnCompiledAndLinked()
   glUseProgram( ProgramHandle() );
   glUniform1i(m_hTex0, 0);
   glUniform1i(m_hTex1, 1);
+  glUniform1i(m_hTex2, 2);
   glUniform4f(m_hUniCol, 1.0, 1.0, 1.0, 1.0);
 
   const float identity[16] = {

@@ -40,6 +40,7 @@ public:
 protected:
   GLint m_hTex0 = 0;
   GLint m_hTex1 = 0;
+  GLint m_hTex2 = 0;
   GLint m_hUniCol = 0;
   GLint m_hProj = 0;
   GLint m_hModel = 0;

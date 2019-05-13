@@ -480,6 +480,14 @@ void CRenderSystemGLES::InitialiseShaders()
       CLog::Log(LOGERROR, "GUI Shader gles_shader_rgba2img_oes.frag - compile and link failed");
     }
 
+    m_pShader[SM_TEXTURE_RGBA3IMG_OES].reset(new CGLESShader("gles_shader_rgba3img_oes.frag", defines));
+    if (!m_pShader[SM_TEXTURE_RGBA3IMG_OES]->CompileAndLink())
+    {
+      m_pShader[SM_TEXTURE_RGBA3IMG_OES]->Free();
+      m_pShader[SM_TEXTURE_RGBA3IMG_OES].reset();
+      CLog::Log(LOGERROR, "GUI Shader gles_shader_rgba3img_oes.frag - compile and link failed");
+    }
+
     m_pShader[SM_TEXTURE_RGBA_BOB_OES].reset(new CGLESShader("gles_shader_rgba_bob_oes.frag", defines));
     if (!m_pShader[SM_TEXTURE_RGBA_BOB_OES]->CompileAndLink())
     {
@@ -535,6 +543,10 @@ void CRenderSystemGLES::ReleaseShaders()
   if (m_pShader[SM_TEXTURE_RGBA2IMG_OES])
     m_pShader[SM_TEXTURE_RGBA2IMG_OES]->Free();
   m_pShader[SM_TEXTURE_RGBA2IMG_OES].reset();
+
+  if (m_pShader[SM_TEXTURE_RGBA3IMG_OES])
+    m_pShader[SM_TEXTURE_RGBA3IMG_OES]->Free();
+  m_pShader[SM_TEXTURE_RGBA3IMG_OES].reset();
 
   if (m_pShader[SM_TEXTURE_RGBA_BOB_OES])
     m_pShader[SM_TEXTURE_RGBA_BOB_OES]->Free();
