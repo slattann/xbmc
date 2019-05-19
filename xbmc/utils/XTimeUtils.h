@@ -44,17 +44,23 @@ namespace TIME
   const int TIME_ZONE_ID_STANDARD{1};
   const int TIME_ZONE_ID_DAYLIGHT{2};
 
+  struct FileTime
+  {
+    unsigned int lowDateTime;
+    unsigned int highDateTime;
+  };
+
   void GetLocalTime(SystemTime* systemTime);
 
   void WINAPI Sleep(uint32_t dwMilliSeconds);
 
-  int FileTimeToLocalFileTime(const FILETIME* lpFileTime, LPFILETIME lpLocalFileTime);
-  int SystemTimeToFileTime(const SystemTime* systemTime,  LPFILETIME lpFileTime);
-  long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2);
-  int FileTimeToSystemTime( const FILETIME* lpFileTime, SystemTime* systemTime);
-  int LocalFileTimeToFileTime( const FILETIME* lpLocalFileTime, LPFILETIME lpFileTime);
+  int FileTimeToLocalFileTime(const FileTime* lpFileTime, FileTime* localFileTime);
+  int SystemTimeToFileTime(const SystemTime* systemTime, FileTime* fileTime);
+  long CompareFileTime(const FileTime* fileTime1, const FileTime* fileTime2);
+  int FileTimeToSystemTime(const FileTime* fileTime, SystemTime* systemTime);
+  int LocalFileTimeToFileTime(const FileTime* localFileTime, FileTime* fileTime);
 
-  int FileTimeToTimeT(const FILETIME* lpLocalFileTime, time_t *pTimeT);
-  int TimeTToFileTime(time_t timeT, FILETIME* lpLocalFileTime);
+  int FileTimeToTimeT(const FileTime* localFileTime, time_t *pTimeT);
+  int TimeTToFileTime(time_t timeT, FileTime* localFileTime);
 }
 }

@@ -1048,7 +1048,7 @@ bool iso9660::IsScanned()
 }
 
 //************************************************************************************
-void iso9660::IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FILETIME* filetime)
+void iso9660::IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FileTime* filetime)
 {
   tm t = { 0 };
   t.tm_year=isoDateTime->year;

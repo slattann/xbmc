@@ -125,7 +125,7 @@ bool CWinLibraryDirectory::GetDirectory(const CURL& url, CFileItemList& items)
 
     auto props = Wait(item.GetBasicPropertiesAsync());
 
-    pItem->m_dateTime = winrt::clock::to_FILETIME(props.DateModified());
+    pItem->m_dateTime = winrt::clock::to_FileTime(props.DateModified());
     if (!pItem->m_bIsFolder)
       pItem->m_dwSize = static_cast<int64_t>(props.Size());
 

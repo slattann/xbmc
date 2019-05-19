@@ -20,7 +20,7 @@ void WINAPI Sleep(uint32_t dwMilliSeconds);
   Sleep(dwMilliSeconds);
 }
 
-void GetLocalTime(SystemTime* systemTime);
+void GetLocalTime(SystemTime* systemTime)
 {
   SYSTEMTIME time;
   GetLocalTime(&time);
@@ -35,12 +35,24 @@ void GetLocalTime(SystemTime* systemTime);
   systemTime->milliseconds = time.wMilliseconds;
 }
 
-int FileTimeToLocalFileTime(const FILETIME* lpFileTime, LPFILETIME lpLocalFileTime)
+int FileTimeToLocalFileTime(const FileTime* fileTime, FileTime* localFileTime)
 {
-  return FileTimeToLocalFileTime(lpFileTime, lpLocalFileTime);
+  const FILETIME file =
+  {
+    dwLowDateTime = fileTime->lowDateTime,
+    dwHighDateTime = fileTime->highDateTime,
+  };
+
+  FILETIME localFile;
+  int ret = FileTimeToLocalFileTime(&file, &localFile);
+
+  localFileTime->lowDateTime = localFile.dwLowDateTime;
+  localFileTime->highDateTime = localFile.dwHighDateTime;
+
+  return ret;
 }
 
-int SystemTimeToFileTime(const SystemTime* systemTime,  LPFILETIME lpFileTime)
+int SystemTimeToFileTime(const SystemTime* systemTime, FileTime* fileTime)
 {
   const SYSTEMTIME time =
   {
@@ -54,18 +66,42 @@ int SystemTimeToFileTime(const SystemTime* systemTime,  LPFILETIME lpFileTime)
     wMilliseconds = systemTime->milliseconds,
   };
 
-  return SystemTimeToFileTime(&time, lpFileTime);
+  FILETIME file;
+  int ret = SystemTimeToFileTime(&time, &file);
+
+  fileTime->lowDateTime = file.dwLowDateTime;
+  fileTime->highDateTime = file.dwHighDataTime;
+
+  return ret;
 }
 
-long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2)
+long CompareFileTime(const FileTime* fileTime1, const FileTime* fileTime2)
 {
-  return CompareFileTime(lpFileTime1, lpFileTime2);
+  const FILETIME file1 =
+  {
+    dwLowDateTime = fileTime1->lowDateTime,
+    dwHighDateTime = fileTime1->highDateTime,
+  };
+
+  const FILETIME file2 =
+  {
+    dwLowDateTime = fileTime2->lowDateTime,
+    dwHighDateTime = fileTime2->highDateTime,
+  };
+
+  return CompareFileTime(&file1, &file2);
 }
 
-int FileTimeToSystemTime(const FILETIME* lpFileTime, SystemTime* systemTime)
+int FileTimeToSystemTime(const FileTime* fileTime, SystemTime* systemTime)
 {
+  const FILETIME file =
+  {
+    dwLowDateTime = fileTime->lowDateTime,
+    dwHighDateTime = fileTime->highDateTime,
+  };
+
   SYSTEMTIME time;
-  int ret = FileTimeToSystemTime(&lpFileTime, &time);
+  int ret = FileTimeToSystemTime(&file, &time);
 
   systemTime->year = time.wYear;
   systemTime->month = time.wMonth;
@@ -76,12 +112,25 @@ int FileTimeToSystemTime(const FILETIME* lpFileTime, SystemTime* systemTime)
   systemTime->second = time.wSecond;
   systemTime->milliseconds = time.wMilliseconds;
 
-  return ret
+  return ret;
 }
 
-int LocalFileTimeToFileTime(const FILETIME* lpLocalFileTime, LPFILETIME lpFileTime)
+int LocalFileTimeToFileTime(const FileTime* localFileTime, FileTime* fileTime)
 {
-  return LocalFileTimeToFileTime(lpLocalFileTime, lpLocalFileTime);
+  const FILETIME localFile =
+  {
+    dwLowDateTime = localFileTime->lowDateTime,
+    dwHighDateTime = localFileTime->highDateTime,
+  };
+
+  FILETIME file;
+
+  int ret = LocalFileTimeToFileTime(&localFile, &file);
+
+  fileTime->lowDateTime = file.dwLowDateTime;
+  fileTime->highDateTime = file.dwHighDataTime;
+
+  return ret;
 }
 
 }

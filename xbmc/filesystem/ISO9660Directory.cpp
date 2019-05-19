@@ -76,7 +76,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
           URIUtils::AddSlashAtEnd(path);
           pItem->SetPath(path);
           pItem->m_bIsFolder = true;
-          FILETIME localTime;
+          FileTime localTime;
           KODI::TIME::FileTimeToLocalFileTime(&wfd.lastWriteTime, &localTime);
           pItem->m_dateTime=localTime;
           items.Add(pItem);
@@ -93,7 +93,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
         pItem->SetPath(strRoot + strDir);
         pItem->m_bIsFolder = false;
         pItem->m_dwSize = CUtil::ToInt64(wfd.fileSizeHigh, wfd.fileSizeLow);
-        FILETIME localTime;
+        FileTime localTime;
         KODI::TIME::FileTimeToLocalFileTime(&wfd.lastWriteTime, &localTime);
         pItem->m_dateTime=localTime;
         items.Add(pItem);

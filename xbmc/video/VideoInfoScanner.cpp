@@ -1823,8 +1823,8 @@ namespace VIDEO
       else
       {
         digest.Update(&pItem->m_dwSize, sizeof(pItem->m_dwSize));
-        FILETIME time = pItem->m_dateTime;
-        digest.Update(&time, sizeof(FILETIME));
+        FileTime time = pItem->m_dateTime;
+        digest.Update(&time, sizeof(FileTime));
       }
       if (pItem->IsVideo() && !pItem->IsPlayList() && !pItem->IsNFO())
         count++;

@@ -161,11 +161,11 @@ int64_t CThread::GetAbsoluteUsage()
     return 0;
 
   uint64_t time = 0;
-  FILETIME CreationTime, ExitTime, UserTime, KernelTime;
+  FileTime CreationTime, ExitTime, UserTime, KernelTime;
   if( GetThreadTimes(m_ThreadOpaque.handle, &CreationTime, &ExitTime, &KernelTime, &UserTime ) )
   {
-    time = (((uint64_t)UserTime.dwHighDateTime) << 32) + ((uint64_t)UserTime.dwLowDateTime);
-    time += (((uint64_t)KernelTime.dwHighDateTime) << 32) + ((uint64_t)KernelTime.dwLowDateTime);
+    time = (((uint64_t)UserTime.highDateTime) << 32) + ((uint64_t)UserTime.lowDateTime);
+    time += (((uint64_t)KernelTime.highDateTime) << 32) + ((uint64_t)KernelTime.lowDateTime);
   }
   return time;
 #endif
