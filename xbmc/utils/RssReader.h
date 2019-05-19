@@ -16,7 +16,7 @@
 #include "threads/Thread.h"
 #include "utils/IRssObserver.h"
 #include "utils/XBMCTinyXML.h"
-#include "PlatformDefs.h"
+#include "XBDateTime.h"
 
 class CRssReader : public CThread
 {
@@ -48,7 +48,7 @@ private:
 
   std::vector<std::wstring> m_strFeed;
   std::vector<std::wstring> m_strColors;
-  std::vector<SYSTEMTIME *> m_vecTimeStamps;
+  std::vector<SystemTime*> m_vecTimeStamps;
   std::vector<int> m_vecUpdateTimes;
   int m_spacesBetweenFeeds;
   CXBMCTinyXML m_xml;

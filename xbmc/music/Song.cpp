@@ -21,7 +21,7 @@ using namespace MUSIC_INFO;
 CSong::CSong(CFileItem& item)
 {
   CMusicInfoTag& tag = *item.GetMusicInfoTag();
-  SYSTEMTIME stTime;
+  SystemTime stTime;
   tag.GetReleaseDate(stTime);
   strTitle = tag.GetTitle();
   genre = tag.GetGenre();
@@ -55,7 +55,7 @@ CSong::CSong(CFileItem& item)
   rating = tag.GetRating();
   userrating = tag.GetUserrating();
   votes = tag.GetVotes();
-  iYear = stTime.wYear;
+  iYear = stTime.year;
   iTrack = tag.GetTrackAndDiscNumber();
   iDuration = tag.GetDuration();
   strRecordLabel = tag.GetRecordLabel();

@@ -91,8 +91,8 @@ bool CMusicInfoTagLoaderCDDA::Load(const std::string& strFileName, CMusicInfoTag
           tag.SetAlbumArtist(strAlbumArtist);
 
           // Year
-          SYSTEMTIME dateTime;
-          dateTime.wYear = atoi(cddb.getYear().c_str());
+          SystemTime dateTime;
+          dateTime.year = atoi(cddb.getYear().c_str());
           tag.SetReleaseDate( dateTime );
 
           // Genre

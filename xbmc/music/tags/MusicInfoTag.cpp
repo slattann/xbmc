@@ -130,14 +130,14 @@ const std::vector<std::string>& CMusicInfoTag::GetGenre() const
   return m_genre;
 }
 
-void CMusicInfoTag::GetReleaseDate(SYSTEMTIME& dateTime) const
+void CMusicInfoTag::GetReleaseDate(SystemTime& dateTime) const
 {
   memcpy(&dateTime, &m_dwReleaseDate, sizeof(m_dwReleaseDate));
 }
 
 int CMusicInfoTag::GetYear() const
 {
-  return m_dwReleaseDate.wYear;
+  return m_dwReleaseDate.year;
 }
 
 int CMusicInfoTag::GetDatabaseId() const
@@ -152,7 +152,7 @@ const std::string &CMusicInfoTag::GetType() const
 
 std::string CMusicInfoTag::GetYearString() const
 {
-  return m_dwReleaseDate.wYear ? StringUtils::Format("%i", m_dwReleaseDate.wYear) : StringUtils::Empty;
+  return m_dwReleaseDate.year ? StringUtils::Format("%i", m_dwReleaseDate.year) : StringUtils::Empty;
 }
 
 const std::string &CMusicInfoTag::GetComment() const
@@ -343,7 +343,7 @@ void CMusicInfoTag::SetGenre(const std::vector<std::string>& genres, bool bTrim 
 void CMusicInfoTag::SetYear(int year)
 {
   memset(&m_dwReleaseDate, 0, sizeof(m_dwReleaseDate) );
-  m_dwReleaseDate.wYear = year;
+  m_dwReleaseDate.year = year;
 }
 
 void CMusicInfoTag::SetDatabaseId(long id, const std::string &type)
@@ -352,7 +352,7 @@ void CMusicInfoTag::SetDatabaseId(long id, const std::string &type)
   m_type = type;
 }
 
-void CMusicInfoTag::SetReleaseDate(SYSTEMTIME& dateTime)
+void CMusicInfoTag::SetReleaseDate(SystemTime& dateTime)
 {
   memcpy(&m_dwReleaseDate, &dateTime, sizeof(m_dwReleaseDate) );
 }
@@ -611,8 +611,8 @@ void CMusicInfoTag::SetAlbum(const CAlbum& album)
   SetUserrating(album.iUserrating);
   SetVotes(album.iVotes);
   SetCompilation(album.bCompilation);
-  SYSTEMTIME stTime;
-  stTime.wYear = album.iYear;
+  SystemTime stTime;
+  stTime.year = album.iYear;
   SetReleaseDate(stTime);
   SetAlbumReleaseType(album.releaseType);
   SetDateAdded(album.dateAdded);
@@ -656,8 +656,8 @@ void CMusicInfoTag::SetSong(const CSong& song)
   SetUserrating(song.userrating);
   SetVotes(song.votes);
   SetURL(song.strFileName);
-  SYSTEMTIME stTime;
-  stTime.wYear = song.iYear;
+  SystemTime stTime;
+  stTime.year = song.iYear;
   SetReleaseDate(stTime);
   SetTrackAndDiscNumber(song.iTrack);
   SetDuration(song.iDuration);
@@ -703,7 +703,7 @@ void CMusicInfoTag::Serialize(CVariant& value) const
   value["track"] = GetTrackNumber();
   value["disc"] = GetDiscNumber();
   value["loaded"] = m_bLoaded;
-  value["year"] = m_dwReleaseDate.wYear;
+  value["year"] = m_dwReleaseDate.year;
   value["musicbrainztrackid"] = m_strMusicBrainzTrackID;
   value["musicbrainzartistid"] = m_musicBrainzArtistID;
   value["musicbrainzalbumid"] = m_strMusicBrainzAlbumID;
@@ -761,7 +761,7 @@ void CMusicInfoTag::ToSortable(SortItem& sortable, Field field) const
   case FieldGenre:       sortable[FieldGenre] = m_genre; break;
   case FieldTime:        sortable[FieldTime] = m_iDuration; break;
   case FieldTrackNumber: sortable[FieldTrackNumber] = m_iTrack; break;
-  case FieldYear:        sortable[FieldYear] = m_dwReleaseDate.wYear; break;
+  case FieldYear:        sortable[FieldYear] = m_dwReleaseDate.year; break;
   case FieldComment:     sortable[FieldComment] = m_strComment; break;
   case FieldMoods:       sortable[FieldMoods] = m_strMood; break;
   case FieldRating:      sortable[FieldRating] = m_Rating; break;

@@ -50,20 +50,20 @@ void WINAPI Sleep(uint32_t dwMilliSeconds)
   usleep(dwMilliSeconds * 1000);
 }
 
-void GetLocalTime(LPSYSTEMTIME sysTime)
+void GetLocalTime(SystemTime* systemTime)
 {
   const time_t t = time(NULL);
   struct tm now;
 
   localtime_r(&t, &now);
-  sysTime->wYear = now.tm_year + 1900;
-  sysTime->wMonth = now.tm_mon + 1;
-  sysTime->wDayOfWeek = now.tm_wday;
-  sysTime->wDay = now.tm_mday;
-  sysTime->wHour = now.tm_hour;
-  sysTime->wMinute = now.tm_min;
-  sysTime->wSecond = now.tm_sec;
-  sysTime->wMilliseconds = 0;
+  systemTime->year = now.tm_year + 1900;
+  systemTime->month = now.tm_mon + 1;
+  systemTime->dayOfWeek = now.tm_wday;
+  systemTime->day = now.tm_mday;
+  systemTime->hour = now.tm_hour;
+  systemTime->minute = now.tm_min;
+  systemTime->second = now.tm_sec;
+  systemTime->milliseconds = 0;
   // NOTE: localtime_r() is not required to set this, but we Assume that it's set here.
   g_timezone.m_IsDST = now.tm_isdst;
 }
@@ -86,7 +86,8 @@ int FileTimeToLocalFileTime(const FILETIME* lpFileTime, LPFILETIME lpLocalFileTi
   return 1;
 }
 
-int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime)
+
+int SystemTimeToFileTime(const SystemTime* systemTime,  LPFILETIME lpFileTime)
 {
   static const int dayoffset[12] = {0, 31, 59, 90, 120, 151, 182, 212, 243, 273, 304, 334};
 #if defined(TARGET_DARWIN)
@@ -94,18 +95,18 @@ int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime)
 #endif
 
   struct tm sysTime = {};
-  sysTime.tm_year = lpSystemTime->wYear - 1900;
-  sysTime.tm_mon = lpSystemTime->wMonth - 1;
-  sysTime.tm_wday = lpSystemTime->wDayOfWeek;
-  sysTime.tm_mday = lpSystemTime->wDay;
-  sysTime.tm_hour = lpSystemTime->wHour;
-  sysTime.tm_min = lpSystemTime->wMinute;
-  sysTime.tm_sec = lpSystemTime->wSecond;
+  sysTime.tm_year = systemTime->year - 1900;
+  sysTime.tm_mon = systemTime->month - 1;
+  sysTime.tm_wday = systemTime->dayOfWeek;
+  sysTime.tm_mday = systemTime->day;
+  sysTime.tm_hour = systemTime->hour;
+  sysTime.tm_min = systemTime->minute;
+  sysTime.tm_sec = systemTime->second;
   sysTime.tm_yday = dayoffset[sysTime.tm_mon] + (sysTime.tm_mday - 1);
   sysTime.tm_isdst = g_timezone.m_IsDST;
 
   // If this is a leap year, and we're past the 28th of Feb, increment tm_yday.
-  if (IsLeapYear(lpSystemTime->wYear) && (sysTime.tm_yday > 58))
+  if (IsLeapYear(systemTime->year) && (sysTime.tm_yday > 58))
     sysTime.tm_yday++;
 
 #if defined(TARGET_DARWIN)
@@ -119,7 +120,7 @@ int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime)
 #endif
 
   LARGE_INTEGER result;
-  result.QuadPart = (long long) t * 10000000 + (long long) lpSystemTime->wMilliseconds * 10000;
+  result.QuadPart = (long long) t * 10000000 + (long long) systemTime->milliseconds * 10000;
   result.QuadPart += WIN32_TIME_OFFSET;
 
   lpFileTime->dwLowDateTime = result.u.LowPart;
@@ -146,7 +147,7 @@ long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2)
      return 1;
 }
 
-int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime)
+int FileTimeToSystemTime( const FILETIME* lpFileTime, SystemTime* systemTime)
 {
   LARGE_INTEGER fileTime;
   fileTime.u.LowPart = lpFileTime->dwLowDateTime;
@@ -154,7 +155,7 @@ int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime)
 
   fileTime.QuadPart -= WIN32_TIME_OFFSET;
   fileTime.QuadPart /= 10000; /* to milliseconds */
-  lpSystemTime->wMilliseconds = fileTime.QuadPart % 1000;
+  systemTime->milliseconds = fileTime.QuadPart % 1000;
   fileTime.QuadPart /= 1000; /* to seconds */
 
   time_t ft = fileTime.QuadPart;
@@ -162,13 +163,13 @@ int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime)
   struct tm tm_ft;
   gmtime_r(&ft,&tm_ft);
 
-  lpSystemTime->wYear = tm_ft.tm_year + 1900;
-  lpSystemTime->wMonth = tm_ft.tm_mon + 1;
-  lpSystemTime->wDayOfWeek = tm_ft.tm_wday;
-  lpSystemTime->wDay = tm_ft.tm_mday;
-  lpSystemTime->wHour = tm_ft.tm_hour;
-  lpSystemTime->wMinute = tm_ft.tm_min;
-  lpSystemTime->wSecond = tm_ft.tm_sec;
+  systemTime->year = tm_ft.tm_year + 1900;
+  systemTime->month = tm_ft.tm_mon + 1;
+  systemTime->dayOfWeek = tm_ft.tm_wday;
+  systemTime->day = tm_ft.tm_mday;
+  systemTime->hour = tm_ft.tm_hour;
+  systemTime->minute = tm_ft.tm_min;
+  systemTime->second = tm_ft.tm_sec;
 
   return 1;
 }

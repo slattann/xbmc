@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "utils/IArchivable.h"
 #include "PlatformDefs.h"
+#include "utils/IArchivable.h"
+#include "utils/XTimeUtils.h"
+
 #include <string>
 
 /*! \brief TIME_FORMAT enum/bitmask used for formatting time strings
@@ -67,6 +69,8 @@ enum TIME_FORMAT { TIME_FORMAT_GUESS       =  0, ///< usually used as the fallba
 
 class CDateTime;
 
+using namespace KODI::TIME;
+
 class CDateTimeSpan
 {
 public:
@@ -113,7 +117,7 @@ class CDateTime final : public IArchivable
 public:
   CDateTime();
   CDateTime(const CDateTime& time);
-  explicit CDateTime(const SYSTEMTIME& time);
+  explicit CDateTime(const SystemTime& time);
   explicit CDateTime(const FILETIME& time);
   explicit CDateTime(const time_t& time);
   explicit CDateTime(const tm& time);
@@ -133,7 +137,7 @@ public:
   static CDateTime FromUTCDateTime(const time_t &dateTime);
   static CDateTime FromRFC1123DateTime(const std::string &dateTime);
 
-  const CDateTime& operator =(const SYSTEMTIME& right);
+  const CDateTime& operator =(const SystemTime& right);
   const CDateTime& operator =(const FILETIME& right);
   const CDateTime& operator =(const time_t& right);
   const CDateTime& operator =(const tm& right);
@@ -152,12 +156,12 @@ public:
   bool operator ==(const FILETIME& right) const;
   bool operator !=(const FILETIME& right) const;
 
-  bool operator >(const SYSTEMTIME& right) const;
-  bool operator >=(const SYSTEMTIME& right) const;
-  bool operator <(const SYSTEMTIME& right) const;
-  bool operator <=(const SYSTEMTIME& right) const;
-  bool operator ==(const SYSTEMTIME& right) const;
-  bool operator !=(const SYSTEMTIME& right) const;
+  bool operator >(const SystemTime& right) const;
+  bool operator >=(const SystemTime& right) const;
+  bool operator <(const SystemTime& right) const;
+  bool operator <=(const SystemTime& right) const;
+  bool operator ==(const SystemTime& right) const;
+  bool operator !=(const SystemTime& right) const;
 
   bool operator >(const time_t& right) const;
   bool operator >=(const time_t& right) const;
@@ -214,7 +218,7 @@ public:
    */
   bool SetFromDBDateTime(const std::string &dateTime);
 
-  void GetAsSystemTime(SYSTEMTIME& time) const;
+  void GetAsSystemTime(SystemTime& time) const;
   void GetAsTime(time_t& time) const;
   void GetAsTm(tm& time) const;
   void GetAsTimeStamp(FILETIME& time) const;
@@ -240,7 +244,7 @@ public:
   static CDateTimeSpan GetTimezoneBias(void);
 
 private:
-  bool ToFileTime(const SYSTEMTIME& time, FILETIME& fileTime) const;
+  bool ToFileTime(const SystemTime& time, FILETIME& fileTime) const;
   bool ToFileTime(const time_t& time, FILETIME& fileTime) const;
   bool ToFileTime(const tm& time, FILETIME& fileTime) const;
 

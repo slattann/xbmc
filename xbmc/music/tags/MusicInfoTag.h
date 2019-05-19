@@ -12,16 +12,15 @@ class CSong;
 class CArtist;
 class CVariant;
 
-#include <string>
-#include <vector>
-
-#include "ReplayGain.h"
-#include "XBDateTime.h"
 #include "music/Album.h"
+#include "ReplayGain.h"
 #include "utils/IArchivable.h"
 #include "utils/ISerializable.h"
 #include "utils/ISortable.h"
+#include "XBDateTime.h"
 
+#include <string>
+#include <vector>
 
 namespace MUSIC_INFO
 {
@@ -51,7 +50,7 @@ public:
   int GetDatabaseId() const;
   const std::string &GetType() const;
 
-  void GetReleaseDate(SYSTEMTIME& dateTime) const;
+  void GetReleaseDate(SystemTime& dateTime) const;
   std::string GetYearString() const;
   const std::string& GetMusicBrainzTrackID() const;
   const std::vector<std::string>& GetMusicBrainzArtistID() const;
@@ -95,7 +94,7 @@ public:
   void SetGenre(const std::vector<std::string>& genres, bool bTrim = false);
   void SetYear(int year);
   void SetDatabaseId(long id, const std::string &type);
-  void SetReleaseDate(SYSTEMTIME& dateTime);
+  void SetReleaseDate(SystemTime& dateTime);
   void SetTrackNumber(int iTrack);
   void SetDiscNumber(int iDiscNumber);
   void SetTrackAndDiscNumber(int iTrackAndDisc);
@@ -212,7 +211,7 @@ protected:
   int m_listeners;
   int m_iTimesPlayed;
   int m_iAlbumId;
-  SYSTEMTIME m_dwReleaseDate;
+  SystemTime m_dwReleaseDate;
   CAlbum::ReleaseType m_albumReleaseType;
 
   EmbeddedArtInfo m_coverArt; ///< art information

@@ -1056,14 +1056,14 @@ void iso9660::IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FILETIME* fil
   t.tm_isdst=-1;
   mktime(&t);
 
-  SYSTEMTIME time;
-  time.wYear=t.tm_year+1900;
-  time.wMonth=t.tm_mon+1;
-  time.wDayOfWeek=t.tm_wday;
-  time.wDay=t.tm_mday;
-  time.wHour=t.tm_hour;
-  time.wMinute=t.tm_min;
-  time.wSecond=t.tm_sec;
-  time.wMilliseconds=0;
+  SystemTime time;
+  time.year=t.tm_year+1900;
+  time.month=t.tm_mon+1;
+  time.dayOfWeek=t.tm_wday;
+  time.day=t.tm_mday;
+  time.hour=t.tm_hour;
+  time.minute=t.tm_min;
+  time.second=t.tm_sec;
+  time.milliseconds=0;
   KODI::TIME::SystemTimeToFileTime(&time, filetime);
 }

@@ -152,9 +152,9 @@ CArchive& CArchive::operator<<(const std::wstring& wstr)
   return streamout(wstr.data(), size * sizeof(wchar_t));
 }
 
-CArchive& CArchive::operator<<(const SYSTEMTIME& time)
+CArchive& CArchive::operator<<(const SystemTime& time)
 {
-  return streamout(&time, sizeof(SYSTEMTIME));
+  return streamout(&time, sizeof(SystemTime));
 }
 
 CArchive& CArchive::operator<<(IArchivable& obj)
@@ -265,9 +265,9 @@ CArchive& CArchive::operator>>(std::wstring& wstr)
   return *this;
 }
 
-CArchive& CArchive::operator>>(SYSTEMTIME& time)
+CArchive& CArchive::operator>>(SystemTime& time)
 {
-  return streamin(&time, sizeof(SYSTEMTIME));
+  return streamin(&time, sizeof(SystemTime));
 }
 
 CArchive& CArchive::operator>>(IArchivable& obj)

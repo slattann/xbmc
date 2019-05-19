@@ -949,9 +949,9 @@ CFileItemPtr BuildObject(PLT_MediaObject* entry,
 
   // look for date?
   if(entry->m_Description.date.GetLength()) {
-    SYSTEMTIME time = {};
+    SystemTime time = {};
     sscanf(entry->m_Description.date, "%hu-%hu-%huT%hu:%hu:%hu",
-           &time.wYear, &time.wMonth, &time.wDay, &time.wHour, &time.wMinute, &time.wSecond);
+           &time.year, &time.month, &time.day, &time.hour, &time.minute, &time.second);
     pItem->m_dateTime = time;
   }
 

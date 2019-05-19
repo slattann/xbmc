@@ -501,7 +501,7 @@ void CGUIDialogPVRTimerSettings::OnSettingAction(std::shared_ptr<const CSetting>
   const std::string &settingId = setting->GetId();
   if (settingId == SETTING_TMR_BEGIN)
   {
-    SYSTEMTIME timerStartTime;
+    SystemTime timerStartTime;
     m_startLocalTime.GetAsSystemTime(timerStartTime);
     if (CGUIDialogNumeric::ShowAndGetTime(timerStartTime, g_localizeStrings.Get(14066)))
     {
@@ -512,7 +512,7 @@ void CGUIDialogPVRTimerSettings::OnSettingAction(std::shared_ptr<const CSetting>
   }
   else if (settingId == SETTING_TMR_END)
   {
-    SYSTEMTIME timerEndTime;
+    SystemTime timerEndTime;
     m_endLocalTime.GetAsSystemTime(timerEndTime);
     if (CGUIDialogNumeric::ShowAndGetTime(timerEndTime, g_localizeStrings.Get(14066)))
     {
@@ -684,7 +684,7 @@ void CGUIDialogPVRTimerSettings::SetDateFromIndex(CDateTime &datetime, int date)
     datetime.GetHour(), datetime.GetMinute(), datetime.GetSecond());
 }
 
-void CGUIDialogPVRTimerSettings::SetTimeFromSystemTime(CDateTime &datetime, const SYSTEMTIME &time)
+void CGUIDialogPVRTimerSettings::SetTimeFromSystemTime(CDateTime &datetime, const SystemTime &time)
 {
   const CDateTime newTime(time);
   datetime.SetDateTime(

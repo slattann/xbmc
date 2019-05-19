@@ -713,7 +713,7 @@ bool CGUIWindowPVRGuideBase::OnContextButtonDate()
 {
   bool bReturn = false;
 
-  SYSTEMTIME date;
+  SystemTime date;
   CGUIEPGGridContainer* epgGridContainer = GetGridControl();
   epgGridContainer->GetSelectedDate().GetAsSystemTime(date);
 
