@@ -145,6 +145,8 @@ struct iso_directories
 };
 #define MAX_ISO_FILES 30
 
+const unsigned int FILE_ATTRIBUTE_DIRECTORY{0x10};
+
 class iso9660
 {
 public:

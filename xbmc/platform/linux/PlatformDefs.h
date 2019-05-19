@@ -232,8 +232,6 @@ typedef struct _WIN32_FIND_DATA
     char      cAlternateFileName[14];
 } WIN32_FIND_DATA, *PWIN32_FIND_DATA, *LPWIN32_FIND_DATA;
 
-#define FILE_ATTRIBUTE_DIRECTORY           0x00000010
-
 #define FILE_BEGIN              0
 #define FILE_CURRENT            1
 #define FILE_END                2
