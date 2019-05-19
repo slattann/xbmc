@@ -62,25 +62,25 @@ void GetLocalTime(LPSYSTEMTIME sysTime)
   g_timezone.m_IsDST = now.tm_isdst;
 }
 
-int FileTimeToLocalFileTime(const FILETIME* lpFileTime, LPFILETIME lpLocalFileTime)
+int FileTimeToLocalFileTime(const FileTime* fileTime, FileTime* localFileTime)
 {
   ULARGE_INTEGER l;
-  l.u.LowPart = lpFileTime->dwLowDateTime;
-  l.u.HighPart = lpFileTime->dwHighDateTime;
+  l.u.LowPart = fileTime->lowDateTime;
+  l.u.HighPart = fileTime->highDateTime;
 
   time_t ft;
   struct tm tm_ft;
-  FileTimeToTimeT(lpFileTime, &ft);
+  FileTimeToTimeT(fileTime, &ft);
   localtime_r(&ft, &tm_ft);
 
   l.QuadPart += static_cast<unsigned long long>(tm_ft.tm_gmtoff) * 10000000;
 
-  lpLocalFileTime->dwLowDateTime = l.u.LowPart;
-  lpLocalFileTime->dwHighDateTime = l.u.HighPart;
+  localFileTime->lowDateTime = l.u.LowPart;
+  localFileTime->highDateTime = l.u.HighPart;
   return 1;
 }
 
-int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime)
+int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime, FileTime* fileTime)
 {
   static const int dayoffset[12] = {0, 31, 59, 90, 120, 151, 182, 212, 243, 273, 304, 334};
 #if defined(TARGET_DARWIN)
@@ -116,21 +116,21 @@ int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime)
   result.QuadPart = (long long) t * 10000000 + (long long) lpSystemTime->wMilliseconds * 10000;
   result.QuadPart += WIN32_TIME_OFFSET;
 
-  lpFileTime->dwLowDateTime = result.u.LowPart;
-  lpFileTime->dwHighDateTime = result.u.HighPart;
+  fileTime->lowDateTime = result.u.LowPart;
+  fileTime->highDateTime = result.u.HighPart;
 
   return 1;
 }
 
-long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2)
+long CompareFileTime(const FileTime* fileTime1, const FileTime* fileTime2)
 {
   ULARGE_INTEGER t1;
-  t1.u.LowPart = lpFileTime1->dwLowDateTime;
-  t1.u.HighPart = lpFileTime1->dwHighDateTime;
+  t1.u.LowPart = fileTime1->lowDateTime;
+  t1.u.HighPart = fileTime1->highDateTime;
 
   ULARGE_INTEGER t2;
-  t2.u.LowPart = lpFileTime2->dwLowDateTime;
-  t2.u.HighPart = lpFileTime2->dwHighDateTime;
+  t2.u.LowPart = fileTime2->lowDateTime;
+  t2.u.HighPart = fileTime2->highDateTime;
 
   if (t1.QuadPart == t2.QuadPart)
      return 0;
@@ -140,18 +140,18 @@ long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2)
      return 1;
 }
 
-int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime)
+int FileTimeToSystemTime( const FileTime* fileTime, LPSYSTEMTIME lpSystemTime)
 {
-  LARGE_INTEGER fileTime;
-  fileTime.u.LowPart = lpFileTime->dwLowDateTime;
-  fileTime.u.HighPart = lpFileTime->dwHighDateTime;
+  LARGE_INTEGER file;
+  file.u.LowPart = fileTime->lowDateTime;
+  file.u.HighPart = fileTime->highDateTime;
 
-  fileTime.QuadPart -= WIN32_TIME_OFFSET;
-  fileTime.QuadPart /= 10000; /* to milliseconds */
-  lpSystemTime->wMilliseconds = fileTime.QuadPart % 1000;
-  fileTime.QuadPart /= 1000; /* to seconds */
+  file.QuadPart -= WIN32_TIME_OFFSET;
+  file.QuadPart /= 10000; /* to milliseconds */
+  lpSystemTime->wMilliseconds = file.QuadPart % 1000;
+  file.QuadPart /= 1000; /* to seconds */
 
-  time_t ft = fileTime.QuadPart;
+  time_t ft = file.QuadPart;
 
   struct tm tm_ft;
   gmtime_r(&ft,&tm_ft);
@@ -167,28 +167,28 @@ int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime)
   return 1;
 }
 
-int LocalFileTimeToFileTime( const FILETIME* lpLocalFileTime, LPFILETIME lpFileTime)
+int LocalFileTimeToFileTime( const FileTime* localFileTime, FileTime* fileTime)
 {
   ULARGE_INTEGER l;
-  l.u.LowPart = lpLocalFileTime->dwLowDateTime;
-  l.u.HighPart = lpLocalFileTime->dwHighDateTime;
+  l.u.LowPart = localFileTime->lowDateTime;
+  l.u.HighPart = localFileTime->highDateTime;
 
   l.QuadPart += (unsigned long long) timezone * 10000000;
 
-  lpFileTime->dwLowDateTime = l.u.LowPart;
-  lpFileTime->dwHighDateTime = l.u.HighPart;
+  fileTime->lowDateTime = l.u.LowPart;
+  fileTime->highDateTime = l.u.HighPart;
 
   return 1;
 }
 
-int FileTimeToTimeT(const FILETIME* lpLocalFileTime, time_t *pTimeT) {
+int FileTimeToTimeT(const FileTime* localFileTime, time_t *pTimeT) {
 
-  if (lpLocalFileTime == NULL || pTimeT == NULL)
-  return false;
+  if (!localFileTime || !pTimeT)
+    return false;
 
   ULARGE_INTEGER fileTime;
-  fileTime.u.LowPart  = lpLocalFileTime->dwLowDateTime;
-  fileTime.u.HighPart = lpLocalFileTime->dwHighDateTime;
+  fileTime.u.LowPart  = localFileTime->lowDateTime;
+  fileTime.u.HighPart = localFileTime->highDateTime;
 
   fileTime.QuadPart -= WIN32_TIME_OFFSET;
   fileTime.QuadPart /= 10000; /* to milliseconds */
@@ -203,17 +203,17 @@ int FileTimeToTimeT(const FILETIME* lpLocalFileTime, time_t *pTimeT) {
   return 1;
 }
 
-int TimeTToFileTime(time_t timeT, FILETIME* lpLocalFileTime) {
+int TimeTToFileTime(time_t timeT, FileTime* localFileTime) {
 
-  if (lpLocalFileTime == NULL)
-  return false;
+  if (!localFileTime)
+    return false;
 
   ULARGE_INTEGER result;
   result.QuadPart = (unsigned long long) timeT * 10000000;
   result.QuadPart += WIN32_TIME_OFFSET;
 
-  lpLocalFileTime->dwLowDateTime  = result.u.LowPart;
-  lpLocalFileTime->dwHighDateTime = result.u.HighPart;
+  localFileTime->lowDateTime  = result.u.LowPart;
+  localFileTime->highDateTime = result.u.HighPart;
 
   return 1;
 }

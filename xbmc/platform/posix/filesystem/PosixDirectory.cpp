@@ -78,7 +78,7 @@ bool CPosixDirectory::GetDirectory(const CURL& url, CFileItemList &items)
     {
       if (bStat || stat(pItem->GetPath().c_str(), &buffer) == 0)
       {
-        FILETIME fileTime, localTime;
+        FileTime fileTime, localTime;
         TimeTToFileTime(buffer.st_mtime, &fileTime);
         FileTimeToLocalFileTime(&fileTime, &localTime);
         pItem->m_dateTime = localTime;

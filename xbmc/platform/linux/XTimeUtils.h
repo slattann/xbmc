@@ -9,16 +9,17 @@
 #pragma once
 
 #include "PlatformDefs.h"
+#include "XBDateTime.h"
 
 void GetLocalTime(LPSYSTEMTIME);
 
 void WINAPI Sleep(uint32_t dwMilliSeconds);
 
-int FileTimeToLocalFileTime(const FILETIME* lpFileTime, LPFILETIME lpLocalFileTime);
-int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime,  LPFILETIME lpFileTime);
-long CompareFileTime(const FILETIME* lpFileTime1, const FILETIME* lpFileTime2);
-int FileTimeToSystemTime( const FILETIME* lpFileTime, LPSYSTEMTIME lpSystemTime);
-int LocalFileTimeToFileTime( const FILETIME* lpLocalFileTime, LPFILETIME lpFileTime);
+int FileTimeToLocalFileTime(const FileTime* fileTime, FileTime* localFileTime);
+int SystemTimeToFileTime(const SYSTEMTIME* lpSystemTime, FileTime* fileTime);
+long CompareFileTime(const FileTime* fileTime1, const FileTime* fileTime2);
+int FileTimeToSystemTime( const FileTime* fileTime, LPSYSTEMTIME lpSystemTime);
+int LocalFileTimeToFileTime( const FileTime* localFileTime, FileTime* fileTime);
 
-int FileTimeToTimeT(const FILETIME* lpLocalFileTime, time_t *pTimeT);
-int TimeTToFileTime(time_t timeT, FILETIME* lpLocalFileTime);
+int FileTimeToTimeT(const FileTime* localFileTime, time_t *pTimeT);
+int TimeTToFileTime(time_t timeT, FileTime* localFileTime);

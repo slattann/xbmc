@@ -707,16 +707,16 @@ bool CCPUInfo::readProcStat(unsigned long long& user, unsigned long long& nice,
   nice = 0;
   io = 0;
 #if defined (TARGET_WINDOWS_DESKTOP)
-  FILETIME idleTime;
-  FILETIME kernelTime;
-  FILETIME userTime;
+  FileTime idleTime;
+  FileTime kernelTime;
+  FileTime userTime;
   if (GetSystemTimes(&idleTime, &kernelTime, &userTime) == 0)
     return false;
 
-  idle = (uint64_t(idleTime.dwHighDateTime) << 32) + uint64_t(idleTime.dwLowDateTime);
+  idle = (uint64_t(idleTime.highDateTime) << 32) + uint64_t(idleTime.lowDateTime);
   // returned "kernelTime" includes "idleTime"
-  system = (uint64_t(kernelTime.dwHighDateTime) << 32) + uint64_t(kernelTime.dwLowDateTime) - idle;
-  user = (uint64_t(userTime.dwHighDateTime) << 32) + uint64_t(userTime.dwLowDateTime);
+  system = (uint64_t(kernelTime.highDateTime) << 32) + uint64_t(kernelTime.lowDateTime) - idle;
+  user = (uint64_t(userTime.highDateTime) << 32) + uint64_t(userTime.lowDateTime);
 
   if (m_cpuFreqCounter && PdhCollectQueryData(m_cpuQueryLoad) == ERROR_SUCCESS)
   {

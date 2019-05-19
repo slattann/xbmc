@@ -11,7 +11,7 @@
 
 #include <vector>
 #include <string>
-#include "PlatformDefs.h" // for win32 types
+#include "XBDateTime.h"
 
 #ifdef TARGET_WINDOWS
 // Ideally we should just be including iso9660.h, but it's not win32-ified at this point,
@@ -131,7 +131,7 @@ struct iso_dirtree
   char type;  // bit 0 = no entry, bit 1 = file, bit 2 = dir
   DWORD Location; // number of the first sector of file data or directory
   DWORD Length;      // number of bytes of file data or length of directory
-  FILETIME filetime; // date time of the directory/file
+  FileTime filetime; // date time of the directory/file
 
   struct iso_dirtree *dirpointer; // if type is a dir, this will point to the list in that dir
   struct iso_dirtree *next;  // pointer to next file/dir in this directory
@@ -150,9 +150,9 @@ const unsigned int FILE_ATTRIBUTE_DIRECTORY{0x10};
 struct Win32FindData
 {
   unsigned int fileAttributes;
-  FILETIME creationTime;
-  FILETIME lastAccessTime;
-  FILETIME lastWriteTime;
+  FileTime creationTime;
+  FileTime lastAccessTime;
+  FileTime lastWriteTime;
   unsigned int fileSizeHigh;
   unsigned int fileSizeLow;
   unsigned int reserved0;
@@ -196,7 +196,7 @@ public:
   bool IsScanned();
 
 protected:
-  void IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FILETIME* filetime);
+  void IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FileTime* filetime);
   struct iso_dirtree* ReadRecursiveDirFromSector( DWORD sector, const char * );
   struct iso_dirtree* FindFolder(const char *Folder );
   std::string GetThinText(unsigned char* strTxt, int iLen );

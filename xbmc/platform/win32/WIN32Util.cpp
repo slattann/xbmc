@@ -474,12 +474,12 @@ std::wstring CWIN32Util::ConvertPathToWin32Form(const CURL& url)
   return std::wstring(); // empty string
 }
 
-__time64_t CWIN32Util::fileTimeToTimeT(const FILETIME& ftimeft)
+__time64_t CWIN32Util::fileTimeToTimeT(const FileTime& ftimeft)
 {
-  if (!ftimeft.dwHighDateTime && !ftimeft.dwLowDateTime)
+  if (!ftimeft.highDateTime && !ftimeft.lowDateTime)
     return 0;
 
-  return fileTimeToTimeT((__int64(ftimeft.dwHighDateTime) << 32) + __int64(ftimeft.dwLowDateTime));
+  return fileTimeToTimeT((__int64(ftimeft.highDateTime) << 32) + __int64(ftimeft.lowDateTime));
 }
 
 __time64_t CWIN32Util::fileTimeToTimeT(const LARGE_INTEGER& ftimeli)

@@ -65,6 +65,12 @@ enum TIME_FORMAT { TIME_FORMAT_GUESS       =  0, ///< usually used as the fallba
                    TIME_FORMAT_M           = 256 ///< <b>m</b> - minutes only (1-digit)
                    };
 
+struct FileTime
+{
+  unsigned int lowDateTime;
+  unsigned int highDateTime;
+};
+
 class CDateTime;
 
 class CDateTimeSpan
@@ -102,19 +108,19 @@ private:
   void FromULargeInt(const ULARGE_INTEGER& time);
 
 private:
-  FILETIME m_timeSpan;
+  FileTime m_timeSpan;
 
   friend class CDateTime;
 };
 
-/// \brief DateTime class, which uses FILETIME as it's base.
+/// \brief DateTime class, which uses FileTime as it's base.
 class CDateTime final : public IArchivable
 {
 public:
   CDateTime();
   CDateTime(const CDateTime& time);
   explicit CDateTime(const SYSTEMTIME& time);
-  explicit CDateTime(const FILETIME& time);
+  explicit CDateTime(const FileTime& time);
   explicit CDateTime(const time_t& time);
   explicit CDateTime(const tm& time);
   CDateTime(int year, int month, int day, int hour, int minute, int second);
@@ -134,7 +140,7 @@ public:
   static CDateTime FromRFC1123DateTime(const std::string &dateTime);
 
   const CDateTime& operator =(const SYSTEMTIME& right);
-  const CDateTime& operator =(const FILETIME& right);
+  const CDateTime& operator =(const FileTime& right);
   const CDateTime& operator =(const time_t& right);
   const CDateTime& operator =(const tm& right);
 
@@ -145,12 +151,12 @@ public:
   bool operator ==(const CDateTime& right) const;
   bool operator !=(const CDateTime& right) const;
 
-  bool operator >(const FILETIME& right) const;
-  bool operator >=(const FILETIME& right) const;
-  bool operator <(const FILETIME& right) const;
-  bool operator <=(const FILETIME& right) const;
-  bool operator ==(const FILETIME& right) const;
-  bool operator !=(const FILETIME& right) const;
+  bool operator >(const FileTime& right) const;
+  bool operator >=(const FileTime& right) const;
+  bool operator <(const FileTime& right) const;
+  bool operator <=(const FileTime& right) const;
+  bool operator ==(const FileTime& right) const;
+  bool operator !=(const FileTime& right) const;
 
   bool operator >(const SYSTEMTIME& right) const;
   bool operator >=(const SYSTEMTIME& right) const;
@@ -181,7 +187,7 @@ public:
 
   CDateTimeSpan operator -(const CDateTime& right) const;
 
-  operator FILETIME() const;
+  operator FileTime() const;
 
   void Archive(CArchive& ar) override;
 
@@ -217,7 +223,7 @@ public:
   void GetAsSystemTime(SYSTEMTIME& time) const;
   void GetAsTime(time_t& time) const;
   void GetAsTm(tm& time) const;
-  void GetAsTimeStamp(FILETIME& time) const;
+  void GetAsTimeStamp(FileTime& time) const;
 
   CDateTime GetAsUTCDateTime() const;
   std::string GetAsSaveString() const;
@@ -240,15 +246,15 @@ public:
   static CDateTimeSpan GetTimezoneBias(void);
 
 private:
-  bool ToFileTime(const SYSTEMTIME& time, FILETIME& fileTime) const;
-  bool ToFileTime(const time_t& time, FILETIME& fileTime) const;
-  bool ToFileTime(const tm& time, FILETIME& fileTime) const;
+  bool ToFileTime(const SYSTEMTIME& time, FileTime& fileTime) const;
+  bool ToFileTime(const time_t& time, FileTime& fileTime) const;
+  bool ToFileTime(const tm& time, FileTime& fileTime) const;
 
   void ToULargeInt(ULARGE_INTEGER& time) const;
   void FromULargeInt(const ULARGE_INTEGER& time);
 
 private:
-  FILETIME m_time;
+  FileTime m_time;
 
   typedef enum _STATE
   {
