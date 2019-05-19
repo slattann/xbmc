@@ -34,7 +34,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
   if (!m_isoReader.IsScanned())
     m_isoReader.Scan();
 
-  WIN32_FIND_DATA wfd;
+  Win32FindData wfd;
   HANDLE hFind;
 
   memset(&wfd, 0, sizeof(wfd));
@@ -60,14 +60,14 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
 
   do
   {
-    if (wfd.cFileName[0] != 0)
+    if (wfd.fileName[0] != 0)
     {
-      if ( (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
+      if ( (wfd.fileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
       {
 #ifdef TARGET_WINDOWS
-        auto strDir = KODI::PLATFORM::WINDOWS::FromW(wfd.cFileName);
+        auto strDir = KODI::PLATFORM::WINDOWS::FromW(wfd.fileName);
 #else
-        std::string strDir = wfd.cFileName;
+        std::string strDir = wfd.fileName;
 #endif
         if (strDir != "." && strDir != "..")
         {
@@ -77,7 +77,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
           pItem->SetPath(path);
           pItem->m_bIsFolder = true;
           FILETIME localTime;
-          KODI::TIME::FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
+          KODI::TIME::FileTimeToLocalFileTime(&wfd.lastWriteTime, &localTime);
           pItem->m_dateTime=localTime;
           items.Add(pItem);
         }
@@ -85,16 +85,16 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
       else
       {
 #ifdef TARGET_WINDOWS
-        auto strDir = KODI::PLATFORM::WINDOWS::FromW(wfd.cFileName);
+        auto strDir = KODI::PLATFORM::WINDOWS::FromW(wfd.fileName);
 #else
-        std::string strDir = wfd.cFileName;
+        std::string strDir = wfd.fileName;
 #endif
         CFileItemPtr pItem(new CFileItem(strDir));
         pItem->SetPath(strRoot + strDir);
         pItem->m_bIsFolder = false;
-        pItem->m_dwSize = CUtil::ToInt64(wfd.nFileSizeHigh, wfd.nFileSizeLow);
+        pItem->m_dwSize = CUtil::ToInt64(wfd.fileSizeHigh, wfd.fileSizeLow);
         FILETIME localTime;
-        KODI::TIME::FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
+        KODI::TIME::FileTimeToLocalFileTime(&wfd.lastWriteTime, &localTime);
         pItem->m_dateTime=localTime;
         items.Add(pItem);
       }
