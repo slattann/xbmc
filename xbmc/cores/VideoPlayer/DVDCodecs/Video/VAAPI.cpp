@@ -24,7 +24,7 @@
 #include <va/va_drm.h>
 #include <va/va_drmcommon.h>
 #include <drm_fourcc.h>
-#include "platform/linux/XTimeUtils.h"
+#include "utils/XTimeUtils.h"
 #include "platform/linux/XMemUtils.h"
 
 extern "C" {
@@ -998,7 +998,7 @@ CDVDVideoCodec::VCReturn CDecoder::Check(AVCodecContext* avctx)
   {
     // if there is no other error, sleep for a short while
     // in order not to drain player's message queue
-    Sleep(10);
+    KODI::TIME::Sleep(10);
 
     return CDVDVideoCodec::VC_NOBUFFER;
   }

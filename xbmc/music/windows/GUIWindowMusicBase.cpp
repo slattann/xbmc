@@ -57,10 +57,7 @@
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "Autorun.h"
 #include "video/dialogs/GUIDialogVideoInfo.h"
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #include <algorithm>
 
@@ -893,7 +890,7 @@ void CGUIWindowMusicBase::OnRetrieveMusicInfo(CFileItemList& items)
         m_dlgProgress->Progress();
       }
     } // if (bShowProgress)
-    Sleep(1);
+    KODI::TIME::Sleep(1);
   } // while (m_musicInfoLoader.IsLoading())
 
   if (bProgressVisible && m_dlgProgress)

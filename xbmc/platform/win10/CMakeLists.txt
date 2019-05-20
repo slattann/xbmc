@@ -6,7 +6,8 @@ set(SOURCES input/RemoteControlXbox.cpp
             ../win32/dxerr.cpp
             ../win32/Filesystem.cpp
             ../win32/pch.cpp
-            ../win32/WIN32Util.cpp)
+            ../win32/WIN32Util.cpp
+            ../win32/XTimeUtils.cpp)
 
 set(HEADERS input/RemoteControlXbox.h
             AsyncHelpers.h

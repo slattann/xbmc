@@ -35,9 +35,7 @@
 #include "utils/StringUtils.h"
 #include "dialogs/GUIDialogExtendedProgressBar.h"
 #include "URL.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #include <functional>
 
@@ -747,7 +745,7 @@ bool CAddonInstallJob::Install(const std::string &installFrom, const RepositoryP
         if (CAddonInstaller::GetInstance().HasJob(addonID))
         {
           while (CAddonInstaller::GetInstance().HasJob(addonID))
-            Sleep(50);
+            KODI::TIME::Sleep(50);
 
           if (!CServiceBroker::GetAddonMgr().IsAddonInstalled(addonID))
           {

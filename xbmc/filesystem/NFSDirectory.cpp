@@ -6,20 +6,19 @@
  *  See LICENSES/README.md for more information.
  */
 
+#include "NFSDirectory.h"
+
+#include "FileItem.h"
+#include "threads/SingleLock.h"
+#include "utils/log.h"
+#include "utils/StringUtils.h"
+#include "utils/URIUtils.h"
+#include "utils/XTimeUtils.h"
+
 #ifdef TARGET_WINDOWS
 #include <sys\stat.h>
 #endif
 
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
-
-#include "NFSDirectory.h"
-#include "FileItem.h"
-#include "utils/log.h"
-#include "utils/URIUtils.h"
-#include "utils/StringUtils.h"
-#include "threads/SingleLock.h"
 using namespace XFILE;
 #include <limits.h>
 #include <nfsc/libnfs.h>
@@ -254,7 +253,7 @@ bool CNFSDirectory::GetDirectory(const CURL& url, CFileItemList &items)
       ll += 116444736000000000ll;
       fileTime.dwLowDateTime = (DWORD) (ll & 0xffffffff);
       fileTime.dwHighDateTime = (DWORD)(ll >> 32);
-      FileTimeToLocalFileTime(&fileTime, &localTime);
+      KODI::TIME::FileTimeToLocalFileTime(&fileTime, &localTime);
 
       CFileItemPtr pItem(new CFileItem(tmpDirent.name));
       pItem->m_dateTime=localTime;

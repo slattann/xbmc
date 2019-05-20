@@ -21,6 +21,8 @@
 #include "utils/log.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderManager.h"
 #include "utils/StringUtils.h"
+#include "utils/XTimeUtils.h"
+
 #include <memory>
 
 extern "C" {
@@ -36,7 +38,6 @@ extern "C" {
 #define RINT(x) ((x) >= 0 ? ((int)((x) + 0.5)) : ((int)((x) - 0.5)))
 #else
 #include <math.h>
-#include "platform/linux/XTimeUtils.h"
 #define RINT lrint
 #endif
 

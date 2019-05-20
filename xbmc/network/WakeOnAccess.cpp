@@ -32,9 +32,7 @@
 #include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #ifdef HAS_UPNP
 #include "network/upnp/UPnP.h"
@@ -127,7 +125,7 @@ static void AddMatchingUPnPServers(std::vector<UPnPServer>& list, const std::str
 {
 #ifdef HAS_UPNP
   while (CDateTime::GetCurrentDateTime() < upnpInitReady)
-    Sleep(1000);
+    KODI::TIME::Sleep(1000);
 
   PLT_SyncMediaBrowser* browser = UPNP::CUPnP::GetInstance()->m_MediaBrowser;
 
@@ -328,7 +326,7 @@ public:
         m_dialog->SetPercentage(std::max(percentage, 1)); // avoid flickering , keep minimum 1%
       }
 
-      Sleep (m_dialog ? 20 : 200);
+      KODI::TIME::Sleep (m_dialog ? 20 : 200);
     }
 
     return TimedOut;
@@ -400,7 +398,7 @@ public:
 
       if (host.empty())
       {
-        Sleep(timeOutMs);
+        KODI::TIME::Sleep(timeOutMs);
 
         host = LookupUPnPHost(server.upnpUuid);
       }

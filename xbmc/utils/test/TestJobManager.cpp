@@ -8,13 +8,10 @@
 
 #include "utils/JobManager.h"
 #include "utils/Job.h"
+#include "utils/XTimeUtils.h"
 
 #include "gtest/gtest.h"
 #include <atomic>
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
 
 std::atomic<bool> cancelled(false);
 
@@ -23,7 +20,7 @@ class DummyJob : public CJob
 public:
   bool DoWork() override
   {
-    Sleep(100);
+    KODI::TIME::Sleep(100);
     if (ShouldCancel(0,0))
       cancelled = true;
 
@@ -57,9 +54,9 @@ TEST_F(TestJobManager, CancelJob)
   unsigned int id;
   CJob* job = new DummyJob();
   id = CJobManager::GetInstance().AddJob(job, NULL);
-  Sleep(50);
+  KODI::TIME::Sleep(50);
   CJobManager::GetInstance().CancelJob(id);
-  Sleep(100);
+  KODI::TIME::Sleep(100);
   EXPECT_TRUE(cancelled);
 }
 

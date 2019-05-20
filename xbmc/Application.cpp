@@ -84,6 +84,7 @@
 #include "utils/CPUInfo.h"
 #include "utils/FileExtensionProvider.h"
 #include "utils/log.h"
+#include "utils/XTimeUtils.h"
 #include "SeekHandler.h"
 #include "ServiceBroker.h"
 
@@ -169,7 +170,6 @@
 
 #ifdef TARGET_POSIX
 #include "XHandle.h"
-#include "XTimeUtils.h"
 #include "platform/posix/filesystem/PosixDirectory.h"
 #include "platform/posix/PlatformPosix.h"
 #endif
@@ -2376,7 +2376,7 @@ void CApplication::FrameMove(bool processEvents, bool processGUI)
       if (!m_appPlayer.IsPlayingVideo() || m_appPlayer.IsPausedPlayback())
         max_sleep = 80;
       unsigned int sleepTime = std::max(static_cast<unsigned int>(2), std::min(m_ProcessedExternalCalls >> 2, max_sleep));
-      Sleep(sleepTime);
+      KODI::TIME::Sleep(sleepTime);
       m_frameMoveGuard.lock();
       m_ProcessedExternalDecay = 5;
     }
@@ -2534,7 +2534,7 @@ void CApplication::Stop(int exitCode)
     XbmcThreads::EndTime timer(1000);
     while (m_pAppPort.use_count() > 1)
     {
-      Sleep(100);
+      KODI::TIME::Sleep(100);
       if (timer.IsTimePast())
       {
         CLog::Log(LOGERROR, "CApplication::Stop - CAppPort still in use, app may crash");
@@ -2646,7 +2646,7 @@ void CApplication::Stop(int exitCode)
 
   cleanup_emu_environ();
 
-  Sleep(200);
+  KODI::TIME::Sleep(200);
 }
 
 bool CApplication::PlayMedia(CFileItem& item, const std::string &player, int iPlaylist)

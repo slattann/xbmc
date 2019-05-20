@@ -37,9 +37,7 @@
 #include "pictures/GUIViewStatePictures.h"
 #include "pictures/PictureThumbLoader.h"
 #include "PlayListPlayer.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 #include <random>
 
 using namespace XFILE;
@@ -245,7 +243,7 @@ void CGUIWindowSlideShow::OnDeinitWindow(int nextWindowID)
       // sleep until the loader finishes loading the current pic
       CLog::Log(LOGDEBUG,"Waiting for BackgroundLoader thread to close");
       while (m_pBackgroundLoader->IsLoading())
-        Sleep(10);
+        KODI::TIME::Sleep(10);
       // stop the thread
       CLog::Log(LOGDEBUG,"Stopping BackgroundLoader thread");
       m_pBackgroundLoader->StopThread();

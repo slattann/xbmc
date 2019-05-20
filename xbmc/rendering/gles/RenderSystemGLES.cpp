@@ -17,9 +17,7 @@
 #include "utils/TimeUtils.h"
 #include "utils/SystemInfo.h"
 #include "utils/MathUtils.h"
-#ifdef TARGET_POSIX
-#include "XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #if defined(TARGET_LINUX)
 #include "utils/EGLUtils.h"
@@ -232,7 +230,7 @@ void CRenderSystemGLES::PresentRender(bool rendered, bool videoLayer)
 
   // if video is rendered to a separate layer, we should not block this thread
   if (!rendered && !videoLayer)
-    Sleep(40);
+    KODI::TIME::Sleep(40);
 }
 
 void CRenderSystemGLES::SetVSync(bool enable)

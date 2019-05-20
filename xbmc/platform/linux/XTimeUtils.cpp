@@ -6,8 +6,15 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "XTimeUtils.h"
+#include "utils/XTimeUtils.h"
+
 #include "LinuxTimezone.h"
+
+#include <errno.h>
+#include <sched.h>
+#include <sys/times.h>
+#include <time.h>
+#include <unistd.h>
 
 #if defined(TARGET_DARWIN)
 #include "threads/Atomics.h"
@@ -17,13 +24,12 @@
 #include <time64.h>
 #endif
 
-#include <errno.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/times.h>
-#include <sched.h>
-
 #define WIN32_TIME_OFFSET ((unsigned long long)(369 * 365 + 89) * 24 * 3600 * 10000000)
+
+namespace KODI
+{
+namespace TIME
+{
 
 /*
  * A Leap year is any year that is divisible by four, but not by 100 unless also
@@ -216,4 +222,7 @@ int TimeTToFileTime(time_t timeT, FILETIME* lpLocalFileTime) {
   lpLocalFileTime->dwHighDateTime = result.u.HighPart;
 
   return 1;
+}
+
+}
 }

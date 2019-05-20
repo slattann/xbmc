@@ -16,9 +16,6 @@
 #include "ServiceBroker.h"
 #include "messaging/ApplicationMessenger.h"
 #include "aojsonrpc.h"
-#ifndef TARGET_WINDOWS
-#include "XTimeUtils.h"
-#endif
 #include "guilib/LocalizeStrings.h"
 #include "GUIInfoManager.h"
 #include "guilib/GUIAudioManager.h"
@@ -40,6 +37,8 @@
 #include "utils/LangCodeExpander.h"
 #include "utils/StringUtils.h"
 #include "utils/SystemInfo.h"
+#include "utils/XTimeUtils.h"
+
 #include "AddonUtils.h"
 
 #include "LanguageHook.h"
@@ -153,7 +152,7 @@ namespace XBMCAddon
           long nextSleep = endTime.MillisLeft();
           if (nextSleep > 100)
             nextSleep = 100; // only sleep for 100 millis
-          ::Sleep(nextSleep);
+          KODI::TIME::Sleep(nextSleep);
         }
         if (lh != NULL)
           lh->MakePendingCalls();

@@ -5,7 +5,8 @@ set(SOURCES CharsetConverter.cpp
             Filesystem.cpp
             pch.cpp
             WIN32Util.cpp
-            WindowHelper.cpp)
+            WindowHelper.cpp
+            XTimeUtils.cpp)
 
 set(HEADERS CharsetConverter.h
             dirent.h

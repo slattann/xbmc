@@ -34,9 +34,7 @@
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #ifdef TARGET_WINDOWS
 extern "C" FILE *fopen_utf8(const char *_Filename, const char *_Mode);
@@ -389,7 +387,7 @@ bool CPythonInvoker::execute(const std::string &script, const std::vector<std::s
 
       lock.Leave();
       CPyThreadState pyState;
-      Sleep(100);
+      KODI::TIME::Sleep(100);
       pyState.Restore();
       lock.Enter();
     }

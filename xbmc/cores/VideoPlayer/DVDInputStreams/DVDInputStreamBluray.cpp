@@ -29,10 +29,7 @@
 #include "utils/LangCodeExpander.h"
 #include "filesystem/SpecialProtocol.h"
 #include "utils/StringUtils.h"
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #include <libbluray/bluray.h>
 #include <libbluray/log_control.h>

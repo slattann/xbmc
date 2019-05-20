@@ -19,8 +19,8 @@
 #include "cores/VideoPlayer/VideoRenderers/RenderFactory.h"
 
 #include "OptionalsReg.h"
-#include "platform/linux/XTimeUtils.h"
 #include "utils/log.h"
+#include "utils/XTimeUtils.h"
 #include "WinSystemGbmGLESContext.h"
 
 #include <gbm.h>
@@ -119,7 +119,7 @@ void CWinSystemGbmGLESContext::PresentRender(bool rendered, bool videoLayer)
   }
   else
   {
-    Sleep(10);
+    KODI::TIME::Sleep(10);
   }
 
   if (m_delayDispReset && m_dispResetTimer.IsTimePast())

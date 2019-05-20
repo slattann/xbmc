@@ -30,9 +30,7 @@
 #include "messaging/helpers/DialogOKHelper.h"
 #include "Dialog.h"
 #include "ListItem.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 using namespace KODI::MESSAGING;
 
@@ -284,7 +282,7 @@ namespace XBMCAddon
       DelayedCallGuard dcguard(languageHook);
       std::string value;
       SYSTEMTIME timedate;
-      GetLocalTime(&timedate);
+      KODI::TIME::GetLocalTime(&timedate);
 
       if (!heading.empty())
       {
@@ -358,7 +356,7 @@ namespace XBMCAddon
       DelayedCallGuard dcguard(languageHook);
       std::string value(defaultt);
       SYSTEMTIME timedate;
-      GetLocalTime(&timedate);
+      KODI::TIME::GetLocalTime(&timedate);
 
       switch (type)
       {

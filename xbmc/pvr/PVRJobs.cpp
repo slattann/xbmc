@@ -14,9 +14,7 @@
 #include "events/EventLog.h"
 #include "events/NotificationEvent.h"
 #include "interfaces/AnnouncementManager.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #include "pvr/PVRGUIActions.h"
 #include "pvr/PVRManager.h"
@@ -42,7 +40,7 @@ bool CPVRChannelEntryTimeoutJob::DoWork()
       CServiceBroker::GetPVRManager().GUIActions()->GetChannelNavigator().SwitchToCurrentChannel();
       return true;
     }
-    Sleep(10);
+    KODI::TIME::Sleep(10);
   }
   return false;
 }
@@ -61,7 +59,7 @@ bool CPVRChannelInfoTimeoutJob::DoWork()
       CServiceBroker::GetPVRManager().GUIActions()->GetChannelNavigator().HideInfo();
       return true;
     }
-    Sleep(10);
+    KODI::TIME::Sleep(10);
   }
   return false;
 }

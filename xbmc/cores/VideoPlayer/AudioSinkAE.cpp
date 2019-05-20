@@ -15,9 +15,7 @@
 #include "cores/AudioEngine/Interfaces/AE.h"
 #include "cores/AudioEngine/Utils/AEAudioFormat.h"
 #include "cores/AudioEngine/Utils/AEStreamData.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 CAudioSinkAE::CAudioSinkAE(CDVDClock *clock) : m_pClock(clock)
 {
@@ -148,7 +146,7 @@ unsigned int CAudioSinkAE::AddPackets(const DVDAudioFrame &audioframe)
     }
 
     lock.Leave();
-    Sleep(1);
+    KODI::TIME::Sleep(1);
     lock.Enter();
   } while (!m_bAbort);
 

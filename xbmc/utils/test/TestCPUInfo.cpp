@@ -15,10 +15,7 @@
 #include "ServiceBroker.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
-
-#ifdef TARGET_POSIX
-#include "../linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 #include "gtest/gtest.h"
 
@@ -124,7 +121,7 @@ TEST(TestCPUInfo, GetCPUFeatures)
 TEST(TestCPUInfo, getUsedPercentage_output)
 {
   CCPUInfo c;
-  Sleep(1); //! @todo Support option from main that sets this parameter
+  KODI::TIME::Sleep(1); //! @todo Support option from main that sets this parameter
   int r = c.getUsedPercentage();
   std::cout << "Percentage: " << testing::PrintToString(r) << std::endl;
 }

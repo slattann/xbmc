@@ -18,10 +18,7 @@
 #include "sqlitedataset.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 namespace {
 #define X(VAL) std::make_pair(VAL, #VAL)
@@ -199,7 +196,7 @@ int callback(void* res_ptr,int ncol, char** result,char** cols)
 
 static int busy_callback(void*, int busyCount)
 {
-  Sleep(100);
+  KODI::TIME::Sleep(100);
   return 1;
 }
 

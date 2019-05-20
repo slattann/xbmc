@@ -13,9 +13,8 @@
 #include "utils/StringUtils.h"
 #include "URL.h"
 #include "FileItem.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
+
 #ifdef TARGET_WINDOWS
 #include "platform/win32/CharsetConverter.h"
 #endif
@@ -78,7 +77,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
           pItem->SetPath(path);
           pItem->m_bIsFolder = true;
           FILETIME localTime;
-          FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
+          KODI::TIME::FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
           pItem->m_dateTime=localTime;
           items.Add(pItem);
         }
@@ -95,7 +94,7 @@ bool CISO9660Directory::GetDirectory(const CURL& url, CFileItemList &items)
         pItem->m_bIsFolder = false;
         pItem->m_dwSize = CUtil::ToInt64(wfd.nFileSizeHigh, wfd.nFileSizeLow);
         FILETIME localTime;
-        FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
+        KODI::TIME::FileTimeToLocalFileTime(&wfd.ftLastWriteTime, &localTime);
         pItem->m_dateTime=localTime;
         items.Add(pItem);
       }

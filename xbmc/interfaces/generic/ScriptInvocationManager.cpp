@@ -20,10 +20,7 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/log.h"
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 using namespace XFILE;
 
@@ -328,7 +325,7 @@ int CScriptInvocationManager::ExecuteSync(const std::string &script,
     if (timeout && timeoutMs < sleepMs)
       sleepMs = timeoutMs;
 
-    Sleep(sleepMs);
+    KODI::TIME::Sleep(sleepMs);
 
     if (timeout)
       timeoutMs -= sleepMs;

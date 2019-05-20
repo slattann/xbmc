@@ -20,16 +20,12 @@
 #include "Application.h"
 #include "ServiceBroker.h"
 #include "messaging/ApplicationMessenger.h"
+#include "RenderCapture.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
-
-#if defined(TARGET_POSIX)
-#include "platform/linux/XTimeUtils.h"
-#endif
-
-#include "RenderCapture.h"
+#include "utils/XTimeUtils.h"
 
 /* to use the same as player */
 #include "../VideoPlayer/DVDClock.h"
@@ -654,7 +650,7 @@ void CRenderManager::RemoveCaptures()
       entry.second->GetEvent().Set();
     }
     CSingleExit lockexit(m_captCritSect);
-    Sleep(10);
+    KODI::TIME::Sleep(10);
   }
 
   for (auto entry : m_captures)

@@ -14,8 +14,8 @@
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/Archive.h"
+#include "utils/XTimeUtils.h"
 #ifdef TARGET_POSIX
-#include "XTimeUtils.h"
 #include "XFileUtils.h"
 #else
 #include <Windows.h>
@@ -53,7 +53,7 @@ CDateTimeSpan::CDateTimeSpan(int day, int hour, int minute, int second)
 
 bool CDateTimeSpan::operator >(const CDateTimeSpan& right) const
 {
-  return CompareFileTime(&m_timeSpan, &right.m_timeSpan)>0;
+  return KODI::TIME::CompareFileTime(&m_timeSpan, &right.m_timeSpan)>0;
 }
 
 bool CDateTimeSpan::operator >=(const CDateTimeSpan& right) const
@@ -63,7 +63,7 @@ bool CDateTimeSpan::operator >=(const CDateTimeSpan& right) const
 
 bool CDateTimeSpan::operator <(const CDateTimeSpan& right) const
 {
-  return CompareFileTime(&m_timeSpan, &right.m_timeSpan)<0;
+  return KODI::TIME::CompareFileTime(&m_timeSpan, &right.m_timeSpan)<0;
 }
 
 bool CDateTimeSpan::operator <=(const CDateTimeSpan& right) const
@@ -73,7 +73,7 @@ bool CDateTimeSpan::operator <=(const CDateTimeSpan& right) const
 
 bool CDateTimeSpan::operator ==(const CDateTimeSpan& right) const
 {
-  return CompareFileTime(&m_timeSpan, &right.m_timeSpan)==0;
+  return KODI::TIME::CompareFileTime(&m_timeSpan, &right.m_timeSpan)==0;
 }
 
 bool CDateTimeSpan::operator !=(const CDateTimeSpan& right) const
@@ -284,7 +284,7 @@ CDateTime CDateTime::GetCurrentDateTime()
 {
   // get the current time
   SYSTEMTIME time;
-  GetLocalTime(&time);
+  KODI::TIME::GetLocalTime(&time);
 
   return CDateTime(time);
 }
@@ -357,7 +357,7 @@ bool CDateTime::operator !=(const CDateTime& right) const
 
 bool CDateTime::operator >(const FILETIME& right) const
 {
-  return CompareFileTime(&m_time, &right)>0;
+  return KODI::TIME::CompareFileTime(&m_time, &right)>0;
 }
 
 bool CDateTime::operator >=(const FILETIME& right) const
@@ -367,7 +367,7 @@ bool CDateTime::operator >=(const FILETIME& right) const
 
 bool CDateTime::operator <(const FILETIME& right) const
 {
-  return CompareFileTime(&m_time, &right)<0;
+  return KODI::TIME::CompareFileTime(&m_time, &right)<0;
 }
 
 bool CDateTime::operator <=(const FILETIME& right) const
@@ -377,7 +377,7 @@ bool CDateTime::operator <=(const FILETIME& right) const
 
 bool CDateTime::operator ==(const FILETIME& right) const
 {
-  return CompareFileTime(&m_time, &right)==0;
+  return KODI::TIME::CompareFileTime(&m_time, &right)==0;
 }
 
 bool CDateTime::operator !=(const FILETIME& right) const
@@ -636,7 +636,7 @@ bool CDateTime::IsValid() const
 
 bool CDateTime::ToFileTime(const SYSTEMTIME& time, FILETIME& fileTime) const
 {
-  return SystemTimeToFileTime(&time, &fileTime) == 1 &&
+  return KODI::TIME::SystemTimeToFileTime(&time, &fileTime) == 1 &&
          (fileTime.dwLowDateTime > 0 || fileTime.dwHighDateTime > 0);
 }
 
@@ -664,7 +664,7 @@ bool CDateTime::ToFileTime(const tm& time, FILETIME& fileTime) const
   st.wMinute=time.tm_min;
   st.wSecond=time.tm_sec;
 
-  return SystemTimeToFileTime(&st, &fileTime) == 1;
+  return KODI::TIME::SystemTimeToFileTime(&st, &fileTime) == 1;
 }
 
 void CDateTime::ToULargeInt(ULARGE_INTEGER& time) const
@@ -809,7 +809,7 @@ bool CDateTime::SetTime(int hour, int minute, int second)
 
 void CDateTime::GetAsSystemTime(SYSTEMTIME& time) const
 {
-  FileTimeToSystemTime(&m_time, &time);
+  KODI::TIME::FileTimeToSystemTime(&m_time, &time);
 }
 
 #define UNIX_BASE_TIME 116444736000000000LL /* nanoseconds since epoch */
@@ -837,7 +837,7 @@ void CDateTime::GetAsTm(tm& time) const
 
 void CDateTime::GetAsTimeStamp(FILETIME& time) const
 {
-  ::LocalFileTimeToFileTime(&m_time, &time);
+  ::KODI::TIME::LocalFileTimeToFileTime(&m_time, &time);
 }
 
 std::string CDateTime::GetAsDBDate() const

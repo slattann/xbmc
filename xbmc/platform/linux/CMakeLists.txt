@@ -22,8 +22,7 @@ set(HEADERS ConvUtils.h
             XFileUtils.h
             XHandle.h
             XHandlePublic.h
-            XMemUtils.h
-            XTimeUtils.h)
+            XMemUtils.h)
 
 if(ALSA_FOUND)
   list(APPEND SOURCES FDEventMonitor.cpp)

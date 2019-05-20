@@ -12,7 +12,7 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "FileItem.h"
-#include "platform/linux/XTimeUtils.h"
+#include "utils/XTimeUtils.h"
 #include "URL.h"
 
 #include <dirent.h>
@@ -79,8 +79,8 @@ bool CPosixDirectory::GetDirectory(const CURL& url, CFileItemList &items)
       if (bStat || stat(pItem->GetPath().c_str(), &buffer) == 0)
       {
         FILETIME fileTime, localTime;
-        TimeTToFileTime(buffer.st_mtime, &fileTime);
-        FileTimeToLocalFileTime(&fileTime, &localTime);
+        KODI::TIME::TimeTToFileTime(buffer.st_mtime, &fileTime);
+        KODI::TIME::FileTimeToLocalFileTime(&fileTime, &localTime);
         pItem->m_dateTime = localTime;
 
         if (!pItem->m_bIsFolder)

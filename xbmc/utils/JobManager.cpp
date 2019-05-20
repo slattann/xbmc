@@ -12,9 +12,7 @@
 #include <stdexcept>
 #include "threads/SingleLock.h"
 #include "utils/log.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 
 bool CJob::ShouldCancel(unsigned int progress, unsigned int total) const
 {
@@ -201,7 +199,7 @@ void CJobManager::CancelJobs()
   {
     lock.Leave();
     m_jobEvent.Set();
-    Sleep(0); // yield after setting the event to give the workers some time to die
+    KODI::TIME::Sleep(0); // yield after setting the event to give the workers some time to die
     lock.Enter();
   }
 }

@@ -16,6 +16,7 @@
 #include "File.h"
 #include "threads/SystemClock.h"
 #include "utils/Base64.h"
+#include "utils/XTimeUtils.h"
 
 #include <algorithm>
 #include <vector>
@@ -26,7 +27,6 @@
 #include <errno.h>
 #include <inttypes.h>
 #include "../linux/XFileUtils.h"
-#include "../linux/XTimeUtils.h"
 #include "../linux/ConvUtils.h"
 #endif
 
@@ -950,7 +950,7 @@ void CCurlFile::Cancel()
 {
   m_state->m_cancelled = true;
   while (m_opened)
-    Sleep(1);
+    KODI::TIME::Sleep(1);
 }
 
 void CCurlFile::Reset()

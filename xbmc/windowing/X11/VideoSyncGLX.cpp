@@ -14,11 +14,9 @@
 #include "threads/SingleLock.h"
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
-#include <string>
+#include "utils/XTimeUtils.h"
 
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include <string>
 
 Display* CVideoSyncGLX::m_Dpy = NULL;
 

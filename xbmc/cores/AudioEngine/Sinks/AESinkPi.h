@@ -12,7 +12,7 @@
 #include "cores/AudioEngine/Utils/AEDeviceInfo.h"
 
 #include "platform/linux/OMXCore.h"
-#include "platform/linux/XTimeUtils.h"
+#include "utils/XTimeUtils.h"
 
 class CAESinkPi : public IAESink
 {

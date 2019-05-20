@@ -33,11 +33,11 @@ ISO9660
 #include "threads/SingleLock.h"
 #include "IFile.h"
 #include "utils/log.h"
+#include "utils/XTimeUtils.h"
 
 #ifndef TARGET_WINDOWS
 #include "storage/DetectDVDType.h"  // for MODE2_DATA_SIZE etc.
 #include "platform/linux/XFileUtils.h"
-#include "platform/linux/XTimeUtils.h"
 #else
 #include "platform/win32/CharsetConverter.h"
 #endif
@@ -1065,5 +1065,5 @@ void iso9660::IsoDateTimeToFileTime(iso9660_Datetime* isoDateTime, FILETIME* fil
   time.wMinute=t.tm_min;
   time.wSecond=t.tm_sec;
   time.wMilliseconds=0;
-  SystemTimeToFileTime(&time, filetime);
+  KODI::TIME::SystemTimeToFileTime(&time, filetime);
 }

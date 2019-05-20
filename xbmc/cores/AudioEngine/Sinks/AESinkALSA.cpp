@@ -25,12 +25,10 @@
 #include "threads/SingleLock.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
+#include "utils/XTimeUtils.h"
+
 #if defined(HAS_LIBAMCODEC)
 #include "utils/AMLUtils.h"
-#endif
-
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
 #endif
 
 #define ALSA_OPTIONS (SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_AUTO_CHANNELS | SND_PCM_NO_AUTO_RESAMPLE)
@@ -952,7 +950,7 @@ void CAESinkALSA::HandleError(const char* name, int err)
 
       /* try to resume the stream */
       while((err = snd_pcm_resume(m_pcm)) == -EAGAIN)
-        Sleep(1);
+        KODI::TIME::Sleep(1);
 
       /* if the hardware doesnt support resume, prepare the stream */
       if (err == -ENOSYS)

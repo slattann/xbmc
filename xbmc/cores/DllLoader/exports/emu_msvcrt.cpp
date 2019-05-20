@@ -41,7 +41,6 @@
 #ifdef TARGET_POSIX
 #include "PlatformDefs.h" // for __stat64
 #include "XFileUtils.h"
-#include "XTimeUtils.h"
 #endif
 #include "ServiceBroker.h"
 #include "Util.h"
@@ -52,6 +51,7 @@
 #include "settings/SettingsComponent.h"
 #include "FileItem.h"
 #include "filesystem/Directory.h"
+
 
 #include "emu_msvcrt.h"
 #include "emu_dummy.h"
@@ -67,6 +67,7 @@
 #endif
 #include "platform/Environment.h"
 #include "utils/StringUtils.h"
+#include "utils/XTimeUtils.h"
 
 #if defined(TARGET_WINDOWS)
 #include "platform/win32/CharsetConverter.h"
@@ -278,7 +279,7 @@ extern "C"
 {
   void dll_sleep(unsigned long imSec)
   {
-    Sleep(imSec);
+    KODI::TIME::Sleep(imSec);
   }
 
   // FIXME, XXX, !!!!!!

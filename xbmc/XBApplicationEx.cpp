@@ -13,9 +13,7 @@
 #include "utils/log.h"
 #include "threads/SystemClock.h"
 #include "commons/Exception.h"
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
+#include "utils/XTimeUtils.h"
 #include "AppParamParser.h"
 
 CXBApplicationEx::CXBApplicationEx()
@@ -76,7 +74,7 @@ int CXBApplicationEx::Run(const CAppParamParser &params)
     {
       frameTime = XbmcThreads::SystemClockMillis() - lastFrameTime;
       if(frameTime < noRenderFrameTime)
-        Sleep(noRenderFrameTime - frameTime);
+        KODI::TIME::Sleep(noRenderFrameTime - frameTime);
     }
 
   }

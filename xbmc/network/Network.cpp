@@ -22,10 +22,8 @@
 #include "platform/win32/WIN32Util.h"
 #include "utils/CharsetConverter.h"
 #endif
-#ifdef TARGET_POSIX
-#include "platform/linux/XTimeUtils.h"
-#endif
 #include "utils/StringUtils.h"
+#include "utils/XTimeUtils.h"
 
 using namespace KODI::MESSAGING;
 
@@ -529,7 +527,7 @@ void CNetworkBase::WaitForNet()
   for(int i=0; i < numMaxTries; ++i)
   {
     if (i > 0)
-      Sleep(intervalMs);
+      KODI::TIME::Sleep(intervalMs);
 
     if (IsConnected())
     {
