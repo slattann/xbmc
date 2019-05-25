@@ -9,6 +9,7 @@
 #include "utils/URIUtils.h"
 #include "FileDirectoryFactory.h"
 #include "UDFDirectory.h"
+#include "ISO9660Directory.h"
 #include "RSSDirectory.h"
 #if defined(TARGET_ANDROID)
 #include "platform/android/filesystem/APKDirectory.h"
@@ -99,7 +100,8 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
     return new CRSSDirectory();
 
   if (pItem->IsDiscImage())
-    return new CUDFDirectory();
+    return new CISO9660Directory();
+  //  return new CUDFDirectory();
 
 #if defined(TARGET_ANDROID)
   if (url.IsFileType("apk"))

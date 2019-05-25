@@ -23,9 +23,8 @@ set(SOURCES AddonsDirectory.cpp
             IDirectory.cpp
             IFile.cpp
             ImageFile.cpp
-            iso9660.cpp
+            ISO9660File.cpp
             ISO9660Directory.cpp
-            ISOFile.cpp
             LibraryDirectory.cpp
             MultiPathDirectory.cpp
             MultiPathFile.cpp
@@ -93,8 +92,7 @@ set(HEADERS AddonsDirectory.h
             IFileTypes.h
             ImageFile.h
             ISO9660Directory.h
-            ISOFile.h
-            iso9660.h
+            ISO9660File.h
             LibraryDirectory.h
             MultiPathDirectory.h
             MultiPathFile.h

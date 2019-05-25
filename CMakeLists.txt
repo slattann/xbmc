@@ -117,6 +117,7 @@ endforeach()
 # Required dependencies. Keep in alphabetical order please
 set(required_deps ASS
                   Cdio
+                  Cdiopp
                   Cpluff
                   CrossGUID
                   Curl

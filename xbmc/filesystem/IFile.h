@@ -14,7 +14,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "PlatformDefs.h" // for __stat64, ssize_t
+#include "platform/posix/PlatformDefs.h" // for __stat64, ssize_t
 
 #include <stdio.h>
 #include <stdint.h>

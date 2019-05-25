@@ -27,7 +27,7 @@
 #endif
 #endif
 #include "CDDAFile.h"
-#include "ISOFile.h"
+#include "ISO9660File.h"
 #if defined(TARGET_ANDROID)
 #include "platform/android/filesystem/APKFile.h"
 #endif
@@ -116,7 +116,7 @@ IFile* CFileFactory::CreateLoader(const CURL& url)
 #if defined(HAS_DVD_DRIVE)
   else if (url.IsProtocol("cdda")) return new CFileCDDA();
 #endif
-  else if (url.IsProtocol("iso9660")) return new CISOFile();
+  else if (url.IsProtocol("iso9660")) return new CISO9660File();
   else if(url.IsProtocol("udf")) return new CUDFFile();
 #if defined(TARGET_ANDROID)
   else if (url.IsProtocol("androidapp")) return new CFileAndroidApp();
