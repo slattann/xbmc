@@ -388,6 +388,18 @@ bool CDisplaySettings::OnSettingUpdate(std::shared_ptr<CSetting> setting, const 
   return false;
 }
 
+void CDisplaySettings::OnSettingChanged(std::shared_ptr<const CSetting> setting)
+{
+  if (!setting)
+    return;
+
+  const std::string& settingId = setting->GetId();
+  if (settingId == CSettings::SETTING_VIDEOSCREEN_WHITELIST)
+  {
+    CResolutionUtils::PrintWhitelist();
+  }
+}
+
 void CDisplaySettings::SetMonitor(std::string monitor)
 {
   const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
