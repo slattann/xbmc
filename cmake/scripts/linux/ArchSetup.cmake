@@ -47,6 +47,8 @@ if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
   endif()
 endif()
 
+add_options(ALL_LANGUAGES DEBUG "-O0" "-ggdb")
+
 if((CMAKE_BUILD_TYPE STREQUAL Release OR CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
     AND CMAKE_COMPILER_IS_GNUCXX)
   # Make sure we strip binaries in Release build
