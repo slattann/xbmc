@@ -502,7 +502,7 @@ HRESULT CWIN32Util::ToggleTray(const char cDriveLetter)
   char cDL = cDriveLetter;
   if( !cDL )
   {
-    std::string dvdDevice = g_mediaManager.TranslateDevicePath("");
+    std::string dvdDevice = CServiceBroker::GetMediaManager().TranslateDevicePath("");
     if(dvdDevice == "")
       return S_FALSE;
     cDL = dvdDevice[0];
@@ -526,7 +526,7 @@ HRESULT CWIN32Util::ToggleTray(const char cDriveLetter)
     CMediaSource share;
     share.strPath = StringUtils::Format("%c:", cDL);
     share.strName = share.strPath;
-    g_mediaManager.RemoveAutoSource(share);
+    CServiceBroker::GetMediaManager().RemoveAutoSource(share);
   }
   CloseHandle(hDrive);
   return bRet? S_OK : S_FALSE;
@@ -538,7 +538,7 @@ HRESULT CWIN32Util::EjectTray(const char cDriveLetter)
   char cDL = cDriveLetter;
   if( !cDL )
   {
-    std::string dvdDevice = g_mediaManager.TranslateDevicePath("");
+    std::string dvdDevice = CServiceBroker::GetMediaManager().TranslateDevicePath("");
     if(dvdDevice.empty())
       return S_FALSE;
     cDL = dvdDevice[0];
@@ -557,7 +557,7 @@ HRESULT CWIN32Util::CloseTray(const char cDriveLetter)
   char cDL = cDriveLetter;
   if( !cDL )
   {
-    std::string dvdDevice = g_mediaManager.TranslateDevicePath("");
+    std::string dvdDevice = CServiceBroker::GetMediaManager().TranslateDevicePath("");
     if(dvdDevice.empty())
       return S_FALSE;
     cDL = dvdDevice[0];

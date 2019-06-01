@@ -34,7 +34,7 @@ bool CGUIDialogPlayEject::OnMessage(CGUIMessage& message)
     int iControl = message.GetSenderId();
     if (iControl == ID_BUTTON_PLAY)
     {
-      if (g_mediaManager.IsDiscInDrive())
+      if (CServiceBroker::GetMediaManager().IsDiscInDrive())
       {
         m_bConfirmed = true;
         Close();
@@ -44,7 +44,7 @@ bool CGUIDialogPlayEject::OnMessage(CGUIMessage& message)
     }
     if (iControl == ID_BUTTON_EJECT)
     {
-      g_mediaManager.ToggleTray();
+      CServiceBroker::GetMediaManager().ToggleTray();
       return true;
     }
   }
@@ -54,14 +54,14 @@ bool CGUIDialogPlayEject::OnMessage(CGUIMessage& message)
 
 void CGUIDialogPlayEject::FrameMove()
 {
-  CONTROL_ENABLE_ON_CONDITION(ID_BUTTON_PLAY, g_mediaManager.IsDiscInDrive());
+  CONTROL_ENABLE_ON_CONDITION(ID_BUTTON_PLAY, CServiceBroker::GetMediaManager().IsDiscInDrive());
 
   CGUIDialogYesNo::FrameMove();
 }
 
 void CGUIDialogPlayEject::OnInitWindow()
 {
-  if (g_mediaManager.IsDiscInDrive())
+  if (CServiceBroker::GetMediaManager().IsDiscInDrive())
   {
     m_defaultControl = ID_BUTTON_PLAY;
   }

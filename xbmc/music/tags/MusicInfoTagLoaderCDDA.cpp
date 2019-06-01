@@ -42,7 +42,7 @@ bool CMusicInfoTagLoaderCDDA::Load(const std::string& strFileName, CMusicInfoTag
     bool bResult = false;
 
     // Get information for the inserted disc
-    CCdInfo* pCdInfo = g_mediaManager.GetCdInfo();
+    CCdInfo* pCdInfo = CServiceBroker::GetMediaManager().GetCdInfo();
     if (pCdInfo == NULL)
       return bResult;
 

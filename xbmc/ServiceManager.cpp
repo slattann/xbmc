@@ -31,6 +31,7 @@
 #include "powermanagement/PowerManager.h"
 #include "weather/WeatherManager.h"
 #include "DatabaseManager.h"
+#include "storage/MediaManager.h"
 
 using namespace KODI;
 
@@ -158,6 +159,9 @@ bool CServiceManager::InitStageTwo(const CAppParamParser &params, const std::str
 
   m_weatherManager.reset(new CWeatherManager());
 
+  m_mediaManager.reset(new CMediaManager());
+  m_mediaManager->Initialize();
+
   init_level = 2;
   return true;
 }
@@ -216,6 +220,9 @@ void CServiceManager::DeinitStageTwo()
   m_addonMgr.reset();
   m_Platform.reset();
   m_databaseManager.reset();
+
+  m_mediaManager->Stop();
+  m_mediaManager.reset();
 }
 
 void CServiceManager::DeinitStageOne()
@@ -366,4 +373,9 @@ CPlayerCoreFactory &CServiceManager::GetPlayerCoreFactory()
 CDatabaseManager &CServiceManager::GetDatabaseManager()
 {
   return *m_databaseManager;
+}
+
+CMediaManager& CServiceManager::GetMediaManager()
+{
+  return *m_mediaManager;
 }

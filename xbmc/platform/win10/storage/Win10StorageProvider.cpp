@@ -45,7 +45,7 @@ void CStorageProvider::Initialize()
   VECSOURCES vShare;
   GetDrivesByType(vShare, DVD_DRIVES);
   if (!vShare.empty())
-    g_mediaManager.SetHasOpticalDrive(true);
+    CServiceBroker::GetMediaManager().SetHasOpticalDrive(true);
   else
     CLog::Log(LOGDEBUG, "%s: No optical drive found.", __FUNCTION__);
 

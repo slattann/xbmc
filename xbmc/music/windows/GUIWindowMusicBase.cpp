@@ -500,7 +500,7 @@ void CGUIWindowMusicBase::AddItemToPlayList(const CFileItemPtr &pItem, CFileItem
 
 void CGUIWindowMusicBase::UpdateButtons()
 {
-  CONTROL_ENABLE_ON_CONDITION(CONTROL_BTNRIP, g_mediaManager.IsAudio());
+  CONTROL_ENABLE_ON_CONDITION(CONTROL_BTNRIP, CServiceBroker::GetMediaManager().IsAudio());
 
   CONTROL_ENABLE_ON_CONDITION(CONTROL_BTNSCAN,
                               !(m_vecItems->IsVirtualDirectoryRoot() ||
@@ -568,10 +568,10 @@ void CGUIWindowMusicBase::GetContextButtons(int itemNumber, CContextButtons &but
       }
 #ifdef HAS_DVD_DRIVE
       // enable Rip CD Audio or Track button if we have an audio disc
-      if (g_mediaManager.IsDiscInDrive() && m_vecItems->IsCDDA())
+      if (CServiceBroker::GetMediaManager().IsDiscInDrive() && m_vecItems->IsCDDA())
       {
         // those cds can also include Audio Tracks: CDExtra and MixedMode!
-        MEDIA_DETECT::CCdInfo *pCdInfo = g_mediaManager.GetCdInfo();
+        MEDIA_DETECT::CCdInfo *pCdInfo = CServiceBroker::GetMediaManager().GetCdInfo();
         if (pCdInfo->IsAudio(1) || pCdInfo->IsCDExtra(1) || pCdInfo->IsMixedMode(1))
           buttons.Add(CONTEXT_BUTTON_RIP_TRACK, 610);
       }
@@ -579,7 +579,7 @@ void CGUIWindowMusicBase::GetContextButtons(int itemNumber, CContextButtons &but
     }
 
     // enable CDDB lookup if the current dir is CDDA
-    if (g_mediaManager.IsDiscInDrive() && m_vecItems->IsCDDA() &&
+    if (CServiceBroker::GetMediaManager().IsDiscInDrive() && m_vecItems->IsCDDA() &&
        (profileManager->GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser))
     {
       buttons.Add(CONTEXT_BUTTON_CDDB, 16002);
@@ -699,7 +699,7 @@ bool CGUIWindowMusicBase::OnAddMediaSource()
 
 void CGUIWindowMusicBase::OnRipCD()
 {
-  if(g_mediaManager.IsAudio())
+  if(CServiceBroker::GetMediaManager().IsAudio())
   {
     if (!g_application.CurrentFileItem().IsCDDA())
     {
@@ -714,7 +714,7 @@ void CGUIWindowMusicBase::OnRipCD()
 
 void CGUIWindowMusicBase::OnRipTrack(int iItem)
 {
-  if(g_mediaManager.IsAudio())
+  if(CServiceBroker::GetMediaManager().IsAudio())
   {
     if (!g_application.CurrentFileItem().IsCDDA())
     {

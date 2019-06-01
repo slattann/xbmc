@@ -115,6 +115,3 @@ private:
   void RemoveDiscInfo(const std::string& devicePath);
   std::map<std::string, DiscInfo> m_mapDiscInfo;
 };
-
-extern class CMediaManager g_mediaManager;
-
