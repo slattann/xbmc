@@ -13,9 +13,6 @@
 #endif
 #include <math.h>
 
-#include "utils/log.h"
-#include <chrono>
-
 RFFT::RFFT(int size, bool windowed) :
   m_size(size), m_windowed(windowed)
 {
@@ -33,8 +30,6 @@ RFFT::~RFFT()
 
 void RFFT::calc(const float* input, float* output)
 {
-  auto start = std::chrono::high_resolution_clock::now();
-
   // temporary buffers
   std::vector<kiss_fft_scalar> linput(m_size), rinput(m_size);
   std::vector<kiss_fft_cpx> loutput(m_size), routput(m_size);
@@ -66,12 +61,6 @@ void RFFT::calc(const float* input, float* output)
     output[2*i] = filter(loutput[i]);
     output[2*i+1] = filter(routput[i]);
   }
-
-  auto elapsed = std::chrono::high_resolution_clock::now() - start;
-
-  auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
-
-  CLog::Log(LOGDEBUG, "RFFT::{} execution time: {} ns", __FUNCTION__, nanoseconds);
 }
 
 #include <iostream>

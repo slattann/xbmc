@@ -443,7 +443,7 @@ void CGUIVisualisationControl::CreateBuffers()
     m_instance->GetInfo(&info);
 
   m_numBuffers = info.iSyncDelay + 1;
-  m_wantsFreq = true; //info.bWantsFreq;
+  m_wantsFreq = info.bWantsFreq;
   if (m_numBuffers > MAX_AUDIO_BUFFERS)
     m_numBuffers = MAX_AUDIO_BUFFERS;
   if (m_numBuffers < 1)
