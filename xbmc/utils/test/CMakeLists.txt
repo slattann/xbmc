@@ -9,6 +9,7 @@ set(SOURCES TestAlarmClock.cpp
             TestDatabaseUtils.cpp
             TestDigest.cpp
             TestEndianSwap.cpp
+            TestFFTUtil.cpp
             TestFileOperationJob.cpp
             TestFileUtils.cpp
             TestGlobalsHandling.cpp
@@ -28,7 +29,6 @@ set(SOURCES TestAlarmClock.cpp
             TestMime.cpp
             TestPOUtils.cpp
             TestRegExp.cpp
-            Testrfft.cpp
             TestRingBuffer.cpp
             TestScraperParser.cpp
             TestScraperUrl.cpp

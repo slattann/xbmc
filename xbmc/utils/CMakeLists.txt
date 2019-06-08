@@ -43,7 +43,6 @@ set(SOURCES ActorProtocol.cpp
             POUtils.cpp
             RecentlyAddedJob.cpp
             RegExp.cpp
-            rfft.cpp
             RingBuffer.cpp
             RssManager.cpp
             RssReader.cpp
@@ -96,6 +95,7 @@ set(HEADERS ActorProtocol.h
             EndianSwap.h
             EventStream.h
             EventStreamDetail.h
+            FFTUtil.h
             FileExtensionProvider.h
             Fanart.h
             FileOperationJob.h
@@ -134,7 +134,6 @@ set(HEADERS ActorProtocol.h
             ProgressJob.h
             RecentlyAddedJob.h
             RegExp.h
-            rfft.h
             RingBuffer.h
             RssManager.h
             RssReader.h

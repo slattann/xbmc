@@ -11,7 +11,8 @@
 #include "GUIControl.h"
 #include "addons/Visualization.h"
 #include "cores/AudioEngine/Interfaces/IAudioCallback.h"
-#include "utils/rfft.h"
+//#include "utils/rfft.h"
+#include "utils/FFTUtil.h"
 
 #include <string>
 #include <vector>
@@ -78,12 +79,12 @@ private:
   bool m_attemptedLoad;
   bool m_updateTrack;
 
-  std::list<std::unique_ptr<CAudioBuffer>> m_vecBuffers;
+  std::list<std::vector<float>> m_vecBuffers;
   unsigned int m_numBuffers; /*!< Number of Audio buffers */
   bool m_wantsFreq;
-  float m_freq[AUDIO_BUFFER_SIZE]; /*!< Frequency data */
+  std::array<float, AUDIO_BUFFER_SIZE> m_freq;
   std::vector<std::string> m_presets; /*!< cached preset list */
-  std::unique_ptr<RFFT> m_transform;
+  std::unique_ptr<CFFT<2, AUDIO_BUFFER_SIZE>> m_transform;
 
   /* values set from "OnInitialize" IAudioCallback  */
   int m_channels;

@@ -31,37 +31,6 @@ using namespace ADDON;
 #define LABEL_ROW2 11
 #define LABEL_ROW3 12
 
-CAudioBuffer::CAudioBuffer(int iSize)
-{
-  m_iLen = iSize;
-  m_pBuffer = new float[iSize];
-}
-
-CAudioBuffer::~CAudioBuffer()
-{
-  delete [] m_pBuffer;
-}
-
-const float* CAudioBuffer::Get() const
-{
-  return m_pBuffer;
-}
-
-int CAudioBuffer::Size() const
-{
-  return m_iLen;
-}
-
-void CAudioBuffer::Set(const float* psBuffer, int iSize)
-{
-  if (iSize < 0)
-    return;
-
-  memcpy(m_pBuffer, psBuffer, iSize * sizeof(float));
-  for (int i = iSize; i < m_iLen; ++i)
-    m_pBuffer[i] = 0;
-}
-
 CGUIVisualisationControl::CGUIVisualisationControl(int parentID, int controlID, float posX, float posY, float width, float height)
   : CGUIControl(parentID, controlID, posX, posY, width, height),
     m_callStart(false),
@@ -252,33 +221,31 @@ void CGUIVisualisationControl::OnAudioData(const float* audioData, unsigned int 
     return;
 
   // Save our audio data in the buffers
-  std::unique_ptr<CAudioBuffer> pBuffer(new CAudioBuffer(audioDataLength));
-  pBuffer->Set(audioData, audioDataLength);
-  //m_vecBuffers.push_back(pBuffer.release());
-  m_vecBuffers.emplace_back(std::move(pBuffer));
+  std::vector<float> buffer(audioData, audioData + audioDataLength);
+
+  m_vecBuffers.emplace_back(buffer);
 
   if (m_vecBuffers.size() < m_numBuffers)
     return;
 
-  std::unique_ptr<CAudioBuffer> ptrAudioBuffer = std::move(m_vecBuffers.front());
+  std::vector<float> audioBuffer = m_vecBuffers.front();
+
   m_vecBuffers.pop_front();
 
   // Fourier transform the data if the vis wants it...
   if (m_wantsFreq)
   {
-    const float *psAudioData = ptrAudioBuffer->Get();
-
     if (!m_transform)
-      m_transform.reset(new RFFT(AUDIO_BUFFER_SIZE/2, false)); // half due to stereo
+      m_transform.reset(new CFFT<2, AUDIO_BUFFER_SIZE>());
 
-    m_transform->calc(psAudioData, m_freq);
+    m_transform->Calc(audioBuffer, m_freq);
 
     // Transfer data to our visualisation
-    m_instance->AudioData(psAudioData, ptrAudioBuffer->Size(), m_freq, AUDIO_BUFFER_SIZE/2); // half due to complex-conjugate
+    m_instance->AudioData(audioBuffer.data(), audioBuffer.size(), m_freq.data(), AUDIO_BUFFER_SIZE / 2); // half due to complex-conjugate
   }
   else
   { // Transfer data to our visualisation
-    m_instance->AudioData(ptrAudioBuffer->Get(), ptrAudioBuffer->Size(), nullptr, 0);
+    m_instance->AudioData(audioBuffer.data(), audioBuffer.size(), nullptr, 0);
   }
   return;
 }
@@ -443,7 +410,7 @@ void CGUIVisualisationControl::CreateBuffers()
     m_instance->GetInfo(&info);
 
   m_numBuffers = info.iSyncDelay + 1;
-  m_wantsFreq = info.bWantsFreq;
+  m_wantsFreq = true; //finfo.bWantsFreq;
   if (m_numBuffers > MAX_AUDIO_BUFFERS)
     m_numBuffers = MAX_AUDIO_BUFFERS;
   if (m_numBuffers < 1)
