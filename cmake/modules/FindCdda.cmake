@@ -14,8 +14,8 @@
 #   CDDA::CDDA - The CDDA library
 
 if(PKG_CONFIG_FOUND)
-  pkg_check_modules(PC_CDDA libcdio_cdda QUIET)
-  pkg_check_modules(PC_PARANOIA libcdio_paranoia QUIET)
+  pkg_check_modules(PC_CDDA libcdio_cdda>=10.2+0.94+1 QUIET)
+  pkg_check_modules(PC_PARANOIA libcdio_paranoia>=10.2+0.94+1 QUIET)
 endif()
 
 find_path(CDDA_INCLUDE_DIR NAMES cdio/cdda.h
