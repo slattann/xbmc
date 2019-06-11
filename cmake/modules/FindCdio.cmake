@@ -14,29 +14,27 @@
 #   CDIO::CDIO - The cdio library
 
 if(PKG_CONFIG_FOUND)
-  pkg_check_modules(PC_CDIO libcdio>=0.78 libiso9660 QUIET)
+  pkg_check_modules(PC_CDIO libcdio>=0.94 QUIET)
+  pkg_check_modules(PC_ISO9660 libiso9660>=0.94 QUIET)
 endif()
 
 find_path(CDIO_INCLUDE_DIR NAMES cdio/cdio.h
-                           PATHS ${PC_CDIO_libcdio_INCLUDEDIR}
-                                 ${PC_CDIO_libiso9660_INCLUDEDIR})
-find_library(CDIO_LIBRARY NAMES cdio libcdio
-                          PATHS ${CDIO_libcdio_LIBDIR} ${CDIO_libiso9660_LIBDIR})
+                           PATHS ${PC_CDIO_libcdio_INCLUDEDIR})
 
-if(NOT WIN32)
-  find_path(ISO9660_INCLUDE_DIR NAMES cdio/iso9660.h
-                                PATHS ${PC_CDIO_libcdio_INCLUDEDIR}
-                                      ${PC_CDIO_libiso9660_INCLUDEDIR})
-  find_library(ISO9660_LIBRARY NAMES iso9660
-                               PATHS ${CDIO_libcdio_LIBDIR} ${CDIO_libiso9660_LIBDIR})
-  list(APPEND ISO9660_VARS ISO9660_INCLUDE_DIR ISO9660_LIBRARY)
-endif()
+find_library(CDIO_LIBRARY NAMES cdio
+                          PATHS ${CDIO_libcdio_LIBDIR})
+
+find_path(ISO9660_INCLUDE_DIR NAMES cdio/iso9660.h
+                              PATHS ${PC_ISO9660_libiso9660_INCLUDEDIR})
+
+find_library(ISO9660_LIBRARY NAMES iso9660
+                             PATHS ${PC_ISO9660_libiso9660_LIBDIR})
 
 set(CDIO_VERSION ${PC_CDIO_libcdio_VERSION})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Cdio
-                                  REQUIRED_VARS CDIO_LIBRARY CDIO_INCLUDE_DIR ${ISO9660_VARS}
+                                  REQUIRED_VARS CDIO_LIBRARY CDIO_INCLUDE_DIR ISO9660_LIBRARY ISO9660_INCLUDE_DIR
                                   VERSION_VAR CDIO_VERSION)
 
 if(CDIO_FOUND)
