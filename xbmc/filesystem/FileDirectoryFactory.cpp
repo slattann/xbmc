@@ -6,8 +6,10 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "utils/URIUtils.h"
 #include "FileDirectoryFactory.h"
+
+#include "filesystem/DiscImageDirectory.h"
+#include "utils/URIUtils.h"
 #include "UDFDirectory.h"
 #include "ISO9660Directory.h"
 #include "RSSDirectory.h"
@@ -100,8 +102,7 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
     return new CRSSDirectory();
 
   if (pItem->IsDiscImage())
-    return new CISO9660Directory();
-  //  return new CUDFDirectory();
+    return CDiscImageDirectory::GetDiscImageDirectory(pItem->GetURL());
 
 #if defined(TARGET_ANDROID)
   if (url.IsFileType("apk"))

@@ -6,6 +6,7 @@ set(SOURCES AddonsDirectory.cpp
             DAVCommon.cpp
             DAVDirectory.cpp
             DAVFile.cpp
+            DiscImageDirectory.cpp
             DirectoryCache.cpp
             Directory.cpp
             DirectoryFactory.cpp
@@ -70,6 +71,7 @@ set(HEADERS AddonsDirectory.h
             DAVCommon.h
             DAVDirectory.h
             DAVFile.h
+            DiscImageDirectory.h
             Directorization.h
             Directory.h
             DirectoryCache.h
