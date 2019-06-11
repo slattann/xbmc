@@ -55,8 +55,8 @@ bool CMusicInfoTagLoaderCDDA::Load(const std::string& strFileName, CMusicInfoTag
     int iTrack = atoi(strFileName.substr(13, strFileName.size() - 13 - 5).c_str());
 
     // duration is always available
-    tag.SetDuration( ( pCdInfo->GetTrackInformation(iTrack).nMins * 60 )
-                     + pCdInfo->GetTrackInformation(iTrack).nSecs );
+    tag.SetDuration( ( pCdInfo->GetTrackInformation(iTrack).mins * 60 )
+                     + pCdInfo->GetTrackInformation(iTrack).secs );
 
     // Only load cached cddb info in this tag loader, the internet database query is made in CCDDADirectory
     if (pCdInfo->HasCDDBInfo() && cddb.isCDCached(pCdInfo))
@@ -106,7 +106,7 @@ bool CMusicInfoTagLoaderCDDA::Load(const std::string& strFileName, CMusicInfoTag
     else
     {
       // No cddb info, maybe we have CD-Text
-      trackinfo ti = pCdInfo->GetTrackInformation(iTrack);
+      TrackInfo ti = pCdInfo->GetTrackInformation(iTrack);
 
       // Fill the fileitems music tag with CD-Text information, if available
       std::string strTitle = ti.cdtext[CDTEXT_FIELD_TITLE];

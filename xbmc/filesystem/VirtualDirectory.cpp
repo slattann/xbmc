@@ -169,14 +169,13 @@ void CVirtualDirectory::GetSources(VECSOURCES &shares) const
   if (m_allowNonLocalSources)
     CServiceBroker::GetMediaManager().GetRemovableDrives(shares);
 
-#ifdef HAS_DVD_DRIVE
   // and update our dvd share
   for (unsigned int i = 0; i < shares.size(); ++i)
   {
     CMediaSource& share = shares[i];
     if (share.m_iDriveType == CMediaSource::SOURCE_TYPE_DVD)
     {
-      if(CServiceBroker::GetMediaManager().IsAudio(share.strPath))
+      if(CServiceBroker::GetMediaManager().IsAudio())
       {
         share.strStatus = "Audio-CD";
         share.strPath = "cdda://local/";
@@ -184,8 +183,8 @@ void CVirtualDirectory::GetSources(VECSOURCES &shares) const
       }
       else
       {
-        share.strStatus = CServiceBroker::GetMediaManager().GetDiskLabel(share.strPath);
-        share.strDiskUniqueId = CServiceBroker::GetMediaManager().GetDiskUniqueId(share.strPath);
+        share.strStatus = CServiceBroker::GetMediaManager().GetDiskLabel();
+        share.strDiskUniqueId = CServiceBroker::GetMediaManager().GetDiskUniqueId();
         if (!share.strPath.length()) // unmounted CD
         {
           if (CServiceBroker::GetMediaManager().GetDiscPath() == "iso9660://")
@@ -197,7 +196,6 @@ void CVirtualDirectory::GetSources(VECSOURCES &shares) const
       }
     }
   }
-#endif
 }
 }
 

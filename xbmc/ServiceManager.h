@@ -63,6 +63,11 @@ namespace PERIPHERALS
   class CPeripherals;
 }
 
+namespace MEDIA_DETECT
+{
+class CDetectDVDMedia;
+}
+
 class CInputManager;
 class CFileExtensionProvider;
 class CPlayerCoreFactory;
@@ -124,6 +129,8 @@ public:
 
   CMediaManager& GetMediaManager();
 
+  std::shared_ptr<MEDIA_DETECT::CDetectDVDMedia> GetDetectDVDMedia();
+
 protected:
   struct delete_dataCacheCore
   {
@@ -167,4 +174,7 @@ protected:
   std::unique_ptr<CPlayerCoreFactory> m_playerCoreFactory;
   std::unique_ptr<CDatabaseManager> m_databaseManager;
   std::unique_ptr<CMediaManager> m_mediaManager;
+
+private:
+  std::shared_ptr<MEDIA_DETECT::CDetectDVDMedia> m_detectDVDMedia;
 };

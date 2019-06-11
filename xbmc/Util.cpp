@@ -617,7 +617,7 @@ bool CUtil::GetDirectoryName(const std::string& strFileName, std::string& strDes
 
 void CUtil::GetDVDDriveIcon(const std::string& strPath, std::string& strIcon)
 {
-  if (!CServiceBroker::GetMediaManager().IsDiscInDrive(strPath))
+  if (!CServiceBroker::GetMediaManager().IsDiscInDrive())
   {
     strIcon = "DefaultDVDEmpty.png";
     return ;

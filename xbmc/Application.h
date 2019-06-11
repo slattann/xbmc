@@ -293,10 +293,6 @@ public:
   std::unique_ptr<MEDIA_DETECT::CAutorun> m_Autorun;
 #endif
 
-#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
-  MEDIA_DETECT::CDetectDVDMedia m_DetectDVDType;
-#endif
-
   inline bool IsInScreenSaver() { return m_screensaverActive; };
   inline std::string ScreensaverIdInUse() { return m_screensaverIdInUse; }
 

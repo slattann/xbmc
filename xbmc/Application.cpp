@@ -156,10 +156,6 @@
 #include "platform/darwin/DarwinUtils.h"
 #endif
 
-#ifdef HAS_DVD_DRIVE
-#include <cdio/logging.h>
-#endif
-
 #include "storage/MediaManager.h"
 #include "utils/SaveFileStateJob.h"
 #include "utils/AlarmClock.h"
@@ -278,7 +274,7 @@ void CApplication::HandlePortEvents()
 #ifdef TARGET_WINDOWS
           else
           {
-            // this may occurs when OS tries to resize application window 
+            // this may occurs when OS tries to resize application window
             //CDisplaySettings::GetInstance().SetCurrentResolution(RES_DESKTOP, true);
             //auto& gfxContext = CServiceBroker::GetWinSystem()->GetGfxContext();
             //gfxContext.SetVideoResolution(gfxContext.GetVideoResolution(), true);
@@ -708,11 +704,6 @@ bool CApplication::InitWindow(RESOLUTION res)
 
 bool CApplication::Initialize()
 {
-#if defined(HAS_DVD_DRIVE) && !defined(TARGET_WINDOWS) // somehow this throws an "unresolved external symbol" on win32
-  // turn off cdio logging
-  cdio_loglevel_default = CDIO_LOG_ERROR;
-#endif
-
   // load the language and its translated strings
   if (!LoadLanguage(false))
     return false;
@@ -934,21 +925,12 @@ bool CApplication::StartServer(enum ESERVERS eServer, bool bStart, bool bWait/* 
 
 void CApplication::StartServices()
 {
-#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
-  // Start Thread for DVD Mediatype detection
-  CLog::Log(LOGNOTICE, "start dvd mediatype detection");
-  m_DetectDVDType.Create(false, THREAD_MINSTACKSIZE);
-#endif
+  return;
 }
 
 void CApplication::StopServices()
 {
   m_ServiceManager->GetNetwork().NetworkMessage(CNetwork::SERVICES_DOWN, 0);
-
-#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
-  CLog::Log(LOGNOTICE, "stop dvd detect media");
-  m_DetectDVDType.StopThread();
-#endif
 }
 
 void CApplication::OnSettingChanged(std::shared_ptr<const CSetting> setting)
@@ -2456,9 +2438,6 @@ bool CApplication::Cleanup()
 #ifdef TARGET_POSIX
     CXHandle::DumpObjectTracker();
 
-#ifdef HAS_DVD_DRIVE
-    CLibcdio::ReleaseInstance();
-#endif
 #endif
 #ifdef _CRTDBG_MAP_ALLOC
     _CrtDumpMemoryLeaks();
@@ -2749,18 +2728,10 @@ bool CApplication::PlayFile(CFileItem item, const std::string& player, bool bRes
 
   if (item.IsDiscStub())
   {
-#ifdef HAS_DVD_DRIVE
-    // Display the Play Eject dialog if there is any optical disc drive
-    if (CServiceBroker::GetMediaManager().HasOpticalDrive())
-    {
-      if (CGUIDialogPlayEject::ShowAndGetInput(item))
-        // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
-        // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
-        return MEDIA_DETECT::CAutorun::PlayDiscAskResume();
-    }
-    else
-#endif
-      HELPERS::ShowOKDialogText(CVariant{435}, CVariant{436});
+    if (CGUIDialogPlayEject::ShowAndGetInput(item))
+      // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
+      // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
+      return MEDIA_DETECT::CAutorun::PlayDiscAskResume();
 
     return true;
   }
@@ -3483,7 +3454,7 @@ void CApplication::CheckOSScreenSaverInhibitionSetting()
   // Kodi screen saver overrides OS one: always inhibit OS screen saver then
   // except when DPMS is active (inhibiting the screen saver then might also
   // disable DPMS again)
-  if (!m_dpmsIsActive && 
+  if (!m_dpmsIsActive &&
       !CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_SCREENSAVER_MODE).empty() &&
       CServiceBroker::GetWinSystem()->GetOSScreenSaver())
   {

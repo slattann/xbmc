@@ -116,6 +116,7 @@ endforeach()
 
 # Required dependencies. Keep in alphabetical order please
 set(required_deps ASS
+                  Cdda
                   Cdio
                   Cdiopp
                   Cpluff

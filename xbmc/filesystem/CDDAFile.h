@@ -11,6 +11,11 @@
 #include "IFile.h"
 #include "storage/cdioSupport.h"
 
+extern "C" {
+#include <cdio/paranoia.h>
+#include <cdio/cd_types.h>
+}
+
 namespace XFILE
 {
 class CFileCDDA : public IFile
@@ -35,10 +40,12 @@ protected:
 
 protected:
   CdIo_t* m_pCdIo;
+  cdrom_paranoia_t* m_paranoia;
+  cdrom_drive_t* m_drive;
+
   lsn_t m_lsnStart;  // Start of m_iTrack in logical sector number
   lsn_t m_lsnCurrent; // Position inside the track in logical sector number
   lsn_t m_lsnEnd;   // End of m_iTrack in logical sector number
   int m_iSectorCount; // max number of sectors to read at once
-  std::shared_ptr<MEDIA_DETECT::CLibcdio> m_cdio;
 };
 }

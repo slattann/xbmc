@@ -345,11 +345,6 @@ bool CProfileManager::LoadProfile(unsigned int index)
 
   CPasswordManager::GetInstance().Clear();
 
-  // to set labels - shares are reloaded
-#if !defined(TARGET_WINDOWS) && defined(HAS_DVD_DRIVE)
-  MEDIA_DETECT::CDetectDVDMedia::UpdateState();
-#endif
-
   // init windows
   CGUIMessage msg(GUI_MSG_NOTIFY_ALL, 0, 0, GUI_MSG_WINDOW_RESET);
   CServiceBroker::GetGUI()->GetWindowManager().SendMessage(msg);

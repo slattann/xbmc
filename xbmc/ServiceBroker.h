@@ -74,6 +74,11 @@ namespace PERIPHERALS
   class CPeripherals;
 }
 
+namespace MEDIA_DETECT
+{
+class CDetectDVDMedia;
+}
+
 class CServiceBroker
 {
 public:
@@ -132,6 +137,8 @@ public:
 
   static void RegisterDecoderFilterManager(CDecoderFilterManager* manager);
   static CDecoderFilterManager* GetDecoderFilterManager();
+
+  static std::shared_ptr<MEDIA_DETECT::CDetectDVDMedia> GetDetectDVDMedia();
 
 private:
   static std::shared_ptr<ANNOUNCEMENT::CAnnouncementManager> m_pAnnouncementManager;

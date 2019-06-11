@@ -268,3 +268,8 @@ CDecoderFilterManager* CServiceBroker::GetDecoderFilterManager()
 {
   return m_decoderFilterManager;
 }
+
+std::shared_ptr<MEDIA_DETECT::CDetectDVDMedia> CServiceBroker::GetDetectDVDMedia()
+{
+  return g_application.m_ServiceManager->GetDetectDVDMedia();
+}

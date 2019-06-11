@@ -32,6 +32,7 @@
 #include "weather/WeatherManager.h"
 #include "DatabaseManager.h"
 #include "storage/MediaManager.h"
+#include "storage/DetectDVDType.h"
 
 using namespace KODI;
 
@@ -182,6 +183,9 @@ bool CServiceManager::InitStageThree(const std::shared_ptr<CProfileManager>& pro
 
   m_playerCoreFactory.reset(new CPlayerCoreFactory(*profileManager));
 
+  m_detectDVDMedia.reset(new MEDIA_DETECT::CDetectDVDMedia());
+  m_detectDVDMedia->Create(false, THREAD_MINSTACKSIZE);
+
   init_level = 3;
   return true;
 }
@@ -189,6 +193,9 @@ bool CServiceManager::InitStageThree(const std::shared_ptr<CProfileManager>& pro
 void CServiceManager::DeinitStageThree()
 {
   init_level = 2;
+
+  m_detectDVDMedia->StopThread();
+  m_detectDVDMedia.reset();
 
   m_playerCoreFactory.reset();
   m_PVRManager->Deinit();
@@ -378,4 +385,9 @@ CDatabaseManager &CServiceManager::GetDatabaseManager()
 CMediaManager& CServiceManager::GetMediaManager()
 {
   return *m_mediaManager;
+}
+
+std::shared_ptr<MEDIA_DETECT::CDetectDVDMedia> CServiceManager::GetDetectDVDMedia()
+{
+  return m_detectDVDMedia;
 }

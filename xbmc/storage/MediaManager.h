@@ -58,17 +58,16 @@ public:
 
   void AddAutoSource(const CMediaSource &share, bool bAutorun=false);
   void RemoveAutoSource(const CMediaSource &share);
-  bool IsDiscInDrive(const std::string& devicePath="");
-  bool IsAudio(const std::string& devicePath="");
+  bool IsDiscInDrive();
+  bool IsAudio();
   bool HasOpticalDrive();
   std::string TranslateDevicePath(const std::string& devicePath, bool bReturnAsDevice=false);
-  DWORD GetDriveStatus(const std::string& devicePath="");
-#ifdef HAS_DVD_DRIVE
-  MEDIA_DETECT::CCdInfo* GetCdInfo(const std::string& devicePath="");
-  bool RemoveCdInfo(const std::string& devicePath="");
-  std::string GetDiskLabel(const std::string& devicePath="");
-  std::string GetDiskUniqueId(const std::string& devicePath="");
-#endif
+  int GetDriveStatus();
+
+  MEDIA_DETECT::CCdInfo* GetCdInfo();
+  std::string GetDiskLabel();
+  std::string GetDiskUniqueId();
+
   std::string GetDiscPath();
   void SetHasOpticalDrive(bool bstatus);
 
@@ -90,9 +89,7 @@ protected:
   std::vector<CNetworkLocation> m_locations;
 
   CCriticalSection m_muAutoSource, m_CritSecStorageProvider;
-#ifdef HAS_DVD_DRIVE
-  std::map<std::string,MEDIA_DETECT::CCdInfo*> m_mapCdInfo;
-#endif
+
   bool m_bhasoptical;
   std::string m_strFirstAvailDrive;
 

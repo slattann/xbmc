@@ -482,29 +482,49 @@ bool CSystemGUIInfo::GetBool(bool& value, const CGUIListItem *gitem, int context
 #endif
       return true;
     case SYSTEM_MEDIA_DVD:
-      value = CServiceBroker::GetMediaManager().IsDiscInDrive();
+    {
+      auto media = CServiceBroker::GetDetectDVDMedia();
+      if (!media)
+        return false;
+
+      value = media->IsDiscInDrive();
       return true;
+    }
     case SYSTEM_MEDIA_AUDIO_CD:
-    #ifdef HAS_DVD_DRIVE
-      if (CServiceBroker::GetMediaManager().IsDiscInDrive())
+    {
+      auto media = CServiceBroker::GetDetectDVDMedia();
+      if (!media)
+        return false;
+
+      if (media->IsDiscInDrive())
       {
-        MEDIA_DETECT::CCdInfo *pCdInfo = CServiceBroker::GetMediaManager().GetCdInfo();
+        MEDIA_DETECT::CCdInfo *pCdInfo = media->GetCdInfo();
         value = pCdInfo && (pCdInfo->IsAudio(1) || pCdInfo->IsCDExtra(1) || pCdInfo->IsMixedMode(1));
       }
       else
-    #endif
       {
         value = false;
       }
       return true;
-#ifdef HAS_DVD_DRIVE
+    }
     case SYSTEM_DVDREADY:
-      value = CServiceBroker::GetMediaManager().GetDriveStatus() != DRIVE_NOT_READY;
+    {
+      auto media = CServiceBroker::GetDetectDVDMedia();
+      if (!media)
+        return false;
+
+      value = media->DriveReady() != DRIVE_NOT_READY;
       return true;
+    }
     case SYSTEM_TRAYOPEN:
-      value = CServiceBroker::GetMediaManager().GetDriveStatus() == DRIVE_OPEN;
+    {
+      auto media = CServiceBroker::GetDetectDVDMedia();
+      if (!media)
+        return false;
+
+      value = media->DriveReady() == DRIVE_OPEN;
       return true;
-#endif
+    }
     case SYSTEM_CAN_POWERDOWN:
       value = CServiceBroker::GetPowerManager().CanPowerdown();
       return true;

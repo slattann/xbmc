@@ -25,7 +25,6 @@ CFileCDDA::CFileCDDA(void)
   m_lsnStart = CDIO_INVALID_LSN;
   m_lsnCurrent = CDIO_INVALID_LSN;
   m_lsnEnd = CDIO_INVALID_LSN;
-  m_cdio = CLibcdio::GetInstance();
   m_iSectorCount = 52;
 }
 
@@ -38,31 +37,38 @@ bool CFileCDDA::Open(const CURL& url)
 {
   std::string strURL = url.GetWithoutFilename();
 
-  if (!CServiceBroker::GetMediaManager().IsDiscInDrive(strURL) || !IsValidFile(url))
+  if (!CServiceBroker::GetMediaManager().IsDiscInDrive() || !IsValidFile(url))
     return false;
 
   // Open the dvd drive
-#ifdef TARGET_POSIX
-  m_pCdIo = m_cdio->cdio_open(CServiceBroker::GetMediaManager().TranslateDevicePath(strURL).c_str(), DRIVER_UNKNOWN);
-#elif defined(TARGET_WINDOWS)
-  m_pCdIo = m_cdio->cdio_open_win32(CServiceBroker::GetMediaManager().TranslateDevicePath(strURL, true).c_str());
-#endif
+  m_pCdIo = cdio_open(nullptr, DRIVER_UNKNOWN);
+
   if (!m_pCdIo)
   {
     CLog::Log(LOGERROR, "file cdda: Opening the dvd drive failed");
     return false;
   }
 
+  m_drive = cdio_cddap_identify_cdio(m_pCdIo, 1, nullptr);
+
+  if (cdda_open(m_drive) != 0)
+  {
+    Close();
+    return false;
+  }
+
+  m_paranoia = paranoia_init(m_drive);
+  paranoia_modeset(m_paranoia, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);
+
   int iTrack = GetTrackNum(url);
 
-  m_lsnStart = m_cdio->cdio_get_track_lsn(m_pCdIo, iTrack);
-  m_lsnEnd = m_cdio->cdio_get_track_last_lsn(m_pCdIo, iTrack);
+  m_lsnStart = cdio_cddap_track_firstsector(m_drive, iTrack);
+  m_lsnEnd = cdio_cddap_track_lastsector(m_drive, iTrack);
   m_lsnCurrent = m_lsnStart;
 
   if (m_lsnStart == CDIO_INVALID_LSN || m_lsnEnd == CDIO_INVALID_LSN)
   {
-    m_cdio->cdio_destroy(m_pCdIo);
-    m_pCdIo = NULL;
+    Close();
     return false;
   }
 
@@ -79,7 +85,7 @@ bool CFileCDDA::Exists(const CURL& url)
   if (!Open(url))
     return false;
 
-  int iLastTrack = m_cdio->cdio_get_last_track_num(m_pCdIo);
+  int iLastTrack = cdio_get_last_track_num(m_pCdIo);
   if (iLastTrack == CDIO_INVALID_TRACK)
     return false;
 
@@ -118,35 +124,15 @@ ssize_t CFileCDDA::Read(void* lpBuf, size_t uiBufSize)
   if (m_lsnCurrent + iSectorCount > m_lsnEnd)
     iSectorCount = m_lsnEnd - m_lsnCurrent;
 
-  // The loop tries to solve read error problem by lowering number of sectors to read (iSectorCount).
-  // When problem is solved the proper number of sectors is stored in m_iSectorCount
-  int big_iSectorCount = iSectorCount;
-  while (iSectorCount > 0)
+  int block;
+  for (block = 1; block <= iSectorCount; block++)
   {
-    int iret = m_cdio->cdio_read_audio_sectors(m_pCdIo, lpBuf, m_lsnCurrent, iSectorCount);
-
-    if (iret == DRIVER_OP_SUCCESS)
-    {
-      // If lower iSectorCount solved the problem limit it's value
-      if (iSectorCount < big_iSectorCount)
-      {
-        m_iSectorCount = iSectorCount;
-      }
-      break;
-    }
-
-    // iSectorCount is low so it cannot solve read problem
-    if (iSectorCount <= 10)
-    {
-      CLog::Log(LOGERROR, "file cdda: Reading %d sectors of audio data starting at lsn %d failed with error code %i", iSectorCount, m_lsnCurrent, iret);
-      return -1;
-    }
-
-    iSectorCount = 10;
+    lpBuf = paranoia_read(m_paranoia, nullptr);
   }
-  m_lsnCurrent += iSectorCount;
 
-  return iSectorCount*CDIO_CD_FRAMESIZE_RAW;
+  m_lsnCurrent += block;
+
+  return iSectorCount * CDIO_CD_FRAMESIZE_RAW;
 }
 
 int64_t CFileCDDA::Seek(int64_t iFilePosition, int iWhence /*=SEEK_SET*/)
@@ -174,15 +160,29 @@ int64_t CFileCDDA::Seek(int64_t iFilePosition, int iWhence /*=SEEK_SET*/)
     return -1;
   }
 
-  return ((int64_t)(m_lsnCurrent -m_lsnStart)*CDIO_CD_FRAMESIZE_RAW);
+  paranoia_seek(m_paranoia, lsnPosition, iWhence);
+
+  return ((int64_t)(m_lsnCurrent - m_lsnStart) * CDIO_CD_FRAMESIZE_RAW);
 }
 
 void CFileCDDA::Close()
 {
+  if (m_paranoia)
+  {
+    paranoia_free(m_paranoia);
+    m_paranoia = nullptr;
+  }
+
+  if (m_drive)
+  {
+    cdda_close(m_drive);
+    m_drive = nullptr;
+  }
+
   if (m_pCdIo)
   {
-    m_cdio->cdio_destroy(m_pCdIo);
-    m_pCdIo = NULL;
+    cdio_destroy(m_pCdIo);
+    m_pCdIo = nullptr;
   }
 }
 
@@ -199,7 +199,7 @@ int64_t CFileCDDA::GetLength()
   if (!m_pCdIo)
     return 0;
 
-  return ((int64_t)(m_lsnEnd -m_lsnStart)*CDIO_CD_FRAMESIZE_RAW);
+  return ((int64_t)(m_lsnEnd - m_lsnStart) * CDIO_CD_FRAMESIZE_RAW);
 }
 
 bool CFileCDDA::IsValidFile(const CURL& url)
@@ -219,5 +219,5 @@ int CFileCDDA::GetTrackNum(const CURL& url)
 #define SECTOR_COUNT 52 // max. sectors that can be read at once
 int CFileCDDA::GetChunkSize()
 {
-  return SECTOR_COUNT*CDIO_CD_FRAMESIZE_RAW;
+  return SECTOR_COUNT * CDIO_CD_FRAMESIZE_RAW;
 }

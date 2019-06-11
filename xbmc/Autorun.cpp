@@ -71,7 +71,7 @@ void CAutorun::ExecuteAutorun(const std::string& path, bool bypassSettings, bool
   if (CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() == WINDOW_LOGIN_SCREEN)
     return;
 
-  CCdInfo* pInfo = CServiceBroker::GetMediaManager().GetCdInfo(path);
+  CCdInfo* pInfo = CServiceBroker::GetMediaManager().GetCdInfo();
 
   if ( pInfo == NULL )
     return ;
@@ -101,7 +101,7 @@ bool CAutorun::PlayDisc(const std::string& path, bool bypassSettings, bool start
 
   std::string mediaPath;
 
-  CCdInfo* pInfo = CServiceBroker::GetMediaManager().GetCdInfo(path);
+  CCdInfo* pInfo = CServiceBroker::GetMediaManager().GetCdInfo();
   if (pInfo == NULL)
     return false;
 
@@ -187,8 +187,8 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
           if(!CFile::Exists(path))
             path = URIUtils::AddFileToFolder(pItem->GetPath(), "video_ts.ifo");
           CFileItemPtr item(new CFileItem(path, false));
-          item->SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel(strDrive));
-          item->GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId(strDrive);
+          item->SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel());
+          item->GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId();
 
           if (!startFromBeginning && !item->GetVideoInfoTag()->m_strFileNameAndPath.empty())
             item->m_lStartOffset = STARTOFFSET_RESUME;
@@ -208,8 +208,8 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
         && (bypassSettings || bAutorunDVDs))
         {
           CFileItemPtr item(new CFileItem(URIUtils::AddFileToFolder(pItem->GetPath(), "index.bdmv"), false));
-          item->SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel(strDrive));
-          item->GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId(strDrive);
+          item->SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel());
+          item->GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId();
 
           if (!startFromBeginning && !item->GetVideoInfoTag()->m_strFileNameAndPath.empty())
             item->m_lStartOffset = STARTOFFSET_RESUME;
@@ -300,8 +300,8 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
           if (hddvdname != "")
           {
             CFileItem item(URIUtils::AddFileToFolder(phddvdItem->GetPath(), hddvdname), false);
-            item.SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel(strDrive));
-            item.GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId(strDrive);
+            item.SetLabel(CServiceBroker::GetMediaManager().GetDiskLabel());
+            item.GetVideoInfoTag()->m_strFileNameAndPath = CServiceBroker::GetMediaManager().GetDiskUniqueId();
 
             if (!startFromBeginning && !item.GetVideoInfoTag()->m_strFileNameAndPath.empty())
             item.m_lStartOffset = STARTOFFSET_RESUME;
@@ -467,19 +467,19 @@ bool CAutorun::RunDisc(IDirectory* pDir, const std::string& strDrive, int& nAdde
 
 void CAutorun::HandleAutorun()
 {
-#ifndef TARGET_WINDOWS
+  CEvent* autorun = CServiceBroker::GetDetectDVDMedia()->GetAutoRun();
+
   if (!m_bEnable)
   {
-    CDetectDVDMedia::m_evAutorun.Reset();
+    autorun->Reset();
     return ;
   }
 
-  if (CDetectDVDMedia::m_evAutorun.WaitMSec(0))
+  if (autorun->WaitMSec(0))
   {
     ExecuteAutorun();
-    CDetectDVDMedia::m_evAutorun.Reset();
+    autorun->Reset();
   }
-#endif
 }
 
 void CAutorun::Enable()
@@ -506,7 +506,7 @@ bool CAutorun::PlayDiscAskResume(const std::string& path)
 
 bool CAutorun::CanResumePlayDVD(const std::string& path)
 {
-  std::string strUniqueId = CServiceBroker::GetMediaManager().GetDiskUniqueId(path);
+  std::string strUniqueId = CServiceBroker::GetMediaManager().GetDiskUniqueId();
   if (!strUniqueId.empty())
   {
     CVideoDatabase dbs;

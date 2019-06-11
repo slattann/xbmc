@@ -821,7 +821,7 @@ bool Xcddb::queryCDinfo(CCdInfo* pInfo)
   //
   for (int i = 0;i < lead_out;i++)
   {
-    frames[i] = pInfo->GetTrackInformation( i + 1 ).nFrames;
+    frames[i] = pInfo->GetTrackInformation( i + 1 ).frames;
     if (i > 0 && frames[i] < frames[i - 1])
     {
       CLog::Log(LOGERROR, "Xcddb::queryCDinfo E_TOC_INCORRECT");

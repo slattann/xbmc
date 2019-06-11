@@ -24,14 +24,11 @@ CCDDADirectory::~CCDDADirectory(void) = default;
 
 bool CCDDADirectory::GetDirectory(const CURL& url, CFileItemList &items)
 {
-  // Reads the tracks from an audio cd
-  std::string strPath = url.Get();
-
-  if (!CServiceBroker::GetMediaManager().IsDiscInDrive(strPath))
+  if (!CServiceBroker::GetMediaManager().IsDiscInDrive())
     return false;
 
   // Get information for the inserted disc
-  CCdInfo* pCdInfo = CServiceBroker::GetMediaManager().GetCdInfo(strPath);
+  CCdInfo* pCdInfo = CServiceBroker::GetMediaManager().GetCdInfo();
   if (pCdInfo == NULL)
     return false;
 

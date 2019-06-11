@@ -1179,7 +1179,7 @@ bool CGUIMediaWindow::HaveDiscOrConnection(const std::string& strPath, int iDriv
 {
   if (iDriveType==CMediaSource::SOURCE_TYPE_DVD)
   {
-    if (!CServiceBroker::GetMediaManager().IsDiscInDrive(strPath))
+    if (!CServiceBroker::GetMediaManager().IsDiscInDrive())
     {
       HELPERS::ShowOKDialogText(CVariant{218}, CVariant{219});
       return false;
