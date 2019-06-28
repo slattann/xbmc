@@ -46,7 +46,7 @@ namespace RETRO
    * RenderManager is created, it instantiates all registered buffer pools.
    *
    * When a frame arrives, it is copied into a buffer from each buffer pool with
-   * a visible renderer. For example, if a GLES and MMAL renderer are both
+   * a visible renderer. For example, if a GLES and GBM renderer are both
    * visible in the GUI, then the frame will be copied into two buffers.
    *
    * When it is time to render the frame, the GUI control or window calls into

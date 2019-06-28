@@ -22,7 +22,7 @@ ifeq ($(OS),osx)
 endif
 
 ifeq ($(OS),linux)
-  ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),raspberry-pi gbm))
+  ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),gbm))
     NATIVE += libffi meson ninja python3 setuptools
   endif
 endif

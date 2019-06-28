@@ -54,9 +54,6 @@ const char* CBinaryAddonType::GetPlatformLibraryName(const TiXmlElement* element
 #if defined(TARGET_FREEBSD)
   libraryName = element->Attribute("library_freebsd");
   if (libraryName == nullptr)
-#elif defined(TARGET_RASPBERRY_PI)
-  libraryName = element->Attribute("library_rbpi");
-  if (libraryName == nullptr)
 #endif
   libraryName = element->Attribute("library_linux");
 #elif defined(TARGET_WINDOWS_DESKTOP)

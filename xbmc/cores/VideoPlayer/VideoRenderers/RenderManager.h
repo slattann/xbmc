@@ -28,7 +28,6 @@ class CRenderCapture;
 struct VideoPicture;
 
 class CWinRenderer;
-class CMMALRenderer;
 class CLinuxRenderer;
 class CLinuxRendererGL;
 class CLinuxRendererGLES;

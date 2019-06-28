@@ -17,10 +17,6 @@
 
 #include "pictures/Picture.h"
 
-#ifdef TARGET_RASPBERRY_PI
-#include "platform/linux/RBP.h"
-#endif
-
 #include "filesystem/File.h"
 #include "guilib/GUIComponent.h"
 #include "windowing/GraphicContext.h"
@@ -58,12 +54,7 @@ CScreenshotSurface::~CScreenshotSurface()
 
 bool CScreenshotSurface::capture()
 {
-#if defined(TARGET_RASPBERRY_PI)
-  g_RBP.GetDisplaySize(m_width, m_height);
-  m_buffer = g_RBP.CaptureDisplay(m_width, m_height, &m_stride, true, false);
-  if (!m_buffer)
-    return false;
-#elif defined(TARGET_WINDOWS)
+#if defined(TARGET_WINDOWS)
 
   CSingleLock lock(CServiceBroker::GetWinSystem()->GetGfxContext());
 

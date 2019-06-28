@@ -20,41 +20,38 @@ Paths below are examples. If you want to build Kodi, follow our **[build guides]
 ### All platforms
 `./bootstrap`
 ### Darwin
-**macOS (i386)**  
+**macOS (i386)**
 `./configure --host=i386-apple-darwin`
 
-**macOS (x86_64)**  
+**macOS (x86_64)**
 `./configure --host=x86_64-apple-darwin`
 
-**iOS (armv7)**  
+**iOS (armv7)**
 `./configure --host=arm-apple-darwin`
 
-**iOS (arm64)**  
+**iOS (arm64)**
 `./configure --host=arm-apple-darwin --with-cpu=arm64`
 
-**tvOS**  
+**tvOS**
 `./configure --host=arm-apple-darwin --with-platform=tvos`
 
 **NOTE:** You can target the same `--prefix=` path. Each setup will be done in an isolated directory. The last configure/make you do is the one used for Kodi/Xcode.
- 
+
 ### Android
-**arm**  
+**arm**
 `./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=arm-linux-androideabi --with-sdk-path=$HOME/android-tools/android-sdk-linux --with-ndk-path=$HOME/android-tools/android-ndk-r18 --with-toolchain=$HOME/android-tools/arm-linux-androideabi-vanilla/android-21 --prefix=$HOME/android-tools/xbmc-depends`
 
-**aarch64**  
+**aarch64**
 `./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=aarch64-linux-android --with-sdk-path=$HOME/android-tools/android-sdk-linux --with-ndk-path=$HOME/android-tools/android-ndk-r18 --with-toolchain=$HOME/android-tools/aarch64-linux-android-vanilla/android-21 --prefix=$HOME/android-tools/xbmc-depends`
 
-**x86**  
+**x86**
 `./configure --with-tarballs=$HOME/android-tools/xbmc-tarballs --host=i686-linux-android --with-sdk-path=$HOME/android-tools/android-sdk-linux --with-ndk-path=$HOME/android-tools/android-ndk-r18 --with-toolchain=$HOME/android-tools/x86-linux-android-vanilla/android-21 --prefix=$HOME/android-tools/xbmc-depends`
 
 ### Linux
-**ARM (codesourcery/lenaro/etc)**  
+**ARM (codesourcery/lenaro/etc)**
 `./configure --with-toolchain=/opt/toolchains/my-example-toolchain/ --prefix=/opt/xbmc-deps --host=arm-linux-gnueabi`
 
-**Raspberry Pi**  
-`./configure --with-platform=raspberry-pi --host=arm-linux-gnueabihf --prefix=/opt/xbmc-deps --with-tarballs=/opt/xbmc-tarballs --with-toolchain=/opt/rbp-dev/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf --with-firmware=/opt/rbp-dev/firmware --build=i686-linux`
-
-**Native**  
+**Native**
 `./configure --with-toolchain=/usr --prefix=/opt/xbmc-deps --host=x86_64-linux-gnu`
 
 Cross compiling is a PITA.

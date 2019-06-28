@@ -20,13 +20,4 @@ if(DBUS_FOUND)
                       DBusUtil.h)
 endif()
 
-if(CORE_PLATFORM_NAME_LC STREQUAL rbpi)
-  list(APPEND SOURCES RBP.cpp
-                      OMXCore.cpp)
-  list(APPEND HEADERS RBP.h
-                      DllBCM.h
-                      DllOMX.h
-                      OMXCore.h)
-endif()
-
 core_add_library(linuxsupport)
