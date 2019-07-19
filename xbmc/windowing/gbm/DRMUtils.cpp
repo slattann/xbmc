@@ -370,6 +370,9 @@ drmModePlanePtr CDRMUtils::FindPlane(drmModePlaneResPtr resources, int crtc_inde
           {
             case KODI_VIDEO_PLANE:
             {
+              if (m_module == "imx-drm" && props->prop_values[j] != DRM_PLANE_TYPE_OVERLAY)
+                break;
+
               if (SupportsFormat(plane, DRM_FORMAT_NV12))
               {
                 CLog::Log(LOGDEBUG, "CDRMUtils::%s - found video plane %u", __FUNCTION__, plane->plane_id);
