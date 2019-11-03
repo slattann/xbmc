@@ -59,12 +59,14 @@ void CRendererDRMPRIME::Register()
         ->GetSetting(SETTING_VIDEOPLAYER_USEPRIMERENDERER)
         ->SetVisible(true);
     VIDEOPLAYER::CRendererFactory::RegisterRenderer("drm_prime", CRendererDRMPRIME::Create);
-    return;
   }
 }
 
 bool CRendererDRMPRIME::Configure(const VideoPicture& picture, float fps, unsigned int orientation)
 {
+  CLog::Log(LOGDEBUG, "CRendererDRMPRIME::{} - fps:{} orientation:{}", __FUNCTION__, fps,
+            orientation);
+
   m_format = picture.videoBuffer->GetFormat();
   m_sourceWidth = picture.iWidth;
   m_sourceHeight = picture.iHeight;
@@ -170,7 +172,10 @@ void CRendererDRMPRIME::RenderUpdate(
 
   CVideoBufferDRMPRIME* buffer = dynamic_cast<CVideoBufferDRMPRIME*>(m_buffers[index].videoBuffer);
   if (!buffer || !buffer->IsValid())
+  {
+    CLog::Log(LOGERROR, "CRendererDRMPRIME::{} - videoBuffer:nullptr index:{}", __FUNCTION__, index);
     return;
+  }
 
   if (!m_videoLayerBridge)
   {

@@ -49,6 +49,9 @@ bool CRendererDRMPRIMEGLES::Configure(const VideoPicture& picture,
   if (!winSystem)
     return false;
 
+  CLog::Log(LOGDEBUG, "CRendererDRMPRIMEGLES::{} - fps:{} orientation:{}", __FUNCTION__, fps,
+            orientation);
+
   m_format = picture.videoBuffer->GetFormat();
   m_sourceWidth = picture.iWidth;
   m_sourceHeight = picture.iHeight;
@@ -194,7 +197,10 @@ void CRendererDRMPRIMEGLES::Render(unsigned int flags, int index)
 
   CVideoBufferDRMPRIME* buffer = dynamic_cast<CVideoBufferDRMPRIME*>(buf.videoBuffer);
   if (!buffer || !buffer->IsValid())
+  {
+    CLog::Log(LOGERROR, "CRendererDRMPRIMEGLES::{} - videoBuffer:nullptr index:{}", __FUNCTION__, index);
     return;
+  }
 
   CRenderSystemGLES* renderSystem =
       dynamic_cast<CRenderSystemGLES*>(CServiceBroker::GetRenderSystem());
