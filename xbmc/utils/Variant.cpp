@@ -28,94 +28,6 @@
 #endif // TARGET_WINDOWS
 #endif // strtoll
 
-std::string trimRight(const std::string &str)
-{
-  std::string tmp = str;
-  // find_last_not_of will return string::npos (which is defined as -1)
-  // or a value between 0 and size() - 1 => find_last_not_of() + 1 will
-  // always result in a valid index between 0 and size()
-  tmp.erase(tmp.find_last_not_of(" \n\r\t") + 1);
-
-  return tmp;
-}
-
-std::wstring trimRight(const std::wstring &str)
-{
-  std::wstring tmp = str;
-  // find_last_not_of will return string::npos (which is defined as -1)
-  // or a value between 0 and size() - 1 => find_last_not_of() + 1 will
-  // always result in a valid index between 0 and size()
-  tmp.erase(tmp.find_last_not_of(L" \n\r\t") + 1);
-
-  return tmp;
-}
-
-int64_t str2int64(const std::string &str, int64_t fallback /* = 0 */)
-{
-  char *end = NULL;
-  std::string tmp = trimRight(str);
-  int64_t result = strtoll(tmp.c_str(), &end, 0);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
-int64_t str2int64(const std::wstring &str, int64_t fallback /* = 0 */)
-{
-  wchar_t *end = NULL;
-  std::wstring tmp = trimRight(str);
-  int64_t result = wcstoll(tmp.c_str(), &end, 0);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
-uint64_t str2uint64(const std::string &str, uint64_t fallback /* = 0 */)
-{
-  char *end = NULL;
-  std::string tmp = trimRight(str);
-  uint64_t result = strtoull(tmp.c_str(), &end, 0);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
-uint64_t str2uint64(const std::wstring &str, uint64_t fallback /* = 0 */)
-{
-  wchar_t *end = NULL;
-  std::wstring tmp = trimRight(str);
-  uint64_t result = wcstoull(tmp.c_str(), &end, 0);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
-double str2double(const std::string &str, double fallback /* = 0.0 */)
-{
-  char *end = NULL;
-  std::string tmp = trimRight(str);
-  double result = strtod(tmp.c_str(), &end);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
-double str2double(const std::wstring &str, double fallback /* = 0.0 */)
-{
-  wchar_t *end = NULL;
-  std::wstring tmp = trimRight(str);
-  double result = wcstod(tmp.c_str(), &end);
-  if (end == NULL || *end == '\0')
-    return result;
-
-  return fallback;
-}
-
 CVariant::CVariant()
   : CVariant(VariantTypeNull)
 {
@@ -391,9 +303,9 @@ int64_t CVariant::asInteger(int64_t fallback) const
     case VariantTypeDouble:
       return (int64_t)m_data.dvalue;
     case VariantTypeString:
-      return str2int64(*m_data.string, fallback);
+      return std::stoll(*m_data.string);
     case VariantTypeWideString:
-      return str2int64(*m_data.wstring, fallback);
+      return std::stoll(*m_data.wstring);
     default:
       return fallback;
   }
@@ -417,9 +329,9 @@ uint64_t CVariant::asUnsignedInteger(uint64_t fallback) const
     case VariantTypeDouble:
       return (uint64_t)m_data.dvalue;
     case VariantTypeString:
-      return str2uint64(*m_data.string, fallback);
+      return std::stoull(*m_data.string);
     case VariantTypeWideString:
-      return str2uint64(*m_data.wstring, fallback);
+      return std::stoull(*m_data.wstring);
     default:
       return fallback;
   }
@@ -443,9 +355,9 @@ double CVariant::asDouble(double fallback) const
     case VariantTypeUnsignedInteger:
       return (double)m_data.unsignedinteger;
     case VariantTypeString:
-      return str2double(*m_data.string, fallback);
+      return std::stod(*m_data.string);
     case VariantTypeWideString:
-      return str2double(*m_data.wstring, fallback);
+      return std::stod(*m_data.wstring);
     default:
       return fallback;
   }
@@ -464,9 +376,9 @@ float CVariant::asFloat(float fallback) const
     case VariantTypeUnsignedInteger:
       return (float)m_data.unsignedinteger;
     case VariantTypeString:
-      return (float)str2double(*m_data.string, fallback);
+      return std::stof(*m_data.string);
     case VariantTypeWideString:
-      return (float)str2double(*m_data.wstring, fallback);
+      return std::stof(*m_data.wstring);
     default:
       return fallback;
   }

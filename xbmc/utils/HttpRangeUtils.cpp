@@ -267,7 +267,7 @@ bool CHttpRanges::Parse(const std::string& header, uint64_t totalLength)
       if (!StringUtils::IsNaturalNumber(positions.front()))
         return false;
 
-      start = str2uint64(positions.front(), 0);
+      start = std::stoull(positions.front());
       hasStart = true;
     }
     if (!positions.back().empty())
@@ -275,7 +275,7 @@ bool CHttpRanges::Parse(const std::string& header, uint64_t totalLength)
       if (!StringUtils::IsNaturalNumber(positions.back()))
         return false;
 
-      end = str2uint64(positions.back(), 0);
+      end = std::stoull(positions.back());
       hasEnd = true;
     }
 

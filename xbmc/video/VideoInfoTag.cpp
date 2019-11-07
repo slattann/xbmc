@@ -1249,10 +1249,10 @@ unsigned int CVideoInfoTag::GetStaticDuration() const
 
 unsigned int CVideoInfoTag::GetDurationFromMinuteString(const std::string &runtime)
 {
-  unsigned int duration = (unsigned int)str2uint64(runtime);
-  if (!duration)
+  unsigned int duration = static_cast<unsigned int>(std::stoi(runtime));
+  if (duration == 0)
   { // failed for some reason, or zero
-    duration = strtoul(runtime.c_str(), NULL, 10);
+    duration = std::stoul(runtime.c_str());
     CLog::Log(LOGWARNING, "%s <runtime> should be in minutes. Interpreting '%s' as %u minutes", __FUNCTION__, runtime.c_str(), duration);
   }
   return duration*60;

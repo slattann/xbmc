@@ -14,13 +14,6 @@
 #include <vector>
 #include <wchar.h>
 
-int64_t str2int64(const std::string &str, int64_t fallback = 0);
-int64_t str2int64(const std::wstring &str, int64_t fallback = 0);
-uint64_t str2uint64(const std::string &str, uint64_t fallback = 0);
-uint64_t str2uint64(const std::wstring &str, uint64_t fallback = 0);
-double str2double(const std::string &str, double fallback = 0.0);
-double str2double(const std::wstring &str, double fallback = 0.0);
-
 #ifdef TARGET_WINDOWS_STORE
 #pragma pack(push)
 #pragma pack(8)
