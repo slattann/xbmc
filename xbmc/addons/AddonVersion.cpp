@@ -32,7 +32,7 @@ namespace ADDON
     size_t pos = mUpstream.find(':');
     if (pos != std::string::npos)
     {
-      mEpoch = strtol(mUpstream.c_str(), NULL, 10);
+      mEpoch = std::stoi(mUpstream);
       mUpstream.erase(0, pos+1);
     }
 
@@ -85,14 +85,23 @@ namespace ADDON
         return isdigit(*a) ? -1 : 1;
       }
 
-      char *next_a, *next_b;
-      long int num_a = strtol(a, &next_a, 10);
-      long int num_b = strtol(b, &next_b, 10);
-      if (num_a != num_b)
-        return num_a < num_b ? -1 : 1;
+      size_t next_a;
+      size_t next_b;
+      try
+      {
+        int num_a = std::stoi(a, &next_a);
+        int num_b = std::stoi(b, &next_b);
 
-      a = next_a;
-      b = next_b;
+        if (num_a != num_b)
+          return num_a < num_b ? -1 : 1;
+
+        a = &a[next_a];
+        b = &b[next_b];
+      }
+      catch (const std::invalid_argument& ia)
+      {
+        // Should we log here?
+      }
     }
     if (!*a && !*b)
       return 0;
