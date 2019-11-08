@@ -378,7 +378,7 @@ namespace XBMCAddon
           else if (key == "userrating")
             videotag.m_iUserRating = std::stol(value.c_str());
           else if (key == "size")
-            item->m_dwSize = (int64_t)strtoll(value.c_str(), nullptr, 10);
+            item->m_dwSize = std::stoll(value);
           else if (key == "watched") // backward compat - do we need it?
             videotag.SetPlayCount(std::stol(value.c_str()));
           else if (key == "playcount")
@@ -545,7 +545,7 @@ namespace XBMCAddon
           else if (key == "count")
             item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "size")
-            item->m_dwSize = static_cast<int64_t>(strtoll(value.c_str(), nullptr, 10));
+            item->m_dwSize = std::stoll(value);
           else if (key == "duration")
             musictag.SetDuration(std::stol(value.c_str()));
           else if (key == "year")
@@ -611,7 +611,7 @@ namespace XBMCAddon
           if (key == "count")
             item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "size")
-            item->m_dwSize = static_cast<int64_t>(strtoll(value.c_str(), nullptr, 10));
+            item->m_dwSize = std::stoll(value);
           else if (key == "title")
             item->m_strTitle = value;
           else if (key == "picturepath")

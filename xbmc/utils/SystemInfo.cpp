@@ -513,8 +513,7 @@ std::string CSysInfo::GetKernelVersionFull(void)
 #elif  defined(TARGET_WINDOWS_STORE)
   // get the system version number
   auto sv = AnalyticsInfo::VersionInfo().DeviceFamilyVersion();
-  wchar_t* end;
-  unsigned long long  v = wcstoull(sv.c_str(), &end, 10);
+  unsigned long long v = std::stoull(sv);
   unsigned long long v1 = (v & 0xFFFF000000000000L) >> 48;
   unsigned long long v2 = (v & 0x0000FFFF00000000L) >> 32;
   unsigned long long v3 = (v & 0x00000000FFFF0000L) >> 16;

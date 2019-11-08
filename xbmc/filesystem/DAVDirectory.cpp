@@ -59,7 +59,7 @@ void CDAVDirectory::ParseResponse(const TiXmlElement *pElement, CFileItem &item)
             {
               if (CDAVCommon::ValueWithoutNamespace(pPropChild, "getcontentlength") && !pPropChild->NoChildren())
               {
-                item.m_dwSize = strtoll(pPropChild->FirstChild()->Value(), NULL, 10);
+                item.m_dwSize = std::stoll(pPropChild->FirstChild()->Value());
               }
               else
               if (CDAVCommon::ValueWithoutNamespace(pPropChild, "getlastmodified") && !pPropChild->NoChildren())
