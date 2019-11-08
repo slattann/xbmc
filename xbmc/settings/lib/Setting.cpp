@@ -810,7 +810,7 @@ bool CSettingInt::Deserialize(const TiXmlNode *node, bool update /* = false */)
           std::pair<int, int> entry;
           if (optionElement->QueryIntAttribute(SETTING_XML_ATTR_LABEL, &entry.first) == TIXML_SUCCESS && entry.first > 0)
           {
-            entry.second = strtol(optionElement->FirstChild()->Value(), nullptr, 10);
+            entry.second = std::stoi(optionElement->FirstChild()->Value());
             m_translatableOptions.push_back(entry);
           }
 
@@ -1004,10 +1004,17 @@ bool CSettingInt::fromString(const std::string &strValue, int &value)
   if (strValue.empty())
     return false;
 
-  char *end = nullptr;
-  value = (int)strtol(strValue.c_str(), &end, 10);
-  if (end != nullptr && *end != '\0')
-    return false;
+  try
+  {
+    size_t end;
+    value = std::stoi(strValue, &end);
+    if (strValue.size() != end)
+      return false;
+  }
+  catch (const std::invalid_argument& ia)
+  {
+    // Should we log here?
+  }
 
   return true;
 }
