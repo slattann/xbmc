@@ -123,10 +123,19 @@ void CLirc::ProcessCode(char *buf)
 
   int button = m_irTranslator.TranslateButton(deviceName, buttonName);
 
-  char *end = nullptr;
-  long repeat = strtol(repeatStr, &end, 16);
-  if (!end || *end != 0)
-    CLog::Log(LOGERROR, "LIRC: invalid non-numeric character in expression %s", repeatStr);
+  long repeat;
+
+  try
+  {
+    size_t end;
+    repeat = std::stol(repeatStr, &end, 16);
+    if (repeatStr.size() != end)
+      CLog::Log(LOGERROR, "LIRC: invalid non-numeric character in expression {}", repeatStr);
+  }
+  catch (const std::invalid_argument& ia)
+  {
+    // Should we log here?
+  }
 
   if (repeat == 0)
   {
