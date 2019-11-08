@@ -358,11 +358,18 @@ bool CPeripheralBusAddon::SplitLocation(const std::string& strLocation, Peripher
 
     if (addon)
     {
-      const char* strJoystickIndex = parts[1].c_str();
-      char* p = NULL;
-      peripheralIndex = strtol(strJoystickIndex, &p, 10);
-      if (strJoystickIndex != p)
-        return true;
+      try
+      {
+        size_t p;
+        peripheralIndex = std::stoi(parts[1], &p);
+
+        if (parts[1].size() != p)
+          return true;
+      }
+      catch (const std::invalid_argument& ia)
+      {
+        // Should we log here?
+      }
     }
   }
   return false;
