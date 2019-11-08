@@ -991,11 +991,18 @@ std::string StringUtils::BinaryStringToString(const std::string& in)
         break;
       }
       if (isdigit(*cur)) {
-        char* end;
-        unsigned long num = strtol(cur, &end, 10);
-        cur = end - 1;
-        out.push_back(num);
-        continue;
+        try
+        {
+          size_t end;
+          unsigned long num = std::stol(cur, &end, 10);
+          cur = &cur[end] - 1;
+          out.push_back(num);
+          continue;
+        }
+        catch (const std::invalid_argument& ia)
+        {
+          // Should we log here?
+        }
       }
     }
     out.push_back(*cur);
