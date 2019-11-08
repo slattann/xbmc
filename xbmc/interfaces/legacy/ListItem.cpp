@@ -374,7 +374,7 @@ namespace XBMCAddon
           else if (key == "count")
             item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "rating")
-            videotag.SetRating(static_cast<float>(strtod(value.c_str(), nullptr)));
+            videotag.SetRating(std::stof(value));
           else if (key == "userrating")
             videotag.m_iUserRating = std::stol(value.c_str());
           else if (key == "size")
@@ -563,7 +563,7 @@ namespace XBMCAddon
           else if (key == "title")
             musictag.SetTitle(value);
           else if (key == "rating")
-            musictag.SetRating(static_cast<float>(strtod(value.c_str(), nullptr)));
+            musictag.SetRating(std::stof(value));
           else if (key == "userrating")
             musictag.SetUserrating(std::stol(value.c_str()));
           else if (key == "lyrics")

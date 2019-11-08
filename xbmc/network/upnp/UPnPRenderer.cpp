@@ -645,7 +645,7 @@ CUPnPRenderer::OnSetVolume(PLT_ActionReference& action)
 {
     NPT_String volume;
     NPT_CHECK_SEVERE(action->GetArgumentValue("DesiredVolume", volume));
-    g_application.SetVolume((float)strtod((const char*)volume, NULL));
+    g_application.SetVolume(std::stof(static_cast<const char*>(volume)));
     return NPT_SUCCESS;
 }
 

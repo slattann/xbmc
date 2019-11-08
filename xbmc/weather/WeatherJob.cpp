@@ -190,9 +190,9 @@ void CWeatherJob::SetFromProperties()
     m_info.currentIcon = ConstructPath(window->GetProperty("Current.OutlookIcon").asString());
     LocalizeOverview(m_info.currentConditions);
     FormatTemperature(m_info.currentTemperature,
-                      strtod(window->GetProperty("Current.Temperature").asString().c_str(), nullptr));
+                      std::stod(window->GetProperty("Current.Temperature").asString()));
     FormatTemperature(m_info.currentFeelsLike,
-                      strtod(window->GetProperty("Current.FeelsLike").asString().c_str(), nullptr));
+                      std::stod(window->GetProperty("Current.FeelsLike").asString()));
     m_info.currentUVIndex = window->GetProperty("Current.UVIndex").asString();
     LocalizeOverview(m_info.currentUVIndex);
     CSpeed speed = CSpeed::CreateFromKilometresPerHour(
@@ -209,7 +209,7 @@ void CWeatherJob::SetFromProperties()
     std::string windspeed = StringUtils::Format("%i %s", (int)speed.To(g_langInfo.GetSpeedUnit()), g_langInfo.GetSpeedUnitString().c_str());
     window->SetProperty("Current.WindSpeed",windspeed);
     FormatTemperature(m_info.currentDewPoint,
-                      strtod(window->GetProperty("Current.DewPoint").asString().c_str(), nullptr));
+                      std::stod(window->GetProperty("Current.DewPoint").asString()));
     if (window->GetProperty("Current.Humidity").asString().empty())
       m_info.currentHumidity.clear();
     else
@@ -222,10 +222,10 @@ void CWeatherJob::SetFromProperties()
       LocalizeOverviewToken(m_info.forecast[i].m_day);
       strDay = StringUtils::Format("Day%i.HighTemp",i);
       FormatTemperature(m_info.forecast[i].m_high,
-                        strtod(window->GetProperty(strDay).asString().c_str(), nullptr));
+                        std::stod(window->GetProperty(strDay).asString()));
       strDay = StringUtils::Format("Day%i.LowTemp",i);
       FormatTemperature(m_info.forecast[i].m_low,
-                        strtod(window->GetProperty(strDay).asString().c_str(), nullptr));
+                        std::stod(window->GetProperty(strDay).asString()));
       strDay = StringUtils::Format("Day%i.OutlookIcon",i);
       m_info.forecast[i].m_icon = ConstructPath(window->GetProperty(strDay).asString());
       strDay = StringUtils::Format("Day%i.Outlook",i);

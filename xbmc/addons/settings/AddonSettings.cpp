@@ -1224,15 +1224,15 @@ SettingPtr CAddonSettings::InitializeFromOldSettingSlider(const std::string& set
 
   if (range.size() > 1)
   {
-    min = strtod(range[0].c_str(), nullptr);
+    min = std::stod(range[0]);
 
     if (range.size() > 2)
     {
-      max = strtod(range[2].c_str(), nullptr);
-      step = strtod(range[1].c_str(), nullptr);
+      max = std::stod(range[2]);
+      step = std::stod(range[1]);
     }
     else
-      max = strtod(range[1].c_str(), nullptr);
+      max = std::stod(range[1]);
   }
 
   // parse option

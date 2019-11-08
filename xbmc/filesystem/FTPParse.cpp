@@ -400,7 +400,7 @@ int CFTPParse::FTPParse(std::string str)
   if (unix_re.FullMatch(str, &type, &permissions, &link_count, &owner, &group, &size, &date, &name))
   {
     m_name = name;
-    m_size = (uint64_t)strtod(size.c_str(), NULL);
+    m_size = std::stoull(size);
     if (pcrecpp::RE("d").FullMatch(type))
       m_flagtrycwd = 1;
     if (pcrecpp::RE("-").FullMatch(type))
@@ -420,7 +420,7 @@ int CFTPParse::FTPParse(std::string str)
   if (netware_re.FullMatch(str, &type, &permissions, &owner, &size, &date, &name))
   {
     m_name = name;
-    m_size = (uint64_t)strtod(size.c_str(), NULL);
+    m_size = std::stoull(size);
     if (pcrecpp::RE("d").FullMatch(type))
       m_flagtrycwd = 1;
     if (pcrecpp::RE("-").FullMatch(type))
@@ -432,7 +432,7 @@ int CFTPParse::FTPParse(std::string str)
   if (netpresenz_re.FullMatch(str, &type, &permissions, &stuff, &size, &date, &name))
   {
     m_name = name;
-    m_size = (uint64_t)strtod(size.c_str(), NULL);
+    m_size = std::stoull(size);
     if (pcrecpp::RE("d").FullMatch(type))
       m_flagtrycwd = 1;
     if (pcrecpp::RE("-").FullMatch(type))
@@ -457,7 +457,7 @@ int CFTPParse::FTPParse(std::string str)
     pcrecpp::RE("(\\+|,)m(\\d+),").PartialMatch(facts, (void*)NULL, &date);
 
     m_name = name;
-    m_size = (uint64_t)strtod(size.c_str(), NULL);
+    m_size = std::stoull(size);
     if (pcrecpp::RE("/").FullMatch(type))
       m_flagtrycwd = 1;
     if (pcrecpp::RE("r").FullMatch(type))
@@ -494,7 +494,7 @@ int CFTPParse::FTPParse(std::string str)
     else
     {
       m_flagtryretr = 1;
-      m_size = (uint64_t)strtod(size.c_str(), NULL);
+      m_size = std::stoull(size);
     }
     setTime(date);
 

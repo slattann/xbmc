@@ -630,7 +630,7 @@ RESOLUTION CDisplaySettings::GetResolutionFromString(const std::string &strResol
     // format: WWWWWHHHHHRRR.RRRRRP333, where W = width, H = height, R = refresh, P = interlace, 3 = stereo mode
     int width = std::stoi(StringUtils::Mid(strResolution, 0, 5));
     int height = std::stoi(StringUtils::Mid(strResolution, 5, 5));
-    float refresh = (float)std::strtod(StringUtils::Mid(strResolution, 10,9).c_str(), NULL);
+    float refresh = std::stof(StringUtils::Mid(strResolution, 10, 9));
     unsigned flags = 0;
 
     // look for 'i' and treat everything else as progressive,
