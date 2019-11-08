@@ -676,7 +676,7 @@ std::string CSmartPlaylistRule::GetLocalizedRule() const
 std::string CSmartPlaylistRule::GetVideoResolutionQuery(const std::string &parameter) const
 {
   std::string retVal(" IN (SELECT DISTINCT idFile FROM streamdetails WHERE iVideoWidth ");
-  int iRes = (int)std::strtol(parameter.c_str(), NULL, 10);
+  int iRes = std::stoi(parameter);
 
   int min, max;
   if (iRes >= 2160)

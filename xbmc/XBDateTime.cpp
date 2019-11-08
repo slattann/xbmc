@@ -1081,7 +1081,7 @@ bool CDateTime::SetFromRFC1123DateTime(const std::string &dateTime)
   if (date.size() != 29)
     return false;
 
-  int day  = strtol(date.substr(5, 2).c_str(), NULL, 10);
+  int day = std::stoi(date.substr(5, 2));
 
   std::string strMonth = date.substr(8, 3);
   int month = 0;
@@ -1097,10 +1097,10 @@ bool CDateTime::SetFromRFC1123DateTime(const std::string &dateTime)
   if (month < 1)
     return false;
 
-  int year = strtol(date.substr(12, 4).c_str(), NULL, 10);
-  int hour = strtol(date.substr(17, 2).c_str(), NULL, 10);
-  int min  = strtol(date.substr(20, 2).c_str(), NULL, 10);
-  int sec  = strtol(date.substr(23, 2).c_str(), NULL, 10);
+  int year = std::stoi(date.substr(12, 4));
+  int hour = std::stoi(date.substr(17, 2));
+  int min = std::stoi(date.substr(20, 2));
+  int sec = std::stoi(date.substr(23, 2));
 
   return SetDateTime(year, month, day, hour, min, sec);
 }

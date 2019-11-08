@@ -964,7 +964,7 @@ SettingPtr CAddonSettings::InitializeFromOldSettingSelect(const std::string& set
 
       TranslatableIntegerSettingOptions options;
       for (uint32_t i = 0; i < values.size(); ++i)
-        options.push_back(std::make_pair(static_cast<int>(strtol(values[i].c_str(), nullptr, 0)), i));
+        options.push_back(std::make_pair(static_cast<int>(std::stoi(values[i].c_str())), i));
       settingInt->SetTranslatableOptions(options);
 
       setting = settingInt;
@@ -1092,7 +1092,7 @@ SettingPtr CAddonSettings::InitializeFromOldSettingEnums(const std::string& sett
         std::string label = values[i];
         int value = i;
         if (settingEntries.size() > i)
-          value = static_cast<int>(strtol(settingEntries[i].c_str(), nullptr, 0));
+          value = static_cast<int>(std::stoi(settingEntries[i].c_str()));
 
         options.push_back(IntegerSettingOption(label, value));
       }
@@ -1104,10 +1104,10 @@ SettingPtr CAddonSettings::InitializeFromOldSettingEnums(const std::string& sett
       TranslatableIntegerSettingOptions options;
       for (uint32_t i = 0; i < values.size(); ++i)
       {
-        int label = static_cast<int>(strtol(values[i].c_str(), nullptr, 0));
+        int label = static_cast<int>(std::stoi(values[i]));
         int value = i;
         if (settingEntries.size() > i)
-          value = static_cast<int>(strtol(settingEntries[i].c_str(), nullptr, 0));
+          value = static_cast<int>(std::stoi(settingEntries[i]));
 
         options.push_back(std::make_pair(label, value));
       }
@@ -1147,7 +1147,7 @@ SettingPtr CAddonSettings::InitializeFromOldSettingEnums(const std::string& sett
       TranslatableStringSettingOptions options;
       for (uint32_t i = 0; i < values.size(); ++i)
       {
-        int label = static_cast<int>(strtol(values[i].c_str(), nullptr, 0));
+        int label = static_cast<int>(std::stoi(values[i]));
         std::string value = g_localizeStrings.GetAddonString(m_addonId, label);
         if (settingEntries.size() > i)
           value = settingEntries[i];
@@ -1347,7 +1347,7 @@ bool CAddonSettings::ParseOldLabel(const TiXmlElement* element, const std::strin
   if (parsed)
   {
     char* endptr;
-    labelId = std::strtol(labelString.c_str(), &endptr, 10);
+    labelId = std::stoi(labelString);
     if (endptr == nullptr || *endptr == '\0')
       return true;
   }
@@ -1503,7 +1503,8 @@ bool CAddonSettings::ParseOldConditionExpression(std::string str, ConditionExpre
   else
     return false;
 
-  expression.m_relativeSettingIndex = static_cast<int32_t>(strtol(str.substr(posOpen + 1, posSep - posOpen - 1).c_str(), nullptr, 10));
+  expression.m_relativeSettingIndex =
+      static_cast<int32_t>(std::stoi(str.substr(posOpen + 1, posSep - posOpen - 1)));
   expression.m_value = str.substr(posSep + 1, posClose - posSep - 1);
 
   return true;

@@ -166,7 +166,7 @@ unsigned int CTouchTranslator::TranslateTouchCommand(const TiXmlElement *pButton
   int pointers = 1;
   attrVal = pButton->Attribute("pointers");
   if (attrVal != nullptr)
-    pointers = (int)strtol(attrVal, nullptr, 0);
+    pointers = std::stoi(attrVal);
 
   unsigned int touchActionKey = GetTouchActionKey(touchCommandId, pointers);
 

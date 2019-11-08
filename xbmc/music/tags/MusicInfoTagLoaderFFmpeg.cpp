@@ -100,13 +100,13 @@ bool CMusicInfoTagLoaderFFmpeg::Load(const std::string& strFileName, CMusicInfoT
                               tag.SetGenre(avtag->value);
                             else if (strcasecmp(avtag->key, "part_number") == 0 ||
                                      strcasecmp(avtag->key, "track") == 0)
-                              tag.SetTrackNumber(strtol(avtag->value, nullptr, 10));
+                              tag.SetTrackNumber(std::stoi(avtag->value));
                             else if (strcasecmp(avtag->key, "disc") == 0)
-                              tag.SetDiscNumber(strtol(avtag->value, nullptr, 10));
+                              tag.SetDiscNumber(std::stoi(avtag->value));
                             else if (strcasecmp(avtag->key, "date") == 0)
-                              tag.SetYear(strtol(avtag->value, nullptr, 10));
+                              tag.SetYear(std::stoi(avtag->value));
                             else if (strcasecmp(avtag->key, "compilation") == 0)
-                              tag.SetCompilation((strtol(avtag->value, nullptr, 10) == 0) ? false : true);
+                              tag.SetCompilation((std::stoi(avtag->value) == 0) ? false : true);
                             else if (strcasecmp(avtag->key, "encoded_by") == 0) {}
                             else if (strcasecmp(avtag->key, "composer") == 0)
                               tag.AddArtistRole("Composer", avtag->value);
@@ -122,9 +122,9 @@ bool CMusicInfoTagLoaderFFmpeg::Load(const std::string& strFileName, CMusicInfoT
                             else if (strcasecmp(avtag->key, "copyright") == 0 ||
                                      strcasecmp(avtag->key, "TCOP") == 0) {} // Copyright message
                             else if (strcasecmp(avtag->key, "TDRC") == 0)
-                              tag.SetYear(strtol(avtag->value, nullptr, 10));
+                              tag.SetYear(std::stoi(avtag->value));
                             else if (strcasecmp(avtag->key, "TDRL") == 0)
-                              tag.SetYear(strtol(avtag->value, nullptr, 10));
+                              tag.SetYear(std::stoi(avtag->value));
                             else if (strcasecmp(avtag->key, "TDTG") == 0) {} // Tagging time
                             else if (strcasecmp(avtag->key, "language") == 0 ||
                                      strcasecmp(avtag->key, "TLAN") == 0) {} // Languages

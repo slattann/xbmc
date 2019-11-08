@@ -199,11 +199,11 @@ bool CMediaSourceSettings::UpdateSource(const std::string &strType, const std::s
       if (strUpdateChild == "name")
         it->strName = strUpdateValue;
       else if (strUpdateChild == "lockmode")
-        it->m_iLockMode = (LockType)std::strtol(strUpdateValue.c_str(), NULL, 10);
+        it->m_iLockMode = static_cast<LockType>(std::stoi(strUpdateValue));
       else if (strUpdateChild == "lockcode")
         it->m_strLockCode = strUpdateValue;
       else if (strUpdateChild == "badpwdcount")
-        it->m_iBadPwdCount = (int)std::strtol(strUpdateValue.c_str(), NULL, 10);
+        it->m_iBadPwdCount = std::stoi(strUpdateValue);
       else if (strUpdateChild == "thumbnail")
         it->m_strThumbnailImage = strUpdateValue;
       else if (strUpdateChild == "path")
@@ -398,7 +398,7 @@ bool CMediaSourceSettings::GetSource(const std::string &category, const TiXmlNod
   share.m_iBadPwdCount = 0;
   if (pLockMode)
   {
-    share.m_iLockMode = (LockType)std::strtol(pLockMode->FirstChild()->Value(), NULL, 10);
+    share.m_iLockMode = static_cast<LockType>(std::stoi(pLockMode->FirstChild()->Value()));
     share.m_iHasLock = 2;
   }
 
@@ -406,7 +406,7 @@ bool CMediaSourceSettings::GetSource(const std::string &category, const TiXmlNod
     share.m_strLockCode = pLockCode->FirstChild()->Value();
 
   if (pBadPwdCount && pBadPwdCount->FirstChild())
-    share.m_iBadPwdCount = (int)std::strtol(pBadPwdCount->FirstChild()->Value(), NULL, 10);
+    share.m_iBadPwdCount = std::stoi(pBadPwdCount->FirstChild()->Value());
 
   if (pThumbnailNode && pThumbnailNode->FirstChild())
     share.m_strThumbnailImage = pThumbnailNode->FirstChild()->Value();

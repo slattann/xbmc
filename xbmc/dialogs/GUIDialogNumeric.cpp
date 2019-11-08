@@ -399,7 +399,7 @@ void CGUIDialogNumeric::SetMode(INPUT_MODE mode, const std::string &initial)
       // check if we have a pure number
       if (initial.find_first_not_of("0123456789") == std::string::npos)
       {
-        long seconds = strtol(initial.c_str(), nullptr, 10);
+        long seconds = std::stol(initial);
         dateTime = seconds;
       }
       else

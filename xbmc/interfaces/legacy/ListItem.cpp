@@ -350,42 +350,42 @@ namespace XBMCAddon
           const String value(alt.which() == first ? alt.former() : emptyString);
 
           if (key == "dbid")
-            videotag.m_iDbId = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iDbId = std::stol(value.c_str());
           else if (key == "year")
-            videotag.SetYear(strtol(value.c_str(), nullptr, 10));
+            videotag.SetYear(std::stol(value.c_str()));
           else if (key == "episode")
-            videotag.m_iEpisode = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iEpisode = std::stol(value.c_str());
           else if (key == "season")
-            videotag.m_iSeason = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iSeason = std::stol(value.c_str());
           else if (key == "sortepisode")
-            videotag.m_iSpecialSortEpisode = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iSpecialSortEpisode = std::stol(value.c_str());
           else if (key == "sortseason")
-            videotag.m_iSpecialSortSeason = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iSpecialSortSeason = std::stol(value.c_str());
           else if (key == "episodeguide")
             videotag.SetEpisodeGuide(value);
           else if (key == "showlink")
             videotag.SetShowLink(getStringArray(alt, key, value));
           else if (key == "top250")
-            videotag.m_iTop250 = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iTop250 = std::stol(value.c_str());
           else if (key == "setid")
-            videotag.m_set.id = strtol(value.c_str(), nullptr, 10);
+            videotag.m_set.id = std::stol(value.c_str());
           else if (key == "tracknumber")
-            videotag.m_iTrack = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iTrack = std::stol(value.c_str());
           else if (key == "count")
-            item->m_iprogramCount = strtol(value.c_str(), nullptr, 10);
+            item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "rating")
             videotag.SetRating(static_cast<float>(strtod(value.c_str(), nullptr)));
           else if (key == "userrating")
-            videotag.m_iUserRating = strtol(value.c_str(), nullptr, 10);
+            videotag.m_iUserRating = std::stol(value.c_str());
           else if (key == "size")
             item->m_dwSize = (int64_t)strtoll(value.c_str(), nullptr, 10);
           else if (key == "watched") // backward compat - do we need it?
-            videotag.SetPlayCount(strtol(value.c_str(), nullptr, 10));
+            videotag.SetPlayCount(std::stol(value.c_str()));
           else if (key == "playcount")
-            videotag.SetPlayCount(strtol(value.c_str(), nullptr, 10));
+            videotag.SetPlayCount(std::stol(value.c_str()));
           else if (key == "overlay")
           {
-            long overlay = strtol(value.c_str(), nullptr, 10);
+            long overlay = std::stol(value.c_str());
             if (overlay >= 0 && overlay <= 8)
               item->SetOverlayImage(static_cast<CGUIListItem::GUIIconOverlay>(overlay));
           }
@@ -439,7 +439,7 @@ namespace XBMCAddon
           else if (key == "sorttitle")
             videotag.SetSortTitle(value);
           else if (key == "duration")
-            videotag.SetDuration(strtol(value.c_str(), nullptr, 10));
+            videotag.SetDuration(std::stol(value.c_str()));
           else if (key == "studio")
             videotag.SetStudio(getStringArray(alt, key, value));
           else if (key == "tagline")
@@ -537,23 +537,23 @@ namespace XBMCAddon
 
           //! @todo add the rest of the infolabels
           if (key == "dbid" && !type.empty())
-            musictag.SetDatabaseId(strtol(value.c_str(), NULL, 10), type);
+            musictag.SetDatabaseId(std::stol(value.c_str()), type);
           else if (key == "tracknumber")
-            musictag.SetTrackNumber(strtol(value.c_str(), NULL, 10));
+            musictag.SetTrackNumber(std::stol(value.c_str()));
           else if (key == "discnumber")
-            musictag.SetDiscNumber(strtol(value.c_str(), nullptr, 10));
+            musictag.SetDiscNumber(std::stol(value.c_str()));
           else if (key == "count")
-            item->m_iprogramCount = strtol(value.c_str(), nullptr, 10);
+            item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "size")
             item->m_dwSize = static_cast<int64_t>(strtoll(value.c_str(), nullptr, 10));
           else if (key == "duration")
-            musictag.SetDuration(strtol(value.c_str(), nullptr, 10));
+            musictag.SetDuration(std::stol(value.c_str()));
           else if (key == "year")
-            musictag.SetYear(strtol(value.c_str(), nullptr, 10));
+            musictag.SetYear(std::stol(value.c_str()));
           else if (key == "listeners")
-            musictag.SetListeners(strtol(value.c_str(), nullptr, 10));
+            musictag.SetListeners(std::stol(value.c_str()));
           else if (key == "playcount")
-            musictag.SetPlayCount(strtol(value.c_str(), nullptr, 10));
+            musictag.SetPlayCount(std::stol(value.c_str()));
           else if (key == "genre")
             musictag.SetGenre(value);
           else if (key == "album")
@@ -565,7 +565,7 @@ namespace XBMCAddon
           else if (key == "rating")
             musictag.SetRating(static_cast<float>(strtod(value.c_str(), nullptr)));
           else if (key == "userrating")
-            musictag.SetUserrating(strtol(value.c_str(), nullptr, 10));
+            musictag.SetUserrating(std::stol(value.c_str()));
           else if (key == "lyrics")
             musictag.SetLyrics(value);
           else if (key == "lastplayed")
@@ -609,7 +609,7 @@ namespace XBMCAddon
           const String value(alt.which() == first ? alt.former() : emptyString);
 
           if (key == "count")
-            item->m_iprogramCount = strtol(value.c_str(), nullptr, 10);
+            item->m_iprogramCount = std::stol(value.c_str());
           else if (key == "size")
             item->m_dwSize = static_cast<int64_t>(strtoll(value.c_str(), nullptr, 10));
           else if (key == "title")
@@ -676,7 +676,7 @@ namespace XBMCAddon
           else if (key == "overview")
             gametag.SetOverview(value);
           else if (key == "year")
-            gametag.SetYear(strtol(value.c_str(), nullptr, 10));
+            gametag.SetYear(std::stol(value.c_str()));
           else if (key == "gameclient")
             gametag.SetGameClient(value);
         }
@@ -701,7 +701,7 @@ namespace XBMCAddon
           else if (key == "thumbnail")
             info.thumbUrl = CScraperUrl(value);
           else if (key == "order")
-            info.order = strtol(value.c_str(), nullptr, 10);
+            info.order = std::stol(value.c_str());
         }
         GetVideoInfoTag()->m_cast.push_back(std::move(info));
       }
@@ -755,11 +755,11 @@ namespace XBMCAddon
           else if (key == "aspect")
             video->m_fAspect = static_cast<float>(atof(value.c_str()));
           else if (key == "width")
-            video->m_iWidth = strtol(value.c_str(), nullptr, 10);
+            video->m_iWidth = std::stol(value.c_str());
           else if (key == "height")
-            video->m_iHeight = strtol(value.c_str(), nullptr, 10);
+            video->m_iHeight = std::stol(value.c_str());
           else if (key == "duration")
-            video->m_iDuration = strtol(value.c_str(), nullptr, 10);
+            video->m_iDuration = std::stol(value.c_str());
           else if (key == "stereomode")
             video->m_strStereoMode = value;
           else if (key == "language")
@@ -780,7 +780,7 @@ namespace XBMCAddon
           else if (key == "language")
             audio->m_strLanguage = value;
           else if (key == "channels")
-            audio->m_iChannels = strtol(value.c_str(), nullptr, 10);
+            audio->m_iChannels = std::stol(value.c_str());
         }
         GetVideoInfoTag()->m_streamDetails.AddStream(audio);
       }

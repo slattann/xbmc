@@ -292,10 +292,14 @@ bool CTagLoaderTagLib::ParseTag(ID3v2::Tag *id3v2, EmbeddedArt *art, MUSIC_INFO:
     else if (it->first == "TSOC")   SetComposerSort(tag, GetID3v2StringList(it->second));
     else if (it->first == "TIT2")   tag.SetTitle(it->second.front()->toString().to8Bit(true));
     else if (it->first == "TCON")   SetGenre(tag, GetID3v2StringList(it->second));
-    else if (it->first == "TRCK")   tag.SetTrackNumber(strtol(it->second.front()->toString().toCString(true), nullptr, 10));
-    else if (it->first == "TPOS")   tag.SetDiscNumber(strtol(it->second.front()->toString().toCString(true), nullptr, 10));
-    else if (it->first == "TYER")   tag.SetYear(strtol(it->second.front()->toString().toCString(true), nullptr, 10));
-    else if (it->first == "TCMP")   tag.SetCompilation((strtol(it->second.front()->toString().toCString(true), nullptr, 10) == 0) ? false : true);
+    else if (it->first == "TRCK")
+      tag.SetTrackNumber(it->second.front()->toString().toInt());
+    else if (it->first == "TPOS")
+      tag.SetDiscNumber(it->second.front()->toString().toInt());
+    else if (it->first == "TYER")
+      tag.SetYear(it->second.front()->toString().toInt());
+    else if (it->first == "TCMP")
+      tag.SetCompilation((it->second.front()->toString().toInt() == 0) ? false : true);
     else if (it->first == "TENC")   {} // EncodedBy
     else if (it->first == "TCOM")   AddArtistRole(tag, "Composer", GetID3v2StringList(it->second));
     else if (it->first == "TPE3")   AddArtistRole(tag, "Conductor", GetID3v2StringList(it->second));
@@ -303,8 +307,10 @@ bool CTagLoaderTagLib::ParseTag(ID3v2::Tag *id3v2, EmbeddedArt *art, MUSIC_INFO:
     else if (it->first == "TPE4")   AddArtistRole(tag, "Remixer", GetID3v2StringList(it->second));
     else if (it->first == "TPUB")   tag.SetRecordLabel(it->second.front()->toString().to8Bit(true));
     else if (it->first == "TCOP")   {} // Copyright message
-    else if (it->first == "TDRC")   tag.SetYear(strtol(it->second.front()->toString().toCString(true), nullptr, 10));
-    else if (it->first == "TDRL")   tag.SetYear(strtol(it->second.front()->toString().toCString(true), nullptr, 10));
+    else if (it->first == "TDRC")
+      tag.SetYear(it->second.front()->toString().toInt());
+    else if (it->first == "TDRL")
+      tag.SetYear(it->second.front()->toString().toInt());
     else if (it->first == "TDTG")   {} // Tagging time
     else if (it->first == "TLAN")   {} // Languages
     else if (it->first == "TMOO")   tag.SetMood(it->second.front()->toString().to8Bit(true));
@@ -1034,7 +1040,7 @@ void CTagLoaderTagLib::SetGenre(CMusicInfoTag &tag, const std::vector<std::strin
     std::string genre = i;
     if (StringUtils::IsNaturalNumber(genre))
     {
-      int number = strtol(i.c_str(), nullptr, 10);
+      int number = std::stoi(i);
       if (number >= 0 && number < 256)
         genre = ID3v1::genre(number).to8Bit(true);
     }

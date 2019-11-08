@@ -192,7 +192,8 @@ CEncoder* CCDDARipJob::SetupEncoder(CFile& reader)
     return NULL;
 
   // we have to set the tags before we init the Encoder
-  const std::string strTrack = StringUtils::Format("%li", strtol(m_input.substr(13, m_input.size() - 13 - 5).c_str(), nullptr, 10));
+  const std::string strTrack =
+      StringUtils::Format("%li", std::stoi(m_input.substr(13, m_input.size() - 13 - 5)));
 
   const std::string itemSeparator = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_musicItemSeparator;
 

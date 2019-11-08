@@ -807,11 +807,11 @@ void CCurlFile::ParseAndCorrectUrl(CURL &url2)
         else if (name == "sslcipherlist")
           m_cipherlist = value;
         else if (name == "connection-timeout")
-          m_connecttimeout = strtol(value.c_str(), NULL, 10);
+          m_connecttimeout = std::stoi(value);
         else if (name == "failonerror")
           m_failOnError = value == "true";
         else if (name == "redirect-limit")
-          m_redirectlimit = strtol(value.c_str(), NULL, 10);
+          m_redirectlimit = std::stoi(value);
         else if (name == "postdata")
         {
           m_postdata = Base64::Decode(value);

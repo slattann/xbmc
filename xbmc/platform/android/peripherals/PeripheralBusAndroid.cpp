@@ -340,7 +340,7 @@ bool CPeripheralBusAndroid::GetDeviceId(const std::string& deviceLocation, int& 
   if (!StringUtils::IsNaturalNumber(strDeviceId))
     return false;
 
-  deviceId = static_cast<int>(strtol(strDeviceId.c_str(), nullptr, 10));
+  deviceId = std::stoi(strDeviceId);
   return true;
 }
 

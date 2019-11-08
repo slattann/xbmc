@@ -171,7 +171,7 @@ void CScraperParser::ReplaceBuffers(std::string& strDest)
     std::string strInfo = strDest.substr(iIndex+10, iEnd - iIndex - 10);
     std::string strReplace;
     if (m_scraper)
-      strReplace = g_localizeStrings.GetAddonString(m_scraper->ID(), strtol(strInfo.c_str(),NULL,10));
+      strReplace = g_localizeStrings.GetAddonString(m_scraper->ID(), std::stoi(strInfo));
     strDest.replace(strDest.begin()+iIndex,strDest.begin()+iEnd+1,strReplace);
     iIndex += strReplace.length();
   }
@@ -560,7 +560,7 @@ void CScraperParser::ConvertJSON(std::string &string)
     int pos2 = reg2.GetSubStart(2);
     std::string szHexValue(reg2.GetMatch(1));
 
-    std::string replace = StringUtils::Format("%li", strtol(szHexValue.c_str(), NULL, 16));
+    std::string replace = StringUtils::Format("%li", std::stoi(szHexValue, nullptr, 16));
     string.replace(string.begin()+pos1-2, string.begin()+pos2+reg2.GetSubLength(2), replace);
   }
 

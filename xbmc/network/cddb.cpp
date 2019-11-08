@@ -559,7 +559,7 @@ void Xcddb::parseData(const char *buffer)
           StringUtils::TrimLeft(strGenre);
           if (StringUtils::IsNaturalNumber(strGenre))
           {
-            int iGenre = strtol(strGenre.c_str(), NULL, 10);
+            int iGenre = std::stoi(strGenre);
             m_strGenre = TagLib::ID3v1::genre(iGenre).to8Bit(true);
           }
         }

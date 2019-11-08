@@ -126,7 +126,7 @@ bool CSettingDependencyCondition::Check() const
         {
           const auto value = setting->ToString();
           if (StringUtils::IsInteger(m_value))
-            result = strtol(value.c_str(), nullptr, 0) < strtol(m_value.c_str(), nullptr, 0);
+            result = std::stoi(value) < std::stoi(m_value);
           else
             result = value.compare(m_value) < 0;
           break;
@@ -136,7 +136,7 @@ bool CSettingDependencyCondition::Check() const
         {
           const auto value = setting->ToString();
           if (StringUtils::IsInteger(m_value))
-            result = strtol(value.c_str(), nullptr, 0) > strtol(m_value.c_str(), nullptr, 0);
+            result = std::stoi(value) > std::stoi(m_value);
           else
             result = value.compare(m_value) > 0;
           break;

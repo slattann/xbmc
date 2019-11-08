@@ -1479,7 +1479,7 @@ int CMusicDatabase::GetLastArtist()
   if (lastArtist.empty())
       return -1;
 
-  return static_cast<int>(strtol(lastArtist.c_str(), NULL, 10));
+  return std::stoi(lastArtist);
 }
 
 bool CMusicDatabase::HasArtistBeenScraped(int idArtist)
@@ -2078,7 +2078,8 @@ bool CMusicDatabase::GetIsAlbumArtist(int idArtist, CFileItem* item)
 {
   try
   {
-    int countalbum = strtol(GetSingleValue("album_artist", "count(idArtist)", PrepareSQL("idArtist=%i", idArtist)).c_str(), NULL, 10);
+    int countalbum = std::stoi(
+        GetSingleValue("album_artist", "count(idArtist)", PrepareSQL("idArtist=%i", idArtist)));
     CVariant IsAlbumArtistObj(CVariant::VariantTypeBoolean);
     IsAlbumArtistObj = (countalbum > 0);
     item->SetProperty("isalbumartist", IsAlbumArtistObj);
@@ -2408,7 +2409,7 @@ bool CMusicDatabase::GetSongByFileName(const std::string& strFileNameAndPath, CS
   if (startOffset)
     strSQL += PrepareSQL(" AND iStartOffset=%" PRIi64, startOffset);
 
-  int idSong = (int)strtol(GetSingleValue(strSQL).c_str(), NULL, 10);
+  int idSong = std::stoi(GetSingleValue(strSQL));
   if (idSong > 0)
     return GetSong(idSong, song);
 
@@ -3180,7 +3181,7 @@ bool CMusicDatabase::CleanupSongs(CGUIDialogProgress* progressDialog /*= nullptr
 
     int total;
     // Count total number of songs
-    total = (int)strtol(GetSingleValue("SELECT COUNT(1) FROM song", m_pDS).c_str(), nullptr, 10);
+    total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM song", m_pDS));
     // No songs to clean
     if (total == 0)
       return true;
@@ -4330,7 +4331,7 @@ bool CMusicDatabase::GetArtistsByWhere(const std::string& strBaseDir, const Filt
       (sortDescription.limitStart > 0 || sortDescription.limitEnd > 0);
     if (limitedInSQL)
     {
-      total = (int)strtol(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS).c_str(), NULL, 10);
+      total = std::stoi(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS));
       if (sortDescription.sortBy == SortByRandom)
         strSQLExtra += PrepareSQL(" ORDER BY RANDOM()");
       strSQLExtra += DatabaseUtils::BuildLimitClause(sortDescription.limitEnd, sortDescription.limitStart);
@@ -4506,7 +4507,7 @@ bool CMusicDatabase::GetAlbumsByWhere(const std::string &baseDir, const Filter &
       (sortDescription.limitStart > 0 || sortDescription.limitEnd > 0);
     if (limitedInSQL)
     {
-      total = (int)strtol(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS).c_str(), NULL, 10);
+      total = std::stoi(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS));
       if (sortDescription.sortBy == SortByRandom)
         strSQLExtra += PrepareSQL(" ORDER BY RANDOM()");
       strSQLExtra += DatabaseUtils::BuildLimitClause(sortDescription.limitEnd, sortDescription.limitStart);
@@ -4620,7 +4621,7 @@ bool CMusicDatabase::GetSongsFullByWhere(const std::string &baseDir, const Filte
       return false;
 
     // Count number of songs that satisfy selection criteria
-    total = (int)strtol(GetSingleValue("SELECT COUNT(1) FROM songview " + strSQLExtra, m_pDS).c_str(), NULL, 10);
+    total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM songview " + strSQLExtra, m_pDS));
 
     // Apply any limiting directly in SQL if there is either no special sorting or random sort
     // When limited, random sort is also applied in SQL
@@ -4784,7 +4785,7 @@ bool CMusicDatabase::GetSongsByWhere(const std::string &baseDir, const Filter &f
         sortDescription.sortBy == SortByNone &&
        (sortDescription.limitStart > 0 || sortDescription.limitEnd > 0))
     {
-      total = (int)strtol(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS).c_str(), NULL, 10);
+      total = std::stoi(GetSingleValue(PrepareSQL(strSQL, "COUNT(1)") + strSQLExtra, m_pDS));
       strSQLExtra += DatabaseUtils::BuildLimitClause(sortDescription.limitEnd, sortDescription.limitStart);
     }
 
@@ -4971,7 +4972,7 @@ bool CMusicDatabase::GetArtistsByWhereJSON(const std::set<std::string>& fields, 
 
     // Count number of artists that satisfy selection criteria 
     //(includes xsp limits from filter, but not sort limits)
-    total = static_cast<int>(strtol(GetSingleValue("SELECT COUNT(1) FROM artist " + strSQLExtra, m_pDS).c_str(), NULL, 10));
+    total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM artist " + strSQLExtra, m_pDS));
 
     // Process albumartistsonly option
     const CUrlOptions::UrlOptions& options = musicUrl.GetOptions();
@@ -5659,7 +5660,7 @@ bool CMusicDatabase::GetAlbumsByWhereJSON(const std::set<std::string>& fields, c
     // Count number of albums that satisfy selection criteria 
     // (includes xsp limits from filter, but not sort limits)
     // Use albumview as filter rules in where clause may use scalar query fields
-    total = static_cast<int>(strtol(GetSingleValue("SELECT COUNT(1) FROM albumview " + strSQLExtra, m_pDS).c_str(), nullptr, 10));
+    total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM albumview " + strSQLExtra, m_pDS));
 
     //! @todo: use SortAttributeUseArtistSortName and remove articles
     std::vector<std::string> orderfields;
@@ -6143,7 +6144,7 @@ bool CMusicDatabase::GetSongsByWhereJSON(const std::set<std::string>& fields, co
     // Count number of songs that satisfy selection criteria 
     // (includes xsp limits from filter, but not sort limits)
     // Use songview as filter rules in where clause may use album and path JOIN fields
-    total = static_cast<int>(strtol(GetSingleValue("SELECT COUNT(1) FROM songview " + strSQLExtra, m_pDS).c_str(), nullptr, 10));
+    total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM songview " + strSQLExtra, m_pDS));
 
     // Replace view names in filter with table names
     StringUtils::Replace(extFilter.where, "artistview", "artist");
@@ -7243,7 +7244,7 @@ void CMusicDatabase::UpdateTables(int version)
     strSQL = "SELECT count(idSong) FROM song "
              "WHERE NOT EXISTS(SELECT idSong FROM song_artist "
              "WHERE song_artist.idsong = song.idsong AND song_artist.idRole = 1)";
-    int numsongs = strtol(GetSingleValue(strSQL).c_str(), NULL, 10);
+    int numsongs = std::stoi(GetSingleValue(strSQL));
     if (numsongs > 0)
     {
       CLog::Log(LOGDEBUG, "%i songs have no artist, setting artist to [Missing]", numsongs);
@@ -7267,7 +7268,7 @@ void CMusicDatabase::UpdateTables(int version)
     strSQL = "SELECT count(idAlbum) FROM album "
       "WHERE NOT EXISTS(SELECT idAlbum FROM album_artist "
       "WHERE album_artist.idAlbum = album.idAlbum)";
-    int numalbums = strtol(GetSingleValue(strSQL).c_str(), NULL, 10);
+    int numalbums = std::stoi(GetSingleValue(strSQL));
     if (numalbums > 0)
     {
       CLog::Log(LOGDEBUG, "%i albums have no artist, setting artist to [Missing]", numalbums);
@@ -7807,7 +7808,7 @@ bool CMusicDatabase::GetOldArtistPath(int idArtist, std::string &basePath)
       std::string strValue = GetSingleValue(strSQL, m_pDS2);
       if (!strValue.empty())
       {
-        int countartists = static_cast<int>(strtol(strValue.c_str(), NULL, 10));
+        int countartists = std::stoi(strValue);
         if (countartists == 0)
           return true;
       }
@@ -7893,7 +7894,7 @@ bool CMusicDatabase::GetAlbumFolder(const CAlbum& album, const std::string &strA
   std::string strValue = GetSingleValue(strSQL, m_pDS2);
   if (strValue.empty())
     return false;
-  int countalbum = static_cast<int>(strtol(strValue.c_str(), NULL, 10));
+  int countalbum = std::stoi(strValue);
   if (countalbum > 1 && !album.strMusicBrainzAlbumID.empty())
   { // Only one of the duplicate albums can be without mbid
     strFolder += "_" + album.strMusicBrainzAlbumID.substr(0, 4);
@@ -7923,7 +7924,7 @@ bool CMusicDatabase::GetArtistFolderName(const std::string &strArtist, const std
   std::string strValue = GetSingleValue(strSQL, m_pDS2);
   if (strValue.empty())
     return false;
-  int countartist = static_cast<int>(strtol(strValue.c_str(), NULL, 10));
+  int countartist = std::stoi(strValue);
   if (countartist > 1)
     strFolder += "_" + strMusicBrainzArtistID.substr(0, 4);
   return !strFolder.empty();
@@ -8212,7 +8213,7 @@ bool CMusicDatabase::CheckSources(VECSOURCES& sources)
   }
 
   // Check number of entries matches
-  size_t total = static_cast<size_t>(strtol(GetSingleValue("SELECT COUNT(1) FROM source").c_str(), NULL, 10));
+  size_t total = std::stoi(GetSingleValue("SELECT COUNT(1) FROM source"));
   if (total != sources.size())
     return false;
 
@@ -9018,7 +9019,7 @@ bool CMusicDatabase::GetGenresJSON(CFileItemList& items, bool bSources)
 
 int CMusicDatabase::GetCompilationAlbumsCount()
 {
-  return strtol(GetSingleValue("album", "count(idAlbum)", "bCompilation = 1").c_str(), NULL, 10);
+  return std::stoi(GetSingleValue("album", "count(idAlbum)", "bCompilation = 1"));
 }
 
 int CMusicDatabase::GetSinglesCount()
@@ -9030,13 +9031,13 @@ int CMusicDatabase::GetSinglesCount()
 int CMusicDatabase::GetArtistCountForRole(int role)
 {
   std::string strSQL = PrepareSQL("SELECT COUNT(DISTINCT idartist) FROM song_artist WHERE song_artist.idRole = %i", role);
-  return strtol(GetSingleValue(strSQL).c_str(), NULL, 10);
+  return std::stoi(GetSingleValue(strSQL));
 }
 
 int CMusicDatabase::GetArtistCountForRole(const std::string& strRole)
 {
   std::string strSQL = PrepareSQL("SELECT COUNT(DISTINCT idartist) FROM song_artist JOIN role ON song_artist.idRole = role.idRole WHERE role.strRole LIKE '%s'", strRole.c_str());
-  return strtol(GetSingleValue(strSQL).c_str(), NULL, 10);
+  return std::stoi(GetSingleValue(strSQL));
 }
 
 bool CMusicDatabase::SetPathHash(const std::string &path, const std::string &hash)
@@ -10368,7 +10369,8 @@ bool CMusicDatabase::ImportSongHistory(const std::string& xmlFile, const int tot
     m_pDS->exec("CREATE INDEX idxHistSong ON HistSong(idSong)");
 
     // Log how many songs matched
-    int unmatched = static_cast<int>(strtol(GetSingleValue("SELECT COUNT(1) FROM HistSong WHERE idSong < 0", m_pDS).c_str(), nullptr, 10));
+    int unmatched =
+        std::stoi(GetSingleValue("SELECT COUNT(1) FROM HistSong WHERE idSong < 0", m_pDS));
     CLog::Log(LOGINFO, "{0}: Importing song history {1} of {2} songs matched", __FUNCTION__, total - unmatched,  total);
 
     if (progressDialog)

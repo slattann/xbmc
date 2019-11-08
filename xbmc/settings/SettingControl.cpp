@@ -300,7 +300,7 @@ bool CSettingControlRange::Deserialize(const TiXmlNode *node, bool update /* = f
     if (formatValue != nullptr)
     {
       if (StringUtils::IsInteger(formatValue))
-        m_valueFormatLabel = (int)strtol(formatValue, nullptr, 0);
+        m_valueFormatLabel = std::stoi(formatValue);
       else
       {
         m_valueFormat = formatValue;

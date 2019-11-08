@@ -903,8 +903,10 @@ bool CGUIDialogMediaFilter::GetMinMax(const std::string &table, const std::strin
 
   std::string strSQL = "SELECT %s FROM %s ";
 
-  min = static_cast<int>(strtol(db->GetSingleValue(db->PrepareSQL(strSQL, ("MIN(" + field + ")").c_str(), table.c_str()) + strSQLExtra).c_str(), NULL, 0));
-  max = static_cast<int>(strtol(db->GetSingleValue(db->PrepareSQL(strSQL, ("MAX(" + field + ")").c_str(), table.c_str()) + strSQLExtra).c_str(), NULL, 0));
+  min = std::stoi(db->GetSingleValue(
+      db->PrepareSQL(strSQL, ("MIN(" + field + ")").c_str(), table.c_str()) + strSQLExtra));
+  max = std::stoi(db->GetSingleValue(
+      db->PrepareSQL(strSQL, ("MAX(" + field + ")").c_str(), table.c_str()) + strSQLExtra));
 
   db->Close();
   delete db;
