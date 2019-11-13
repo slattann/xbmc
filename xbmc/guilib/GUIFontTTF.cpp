@@ -872,11 +872,16 @@ void CGUIFontTTFBase::RenderCharacter(float posX, float posY, const Character *c
   SVertex* v = &vertices[vertices.size() - 4];
   m_color = color;
 
-#if !defined(HAS_DX)
+#if defined(HAS_GL) || defined(HAS_GLES)
   unsigned char r = GET_R(color)
               , g = GET_G(color)
               , b = GET_B(color)
               , a = GET_A(color);
+#endif
+
+#if defined(HAS_VULKAN)
+  // todo
+  unsigned char r = 0, g = 0, b = 0, a = 0;
 #endif
 
   for(int i = 0; i < 4; i++)

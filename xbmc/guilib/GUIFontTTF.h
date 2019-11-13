@@ -193,6 +193,9 @@ private:
 #if defined(HAS_GL) || defined(HAS_GLES)
 #include "GUIFontTTFGL.h"
 #define CGUIFontTTF CGUIFontTTFGL
+#elif defined(HAS_VULKAN)
+#include "GUIFontTTFVulkan.h"
+#define CGUIFontTTF CGUIFontTTFVulkan
 #elif defined(HAS_DX)
 #include "GUIFontTTFDX.h"
 #define CGUIFontTTF CGUIFontTTFDX
