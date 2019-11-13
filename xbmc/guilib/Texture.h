@@ -19,6 +19,7 @@ class CTexture;
 class CGLTexture;
 class CPiTexture;
 class CDXTexture;
+class CVulkanTexture;
 
 enum class TEXTURE_SCALING
 {
@@ -142,4 +143,7 @@ protected:
 #elif defined(HAS_DX)
 #include "TextureDX.h"
 #define CTexture CDXTexture
+#elif defined(HAS_VULKAN)
+#include "TextureVulkan.h"
+#define CTexture CTextureVulkan
 #endif
