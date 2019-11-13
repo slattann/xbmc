@@ -188,8 +188,10 @@ if(OPENGL_FOUND OR OPENGLES_FOUND)
 endif()
 
 if(CORE_PLATFORM_NAME_LC STREQUAL gbm)
-  list(APPEND SOURCES EGLImage.cpp)
-  list(APPEND HEADERS EGLImage.h)
+  if(EGL_FOUND)
+    list(APPEND SOURCES EGLImage.cpp)
+    list(APPEND HEADERS EGLImage.h)
+  endif()
 
   if(GBM_HAS_BO_MAP)
     list(APPEND SOURCES GBMBufferObject.cpp)
