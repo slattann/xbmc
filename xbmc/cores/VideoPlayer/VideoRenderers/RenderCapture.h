@@ -158,6 +158,29 @@ class CRenderCapture : public CRenderCaptureGL
     CRenderCapture() = default;
 };
 
+#elif defined(HAS_VULKAN)
+
+class CRenderCaptureVulkan : public CRenderCaptureBase
+{
+public:
+  CRenderCaptureVulkan() = default;
+  ~CRenderCaptureVulkan() override = default;
+
+  int GetCaptureFormat() { return 0; }
+
+  void BeginRender() {}
+  void EndRender() {}
+  void ReadOut() {}
+};
+
+//used instead of typedef CRenderCaptureGL CRenderCapture
+//since C++ doesn't allow you to forward declare a typedef
+class CRenderCapture : public CRenderCaptureVulkan
+{
+public:
+  CRenderCapture() = default;
+};
+
 #elif HAS_DX /*HAS_GL*/
 
 class CRenderCaptureDX : public CRenderCaptureBase, public ID3DResource
