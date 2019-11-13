@@ -40,6 +40,13 @@ if(OPENGL_FOUND)
                       FrameBufferObject.h)
 endif()
 
+if (VULKAN_FOUND)
+  list(APPEND SOURCES OverlayRendererVulkan.cpp
+                      RendererVulkan.cpp)
+  list(APPEND HEADERS OverlayRendererVulkan.h
+                      RendererVulkan.h)
+endif()
+
 if(OPENGLES_FOUND AND (CORE_PLATFORM_NAME_LC STREQUAL android OR
                        CORE_PLATFORM_NAME_LC STREQUAL ios OR
                        CORE_PLATFORM_NAME_LC STREQUAL gbm OR
