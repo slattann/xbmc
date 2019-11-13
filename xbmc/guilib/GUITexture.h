@@ -167,5 +167,8 @@ protected:
 #elif defined(HAS_DX)
 #include "GUITextureD3D.h"
 #define CGUITexture CGUITextureD3D
+#elif defined(HAS_VULKAN)
+#include "GUITextureVulkan.h"
+#define CGUITexture CGUITextureVulkan
 #endif
 
