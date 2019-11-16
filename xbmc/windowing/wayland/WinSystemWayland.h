@@ -213,7 +213,7 @@ private:
 
   // Windowed mode
   // -------------
-  std::unique_ptr<CWindowDecorator> m_windowDecorator;
+  // std::unique_ptr<CWindowDecorator> m_windowDecorator;
 
   // Cursor
   // ------

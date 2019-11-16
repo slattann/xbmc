@@ -37,7 +37,13 @@ public:
    * \param class_ class of the surface, which should match the name of the
    *               .desktop file of the application
    */
-  CShellSurfaceXdgShell(IShellSurfaceHandler& handler, wayland::display_t& display, wayland::xdg_wm_base_t const& shell, wayland::surface_t const& surface, std::string const& title, std::string const& class_);
+  CShellSurfaceXdgShell(IShellSurfaceHandler& handler,
+                        wayland::display_t& display,
+                        wayland::xdg_wm_base_t const& shell,
+                        wayland::surface_t const& surface,
+                        const wayland::zxdg_decoration_manager_v1_t& decorationManager,
+                        std::string const& title,
+                        std::string const& class_);
   ~CShellSurfaceXdgShell() noexcept override;
 
   static CShellSurfaceXdgShell* TryCreate(IShellSurfaceHandler& handler, CConnection& connection, wayland::surface_t const& surface, std::string const& title, std::string const& class_);
@@ -63,6 +69,8 @@ private:
   wayland::surface_t m_surface;
   wayland::xdg_surface_t m_xdgSurface;
   wayland::xdg_toplevel_t m_xdgToplevel;
+  wayland::zxdg_decoration_manager_v1_t m_decorationManager;
+  wayland::zxdg_toplevel_decoration_v1_t m_decoration;
 
   CSizeInt m_configuredSize;
   StateBitset m_configuredState;

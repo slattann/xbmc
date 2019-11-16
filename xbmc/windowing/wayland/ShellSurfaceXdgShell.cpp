@@ -38,13 +38,16 @@ IShellSurface::State ConvertStateFlag(wayland::xdg_toplevel_state flag)
 CShellSurfaceXdgShell* CShellSurfaceXdgShell::TryCreate(IShellSurfaceHandler& handler, CConnection& connection, const wayland::surface_t& surface, std::string const& title, std::string const& class_)
 {
   wayland::xdg_wm_base_t shell;
+  wayland::zxdg_decoration_manager_v1_t decorationManager;
   CRegistry registry{connection};
   registry.RequestSingleton(shell, 1, 1, false);
+  registry.RequestSingleton(decorationManager, 1, 1);
   registry.Bind();
 
   if (shell)
   {
-    return new CShellSurfaceXdgShell(handler, connection.GetDisplay(), shell, surface, title, class_);
+    return new CShellSurfaceXdgShell(handler, connection.GetDisplay(), shell, surface,
+                                     decorationManager, title, class_);
   }
   else
   {
@@ -52,8 +55,21 @@ CShellSurfaceXdgShell* CShellSurfaceXdgShell::TryCreate(IShellSurfaceHandler& ha
   }
 }
 
-CShellSurfaceXdgShell::CShellSurfaceXdgShell(IShellSurfaceHandler& handler, wayland::display_t& display, const wayland::xdg_wm_base_t& shell, const wayland::surface_t& surface, std::string const& title, std::string const& app_id)
-: m_handler{handler}, m_display{display}, m_shell{shell}, m_surface{surface}, m_xdgSurface{m_shell.get_xdg_surface(m_surface)}, m_xdgToplevel{m_xdgSurface.get_toplevel()}
+CShellSurfaceXdgShell::CShellSurfaceXdgShell(
+    IShellSurfaceHandler& handler,
+    wayland::display_t& display,
+    const wayland::xdg_wm_base_t& shell,
+    const wayland::surface_t& surface,
+    const wayland::zxdg_decoration_manager_v1_t& decorationManager,
+    std::string const& title,
+    std::string const& app_id)
+  : m_handler{handler},
+    m_display{display},
+    m_shell{shell},
+    m_surface{surface},
+    m_xdgSurface{m_shell.get_xdg_surface(m_surface)},
+    m_xdgToplevel{m_xdgSurface.get_toplevel()},
+    m_decorationManager{decorationManager}
 {
   m_shell.on_ping() = [this](std::uint32_t serial)
   {
@@ -80,6 +96,11 @@ CShellSurfaceXdgShell::CShellSurfaceXdgShell(IShellSurfaceHandler& handler, wayl
   m_xdgToplevel.set_title(title);
   // Set sensible minimum size
   m_xdgToplevel.set_min_size(300, 200);
+
+  m_decoration = m_decorationManager.get_toplevel_decoration(m_xdgToplevel);
+  m_decoration.on_configure() = [this](wayland::zxdg_toplevel_decoration_v1_mode mode) {
+    m_decoration.set_mode(mode);
+  };
 }
 
 void CShellSurfaceXdgShell::Initialize()

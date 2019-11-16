@@ -196,6 +196,7 @@ bool CWinSystemWayland::InitWindowSystem()
   m_registry->RequestSingleton(m_compositor, 1, 4);
   m_registry->RequestSingleton(m_shm, 1, 1);
   m_registry->RequestSingleton(m_presentation, 1, 1, false);
+  // m_registry->RequestSingleton(m_decorationManager, 1, 1);
   // version 2 adds done() -> required
   // version 3 adds destructor -> optional
   m_registry->Request<wayland::output_t>(2, 3, std::bind(&CWinSystemWayland::OnOutputAdded, this, _1, _2), std::bind(&CWinSystemWayland::OnOutputRemoved, this, _1));
@@ -297,7 +298,7 @@ bool CWinSystemWayland::CreateNewWindow(const std::string& name,
     }
   };
 
-  m_windowDecorator.reset(new CWindowDecorator(*this, *m_connection, m_surface));
+  //m_windowDecorator.reset(new CWindowDecorator(*this, *m_connection, m_surface));
 
   m_seatInputProcessing.reset(new CSeatInputProcessing(m_surface, *this));
   m_seatRegistry.reset(new CRegistry{*m_connection});
@@ -322,15 +323,15 @@ bool CWinSystemWayland::CreateNewWindow(const std::string& name,
   UpdateSizeVariables({res.iWidth, res.iHeight}, m_scale, m_shellSurfaceState, false);
 
   m_shellSurface.reset(CShellSurfaceXdgShell::TryCreate(*this, *m_connection, m_surface, name, KODI::LINUX::DESKTOP_FILE_NAME));
-  if (!m_shellSurface)
-  {
-    m_shellSurface.reset(CShellSurfaceXdgShellUnstableV6::TryCreate(*this, *m_connection, m_surface, name, KODI::LINUX::DESKTOP_FILE_NAME));
-  }
-  if (!m_shellSurface)
-  {
-    CLog::LogF(LOGWARNING, "Compositor does not support xdg_shell protocol (stable or unstable v6) - falling back to wl_shell, not all features might work");
-    m_shellSurface.reset(new CShellSurfaceWlShell(*this, *m_connection, m_surface, name, KODI::LINUX::DESKTOP_FILE_NAME));
-  }
+  // if (!m_shellSurface)
+  // {
+  //   m_shellSurface.reset(CShellSurfaceXdgShellUnstableV6::TryCreate(*this, *m_connection, m_surface, name, KODI::LINUX::DESKTOP_FILE_NAME));
+  // }
+  // if (!m_shellSurface)
+  // {
+  //   CLog::LogF(LOGWARNING, "Compositor does not support xdg_shell protocol (stable or unstable v6) - falling back to wl_shell, not all features might work");
+  //   m_shellSurface.reset(new CShellSurfaceWlShell(*this, *m_connection, m_surface, name, KODI::LINUX::DESKTOP_FILE_NAME));
+  // }
 
   if (fullScreen)
   {
@@ -353,7 +354,7 @@ bool CWinSystemWayland::CreateNewWindow(const std::string& name,
   m_shellSurfaceInitializing = false;
 
   // Apply window decorations if necessary
-  m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
+  // m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
 
   // Set initial opaque region and window geometry
   ApplyOpaqueRegion();
@@ -402,7 +403,7 @@ bool CWinSystemWayland::DestroyWindow()
   m_shellSurface.reset();
   // waylandpp automatically calls wl_surface_destroy when the last reference is removed
   m_surface = wayland::surface_t();
-  m_windowDecorator.reset();
+  // m_windowDecorator.reset();
   m_seats.clear();
   m_lastSetOutput.proxy_release();
   m_surfaceOutputs.clear();
@@ -644,8 +645,8 @@ void CWinSystemWayland::ApplySizeUpdate(SizeUpdateInformation update)
   if (update.configuredSizeChanged)
   {
     // Update window decoration state
-    m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
-    ApplyWindowGeometry();
+    // m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
+    // ApplyWindowGeometry();
   }
   // Set always, because of initialization order GL context has to keep track of
   // whether the size changed. If we skip based on update.bufferSizeChanged here,
@@ -664,7 +665,7 @@ void CWinSystemWayland::ApplyOpaqueRegion()
 
 void CWinSystemWayland::ApplyWindowGeometry()
 {
-  m_shellSurface->SetWindowGeometry(m_windowDecorator->GetWindowGeometry());
+  // m_shellSurface->SetWindowGeometry(m_windowDecorator->GetWindowGeometry());
 }
 
 void CWinSystemWayland::ProcessMessages()
@@ -778,7 +779,7 @@ void CWinSystemWayland::ProcessMessages()
 
 void CWinSystemWayland::ApplyShellSurfaceState(IShellSurface::StateBitset state)
 {
-  m_windowDecorator->SetState(m_configuredSize, m_scale, state);
+  // m_windowDecorator->SetState(m_configuredSize, m_scale, state);
   m_shellSurfaceState = state;
 }
 
@@ -964,12 +965,12 @@ CWinSystemWayland::Sizes CWinSystemWayland::CalculateSizes(CSizeInt size, int sc
   if (sizeIncludesDecoration)
   {
     result.configuredSize = size;
-    result.surfaceSize = m_windowDecorator->CalculateMainSurfaceSize(size, state);
+    // result.surfaceSize = m_windowDecorator->CalculateMainSurfaceSize(size, state);
   }
   else
   {
     result.surfaceSize = size;
-    result.configuredSize = m_windowDecorator->CalculateFullSurfaceSize(size, state);
+    // result.configuredSize = m_windowDecorator->CalculateFullSurfaceSize(size, state);
   }
 
   result.bufferSize = result.surfaceSize * scale;
@@ -1124,7 +1125,7 @@ void CWinSystemWayland::OnSeatAdded(std::uint32_t name, wayland::proxy_t&& proxy
 
   auto& seatInst = newSeatEmplace.first->second;
   m_seatInputProcessing->AddSeat(&seatInst);
-  m_windowDecorator->AddSeat(&seatInst);
+  // m_windowDecorator->AddSeat(&seatInst);
 }
 
 void CWinSystemWayland::OnSeatRemoved(std::uint32_t name)
@@ -1135,7 +1136,7 @@ void CWinSystemWayland::OnSeatRemoved(std::uint32_t name)
   if (seatI != m_seats.end())
   {
     m_seatInputProcessing->RemoveSeat(&seatI->second);
-    m_windowDecorator->RemoveSeat(&seatI->second);
+    // m_windowDecorator->RemoveSeat(&seatI->second);
     m_seats.erase(name);
   }
 }
@@ -1261,7 +1262,7 @@ void CWinSystemWayland::ApplyBufferScale()
 {
   CLog::LogF(LOGINFO, "Setting Wayland buffer scale to %d", m_scale);
   m_surface.set_buffer_scale(m_scale);
-  m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
+  // m_windowDecorator->SetState(m_configuredSize, m_scale, m_shellSurfaceState);
   m_seatInputProcessing->SetCoordinateScale(m_scale);
 }
 
