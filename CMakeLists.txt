@@ -140,7 +140,6 @@ set(optional_deps Alsa
                   CCache
                   CEC
                   ClangFormat
-                  DBus
                   LCMS2
                   LircClient
                   MDNS
