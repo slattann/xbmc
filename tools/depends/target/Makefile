@@ -64,10 +64,10 @@ endif
 WAYLANDPP_DEPS=
 ALSA_LIB=
 ifeq ($(OS),linux)
-  DEPENDS += sdbuscpp libuuid
+  DEPENDS += libuuid
   #not for raspberry pi
   ifneq ($(TARGET_PLATFORM),raspberry-pi)
-    DEPENDS += linux-system-libs
+    DEPENDS += sdbuscpp linux-system-libs
     WAYLANDPP_DEPS += linux-system-libs
   endif
   DEPENDS += alsa-lib
@@ -118,6 +118,7 @@ libinput: mtdev libevdev
 libevdev: libudev
 samba-gplv3: gnutls
 taglib: $(ZLIB)
+sdbuscpp: linux-system-libs
 
 .installed-$(PLATFORM): $(DEPENDS)
 	touch $@
