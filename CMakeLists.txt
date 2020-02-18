@@ -128,6 +128,7 @@ set(required_deps ASS
                   Sqlite3
                   TagLib
                   TinyXML
+                  Tz
                   ZLIB
                   ${PLATFORM_REQUIRED_DEPS})
 
