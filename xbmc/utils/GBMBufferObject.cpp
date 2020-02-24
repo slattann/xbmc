@@ -42,6 +42,14 @@ bool CGBMBufferObject::CreateBufferObject(int format, int width, int height)
   m_width = width;
   m_height = height;
 
+  switch (format)
+  {
+    case GBM_FORMAT_NV12:
+    case GBM_FORMAT_YUV420:
+      m_height = height + (height >> 1);
+      format = GBM_FORMAT_R8;
+  }
+
   m_bo = gbm_bo_create(m_device, m_width, m_height, format, GBM_BO_USE_LINEAR);
 
   if (!m_bo)
