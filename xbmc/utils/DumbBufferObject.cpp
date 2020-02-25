@@ -54,6 +54,11 @@ bool CDumbBufferObject::CreateBufferObject(int format, int width, int height)
 
   switch (format)
   {
+    case DRM_FORMAT_NV12:
+    case DRM_FORMAT_YUV420:
+      bpp = 8;
+      m_height = height + (height >> 1);
+      break;
     case DRM_FORMAT_ARGB1555:
     case DRM_FORMAT_RGB565:
       bpp = 16;
