@@ -6,32 +6,33 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "RenderBufferGBM.h"
+#include "RenderBufferDMA.h"
 
 #include "ServiceBroker.h"
 #include "utils/BufferObject.h"
 #include "utils/EGLImage.h"
-#include "windowing/gbm/WinSystemGbmEGLContext.h"
+#include "windowing/WinSystem.h"
+#include "windowing/linux/WinSystemEGL.h"
 
-using namespace KODI::WINDOWING::GBM;
+using namespace KODI::WINDOWING::LINUX;
 using namespace KODI;
 using namespace RETRO;
 
-CRenderBufferGBM::CRenderBufferGBM(CRenderContext& context, int fourcc)
+CRenderBufferDMA::CRenderBufferDMA(CRenderContext& context, int fourcc)
   : m_context(context),
     m_fourcc(fourcc),
     m_egl(new CEGLImage(
-        static_cast<CWinSystemGbmEGLContext*>(CServiceBroker::GetWinSystem())->GetEGLDisplay())),
+        dynamic_cast<CWinSystemEGL*>(CServiceBroker::GetWinSystem())->GetEGLDisplay())),
     m_bo(CBufferObject::GetBufferObject())
 {
 }
 
-CRenderBufferGBM::~CRenderBufferGBM()
+CRenderBufferDMA::~CRenderBufferDMA()
 {
   DeleteTexture();
 }
 
-bool CRenderBufferGBM::Allocate(AVPixelFormat format, unsigned int width, unsigned int height)
+bool CRenderBufferDMA::Allocate(AVPixelFormat format, unsigned int width, unsigned int height)
 {
   // Initialize IRenderBuffer
   m_format = format;
@@ -43,22 +44,22 @@ bool CRenderBufferGBM::Allocate(AVPixelFormat format, unsigned int width, unsign
   return true;
 }
 
-size_t CRenderBufferGBM::GetFrameSize() const
+size_t CRenderBufferDMA::GetFrameSize() const
 {
   return m_bo->GetStride() * m_height;
 }
 
-uint8_t *CRenderBufferGBM::GetMemory()
+uint8_t* CRenderBufferDMA::GetMemory()
 {
   return m_bo->GetMemory();
 }
 
-void CRenderBufferGBM::ReleaseMemory()
+void CRenderBufferDMA::ReleaseMemory()
 {
   m_bo->ReleaseMemory();
 }
 
-void CRenderBufferGBM::CreateTexture()
+void CRenderBufferDMA::CreateTexture()
 {
   glGenTextures(1, &m_textureId);
 
@@ -72,7 +73,7 @@ void CRenderBufferGBM::CreateTexture()
   glBindTexture(m_textureTarget, 0);
 }
 
-bool CRenderBufferGBM::UploadTexture()
+bool CRenderBufferDMA::UploadTexture()
 {
   if (m_bo->GetFd() < 0)
     return false;
@@ -106,7 +107,7 @@ bool CRenderBufferGBM::UploadTexture()
   return true;
 }
 
-void CRenderBufferGBM::DeleteTexture()
+void CRenderBufferDMA::DeleteTexture()
 {
   if (glIsTexture(m_textureId))
     glDeleteTextures(1, &m_textureId);
