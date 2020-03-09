@@ -23,7 +23,7 @@ extern "C"
 #include <libavcodec/avcodec.h>
 }
 
-#define DUMB_BUFFER_NV12 0
+#define DUMB_BUFFER_NV12 1
 
 using namespace KODI::WINDOWING::GBM;
 

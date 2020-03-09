@@ -31,8 +31,6 @@ extern "C"
 
 #define DUMB_BUFFER_EXPORT 0
 
-using namespace KODI::WINDOWING::GBM;
-
 CDVDVideoCodecDRMPRIME::CDVDVideoCodecDRMPRIME(CProcessInfo& processInfo)
   : CDVDVideoCodec(processInfo)
 {
@@ -187,10 +185,18 @@ bool CDVDVideoCodecDRMPRIME::Open(CDVDStreamInfo& hints, CDVDCodecOptions& optio
   if (pConfig && (pConfig->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) &&
       pConfig->device_type == AV_HWDEVICE_TYPE_DRM)
   {
-    CWinSystemGbm* winSystem = dynamic_cast<CWinSystemGbm*>(CServiceBroker::GetWinSystem());
+    std::string renderNode{"/dev/dri/renderD128"};
+#if defined(HAS_GBM)
+    auto winSystem = CServiceBroker::GetWinSystem();
+    if (dynamic_cast<KODI::WINDOWING::GBM::CWinSystemGbm*>(winSystem))
+    {
+      auto winSystemGbm = dynamic_cast<KODI::WINDOWING::GBM::CWinSystemGbm*>(winSystem);
+      renderNode = drmGetDeviceNameFromFd2(winSystemGbm->GetDrm()->GetFileDescriptor());
+    }
+#endif
+
     if (av_hwdevice_ctx_create(&m_pCodecContext->hw_device_ctx, AV_HWDEVICE_TYPE_DRM,
-                               drmGetDeviceNameFromFd2(winSystem->GetDrm()->GetFileDescriptor()),
-                               nullptr, 0) < 0)
+                               renderNode.c_str(), nullptr, 0) < 0)
     {
       CLog::Log(LOGNOTICE, "CDVDVideoCodecDRMPRIME::{} - unable to create hwdevice context",
                 __FUNCTION__);
