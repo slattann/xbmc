@@ -88,6 +88,12 @@ check_include_files("linux/memfd.h" HAVE_LINUX_MEMFD)
 if(HAVE_LINUX_MEMFD)
   list(APPEND ARCH_DEFINES "-DHAVE_LINUX_MEMFD=1")
 endif()
+
+check_include_files("linux/udmabuf.h" HAVE_LINUX_UDMABUF)
+if(HAVE_LINUX_UDMABUF)
+  list(APPEND ARCH_DEFINES "-DHAVE_LINUX_UDMABUF=1")
+endif()
+
 include(CheckSymbolExists)
 set(CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
 check_symbol_exists("mkostemp" "stdlib.h" HAVE_MKOSTEMP)
