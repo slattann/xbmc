@@ -100,6 +100,7 @@ else()
     if(NOT CORE_SYSTEM_NAME MATCHES windows)
       set(DVDCSS_LIBRARY ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdcss.a)
       ExternalProject_Add(dvdcss URL ${LIBDVDCSS_URL}
+                                  URL_HASH SHA256=38816f8373e243bc5950449b4f3b18938c4e1c59348e3411e23f31db4072e40d
                                   DOWNLOAD_NAME libdvdcss-${libdvdcss_VER}.tar.gz
                                   DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/download
                                   PREFIX ${CORE_BUILD_DIR}/libdvd
@@ -142,6 +143,7 @@ else()
   if(NOT CORE_SYSTEM_NAME MATCHES windows)
     set(DVDREAD_LIBRARY ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdread.a)
     ExternalProject_Add(dvdread URL ${LIBDVDREAD_URL}
+                                URL_HASH SHA256=a30b6aa0aad0f2c505bc77948af2d5531a80b6e68112addb4c123fca24d5d3bf
                                 DOWNLOAD_NAME libdvdread-${libdvdread_VER}.tar.gz
                                 DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/download
                                 PREFIX ${CORE_BUILD_DIR}/libdvd
@@ -186,6 +188,7 @@ else()
   if(NOT CORE_SYSTEM_NAME MATCHES windows)
     set(DVDNAV_LIBRARY ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/libdvd/lib/libdvdnav.a)
     ExternalProject_Add(dvdnav URL ${LIBDVDNAV_URL}
+                                URL_HASH SHA256=071e414e61b795f2ff9015b21a85fc009dde967f27780d23092643916538a57a
                                 DOWNLOAD_NAME libdvdnav-${libdvdnav_VER}.tar.gz
                                 DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/download
                                 PREFIX ${CORE_BUILD_DIR}/libdvd

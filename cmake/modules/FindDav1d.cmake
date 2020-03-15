@@ -54,6 +54,7 @@ if(ENABLE_INTERNAL_DAV1D)
 
   externalproject_add(dav1d
                       URL ${DAV1D_URL}
+                      URL_HASH SHA256=66c3e831a93f074290a72aad5da907e3763ecb092325f0250a841927b3d30ce3
                       DOWNLOAD_NAME dav1d-${DAV1D_VER}.tar.gz
                       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/download
                       PREFIX ${CORE_BUILD_DIR}/dav1d

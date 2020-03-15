@@ -250,6 +250,7 @@ if(NOT FFMPEG_FOUND)
 
   externalproject_add(ffmpeg
                       URL ${FFMPEG_URL}
+                      URL_HASH SHA256=0dba571f9809588cfbdc29d6a551dab4cd5736701653d9263847c9ac67bcde86
                       DOWNLOAD_NAME ffmpeg-${FFMPEG_VER}.tar.gz
                       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/download
                       PREFIX ${CORE_BUILD_DIR}/ffmpeg
