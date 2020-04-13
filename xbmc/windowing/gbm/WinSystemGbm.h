@@ -46,6 +46,7 @@ public:
   bool CanDoWindowed() override { return false; }
   void UpdateResolutions() override;
 
+  bool UseScalingFilter() override; 
   bool UseLimitedColor() override;
 
   bool Hide() override;

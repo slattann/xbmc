@@ -36,6 +36,11 @@
         <setting id="videoscreen.screen">
           <visible>false</visible>
         </setting>
+        <setting id="videoscreen.scalingfilter" type="boolean" label="39119" help="39120">
+          <level>3</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
         <setting id="videoscreen.limitedrange" type="boolean" label="36042" help="36359">
           <level>3</level>
           <default>false</default>

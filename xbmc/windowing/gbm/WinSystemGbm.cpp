@@ -233,6 +233,13 @@ void CWinSystemGbm::FlipPage(bool rendered, bool videoLayer)
     m_videoLayerBridge.reset();
   }
 }
+/*Adding support for Selecting Integer Scaling filter for PiXel Art Games based
+ * on Setting: "Setting->System->Display->Integer_scaling_Filter"
+ */
+bool CWinSystemGbm::UseScalingFilter()
+{
+  return CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_VIDEOSCREEN_SCALING_FILTER);
+}
 
 bool CWinSystemGbm::UseLimitedColor()
 {

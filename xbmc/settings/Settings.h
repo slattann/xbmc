@@ -386,6 +386,7 @@ public:
   static const int VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_TVSHOWEPISODES = 1;
   static const int VIDEOLIBRARY_THUMB_SHOW_UNWATCHED_EPISODE = 2;
 
+  static const std::string SETTING_VIDEOSCREEN_SCALING_FILTER;
   /*!
    \brief Creates a new settings wrapper around a new settings manager.
 

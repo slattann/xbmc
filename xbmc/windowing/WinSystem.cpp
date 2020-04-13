@@ -209,6 +209,11 @@ REFRESHRATE CWinSystemBase::DefaultRefreshRate(std::vector<REFRESHRATE> rates)
   return bestmatch;
 }
 
+bool CWinSystemBase::UseScalingFilter()
+{
+  return false;
+}
+
 bool CWinSystemBase::UseLimitedColor()
 {
   return false;

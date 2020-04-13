@@ -418,6 +418,7 @@ const std::string CSettings::SETTING_SOURCE_VIDEOS = "source.videos";
 const std::string CSettings::SETTING_SOURCE_MUSIC = "source.music";
 const std::string CSettings::SETTING_SOURCE_PICTURES = "source.pictures";
 
+const std::string CSettings::SETTING_VIDEOSCREEN_SCALING_FILTER="videoscreen.scalingfilter";
 bool CSettings::Initialize()
 {
   CSingleLock lock(m_critical);
