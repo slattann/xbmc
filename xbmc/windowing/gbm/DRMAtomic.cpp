@@ -90,8 +90,8 @@ void CDRMAtomic::DrmAtomicCommit(int fb_id, int flags, bool rendered, bool video
       }
       else
       {
-	 AddProperty(object, "CRTC_W",m_mode->hdisplay);
-	 AddProperty(object, "CRTC_H", m_mode->vdisplay); 
+	 AddProperty(m_gui_plane, "CRTC_W",m_mode->hdisplay);
+	 AddProperty(m_gui_plane, "CRTC_H", m_mode->vdisplay); 
       }
     }
 
